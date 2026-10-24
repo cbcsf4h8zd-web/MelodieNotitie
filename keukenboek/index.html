@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Keukenboek</title>
+<meta name="apple-mobile-web-app-title" content="Keukenboek">
+<meta name="application-name" content="Keukenboek">
+<meta name="theme-color" content="#2E6A3E">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root{--bg:#2E6A3E;--ink:#F4F1E6;--muted:#CFE0D2;--gold:#E2553A}
+  html,body{height:100%;margin:0}
+  body{background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px 16px;box-sizing:border-box}
+  main{max-width:360px;text-align:center}
+  img{width:132px;height:132px;border-radius:30px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  h1{font-size:1.7rem;margin:18px 0 6px}
+  p{color:var(--muted);margin:0 0 18px}
+  a.go{display:block;background:var(--gold);color:#FFFFFF;text-decoration:none;font-weight:700;border-radius:14px;padding:14px}
+  ol{text-align:left;color:var(--muted);padding-left:20px;margin:22px 0 0}
+  ol li{margin:6px 0}
+</style>
+</head>
+<body>
+<main>
+  <img src="icon-180.png" alt="">
+  <h1>Keukenboek</h1>
+  <p id="msg">Recepten, weekmenu en boodschappen.</p>
+  <a class="go" id="go" href="https://claude.ai/artifact/1PMpNQLUJYrXtnTmgnCpKX">Open Keukenboek</a>
+  <ol id="uitleg">
+    <li>Tik onderin Safari op de deelknop.</li>
+    <li>Kies "Zet op beginscherm".</li>
+    <li>Tik op "Voeg toe".</li>
+  </ol>
+</main>
+<script>
+  // Opgestart vanaf het beginscherm (?open=1): meteen door naar de app.
+  var APP="https://claude.ai/artifact/1PMpNQLUJYrXtnTmgnCpKX";
+  if(/[?&]open=1/.test(location.search)){
+    document.getElementById("msg").textContent="Keukenboek wordt geopend...";
+    document.getElementById("uitleg").style.display="none";
+    location.replace(APP);
+  }else{
+    // Zo bewaart "Zet op beginscherm" het adres mét ?open=1.
+    try{history.replaceState(null,"",location.pathname+"?open=1")}catch(e){}
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A7D4B"/><stop offset="1" stop-color="#245733"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <!-- steam -->
+  <g fill="none" stroke="#F4F1E6" stroke-width="20" stroke-linecap="round" opacity=".9">
+    <path d="M196 196c-22-26 22-44 0-74"/>
+    <path d="M256 186c-22-26 22-44 0-74"/>
+    <path d="M316 196c-22-26 22-44 0-74"/>
+  </g>
+  <!-- lid -->
+  <rect x="236" y="214" width="40" height="22" rx="10" fill="#E2553A"/>
+  <path d="M120 262c0-18 14-28 32-28h208c18 0 32 10 32 28z" fill="#F4F1E6"/>
+  <!-- pot body -->
+  <path d="M132 276h248v74c0 40-30 66-70 66H202c-40 0-70-26-70-66z" fill="#F4F1E6"/>
+  <!-- handles -->
+  <rect x="86" y="292" width="58" height="26" rx="13" fill="#F4F1E6"/>
+  <rect x="368" y="292" width="58" height="26" rx="13" fill="#F4F1E6"/>
+  <!-- band -->
+  <rect x="132" y="318" width="248" height="22" fill="#E2553A"/>
+</svg>
