@@ -15,20 +15,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-/* Layout: één kolom als een muziekstandaard — invoer bovenaan, partituur in het midden, toetsenbord en uitvoer eronder */
+/* Layout: één kolom als een muziekstandaard — opname bovenaan, partituur en oefenen in het midden, invoer, meespelen en delen eronder */
 :root{
   --bg:#f4f5f7; --paper:#ffffff; --ink:#16181d; --muted:#5b6170; --line:#dcdfe5;
   --felt:#8e2a3b; --felt-soft:#f6e7ea; --rh:#2b5c8a; --lh:#8e2a3b; --key:#ffffff; --keyb:#16181d;
+  --good:#2f7a4f; --good-soft:#e3f1e8; --bad:#b4442a;
   --f-display:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111318; --paper:#1a1d24; --ink:#e9eaee; --muted:#9ca2b0; --line:#2d313b;
-  --felt:#e3899a; --felt-soft:#3a2229; --rh:#86b3e0; --lh:#e3899a; --key:#eceef2; --keyb:#0a0b0e; color-scheme:dark}}
+  --felt:#e3899a; --felt-soft:#3a2229; --rh:#86b3e0; --lh:#e3899a; --key:#eceef2; --keyb:#0a0b0e;
+  --good:#7fcf9c; --good-soft:#1d3326; --bad:#f08a6c; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111318; --paper:#1a1d24; --ink:#e9eaee; --muted:#9ca2b0; --line:#2d313b;
-  --felt:#e3899a; --felt-soft:#3a2229; --rh:#86b3e0; --lh:#e3899a; --key:#eceef2; --keyb:#0a0b0e; color-scheme:dark}
+  --felt:#e3899a; --felt-soft:#3a2229; --rh:#86b3e0; --lh:#e3899a; --key:#eceef2; --keyb:#0a0b0e;
+  --good:#7fcf9c; --good-soft:#1d3326; --bad:#f08a6c; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
@@ -45,9 +48,8 @@ button:disabled{opacity:.45;cursor:default}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 
 header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;border-bottom:1px solid var(--line);padding-bottom:10px}
-.brand{font-family:var(--f-display);font-size:2.1rem;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1}
+.brand{font-family:var(--f-display);font-size:2.1rem;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1;display:flex;align-items:center;gap:10px}
 .brand i{color:var(--felt);font-style:italic}
-.brand{display:flex;align-items:center;gap:10px}
 .logo{width:40px;height:40px;flex:none;border-radius:9px}
 .sub{margin:0;color:var(--muted);font-size:.88rem}
 
@@ -62,7 +64,7 @@ header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-be
 .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--felt);transition:width .2s}
 .status{margin:0;font-size:.9rem;color:var(--muted);min-height:1.3em}
-.status.err{color:var(--felt)}
+.status.err{color:var(--bad)}
 
 .titlerow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
 #title{flex:1 1 220px;min-width:0;font-family:var(--f-display);font-size:1.6rem;font-weight:700;border:none;background:none;border-bottom:1px dashed transparent;padding:2px 0}
@@ -75,9 +77,15 @@ header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-be
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .note{margin:0;font-size:.82rem;color:var(--muted)}
 .note button{min-height:32px;padding:2px 10px;font-size:.82rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips button{border-radius:999px;min-height:38px;padding:4px 12px;font-size:.86rem}
+.chips .grp{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:2px 2px 2px 12px;font-size:.86rem;color:var(--muted)}
+.chips .grp button{min-width:38px;min-height:34px;padding:0 10px;border:none}
+.chips .grp b{min-width:2.2em;text-align:center;color:var(--ink);font-variant-numeric:tabular-nums}
 
-.sheet{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 2px;overflow-x:auto;color:#16181d;min-height:140px}
+.sheet{background:#fff;border:1px solid var(--line);border-radius:12px;padding:6px 2px;overflow:auto;max-height:70vh;color:#16181d;min-height:140px;position:relative}
 .sheet svg{display:block;max-width:none}
+.sheet .mn-now{fill:#8e2a3b!important;stroke:#8e2a3b}
 .hands{display:flex;gap:14px;font-size:.8rem;color:var(--muted);align-items:center;flex-wrap:wrap}
 .dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
@@ -88,6 +96,11 @@ header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-be
 .roll{width:100%;height:150px;display:block;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
 .play{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .play .wide{grid-column:1/-1}
+.practice{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;padding:10px;border-radius:12px;background:var(--bg)}
+.practice label{display:flex;flex-direction:column;gap:2px;font-size:.74rem;color:var(--muted);font-weight:600}
+.practice input,.practice select{min-height:40px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--paper)}
+.practice input{width:64px;font-variant-numeric:tabular-nums}
+.practice button{min-height:40px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .row > *{flex:1 1 150px}
 
@@ -105,18 +118,41 @@ header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-be
 .black{position:absolute;top:0;height:58%;background:var(--keyb);border:1px solid var(--keyb);border-radius:0 0 6px 6px;z-index:2;padding:0;min-height:0}
 .black:active,.black.hit{background:var(--felt)}
 .octlabel{text-align:center;font-size:.75rem;color:var(--muted)}
+
+.score{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:12px;border-radius:12px;background:var(--good-soft)}
+.score b{font-family:var(--f-display);font-size:2rem;line-height:1;color:var(--good)}
+.score span{color:var(--ink)}
+.mist{margin:0;padding-left:18px;font-size:.86rem;color:var(--muted)}
+.mist li{margin:2px 0}
+
+.list{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.list li{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 12px;border:1px solid var(--line);border-radius:10px}
+.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.list .d{font-size:.78rem;color:var(--muted);font-weight:400}
+.list button{min-height:38px;padding:4px 10px;font-size:.86rem}
+.list .sure{background:var(--bad);border-color:var(--bad);color:#fff}
 details summary{cursor:pointer;font-weight:600;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
 details summary::-webkit-details-marker{display:none}
 details summary::after{content:"+";font-size:1.3rem;color:var(--muted)}
 details[open] summary::after{content:"−"}
 textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:10px}
 .ex{font-size:.75rem;color:var(--felt);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+.sharebox{display:flex;gap:6px}
+.sharebox input{flex:1;min-width:0;font-family:var(--f-mono);font-size:.78rem;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media print{
+  body{background:#fff;padding:0}
+  .wrap > *:not(#scorepanel){display:none!important}
+  #scorepanel{border:none;padding:0}
+  #scorepanel > *:not(.sheet):not(.titlerow){display:none!important}
+  .titlerow select{display:none}
+  .sheet{border:none;max-height:none;overflow:visible}
+}
 </style>
 
 <div class="wrap">
   <header>
-    <p class="brand"><img class="logo" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%2270%2020%20240%20240%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22sq%22%3E%3Crect%20x%3D%2270%22%20y%3D%2220%22%20width%3D%22240%22%20height%3D%22240%22%20rx%3D%2254%22/%3E%3C/clipPath%3E%3C/defs%3E%3Cg%20clip-path%3D%22url%28%23sq%29%22%3E%3Crect%20x%3D%2270%22%20y%3D%2220%22%20width%3D%22240%22%20height%3D%22240%22%20fill%3D%22%238e2a3b%22/%3E%3Cg%20stroke%3D%22%23f6e7ea%22%20stroke-width%3D%222%22%20opacity%3D%220.35%22%3E%3Cline%20x1%3D%2296%22%20y1%3D%2262%22%20x2%3D%22284%22%20y2%3D%2262%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%2276%22%20x2%3D%22284%22%20y2%3D%2276%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%2290%22%20x2%3D%22284%22%20y2%3D%2290%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%22104%22%20x2%3D%22284%22%20y2%3D%22104%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%22118%22%20x2%3D%22284%22%20y2%3D%22118%22/%3E%3C/g%3E%3Cg%20fill%3D%22%23fbf6ee%22%3E%3Cellipse%20cx%3D%22150%22%20cy%3D%22140%22%20rx%3D%2215%22%20ry%3D%2211%22%20transform%3D%22rotate%28-22%20150%20140%29%22/%3E%3Cellipse%20cx%3D%22226%22%20cy%3D%22124%22%20rx%3D%2215%22%20ry%3D%2211%22%20transform%3D%22rotate%28-22%20226%20124%29%22/%3E%3Crect%20x%3D%22160%22%20y%3D%2264%22%20width%3D%225%22%20height%3D%2274%22/%3E%3Crect%20x%3D%22236%22%20y%3D%2250%22%20width%3D%225%22%20height%3D%2272%22/%3E%3Cpolygon%20points%3D%22160%2C62%20241%2C48%20241%2C62%20160%2C76%22/%3E%3C/g%3E%3Crect%20x%3D%2270%22%20y%3D%22190%22%20width%3D%22240%22%20height%3D%2270%22%20fill%3D%22%23fbf6ee%22/%3E%3Cg%20fill%3D%22%238e2a3b%22%3E%3Crect%20x%3D%22102.8%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22137.1%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22171.4%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22205.7%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22240%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22274.3%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3C/g%3E%3Cg%20fill%3D%22%2316181d%22%3E%3Crect%20x%3D%2294%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22128.5%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22197%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22231.5%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22266%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3C/g%3E%3Crect%20x%3D%2270%22%20y%3D%22186%22%20width%3D%22240%22%20height%3D%225%22%20fill%3D%22%2316181d%22/%3E%3C/g%3E%3C/svg%3E" alt="" width="40" height="40">Melodie<i>Notitie</i></p>
+    <p class="brand"><img class="logo" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%2270%2020%20240%20240%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22sq%22%3E%3Crect%20x%3D%2270%22%20y%3D%2220%22%20width%3D%22240%22%20height%3D%22240%22%20rx%3D%2254%22/%3E%3C/clipPath%3E%3C/defs%3E%3Cg%20clip-path%3D%22url%28%23sq%29%22%3E%3Crect%20x%3D%2270%22%20y%3D%2220%22%20width%3D%22240%22%20height%3D%22240%22%20fill%3D%22%238e2a3b%22/%3E%3Cg%20stroke%3D%22%23f6e7ea%22%20stroke-width%3D%222%22%20opacity%3D%220.35%22%3E%3Cline%20x1%3D%2296%22%20y1%3D%2262%22%20x2%3D%22284%22%20y2%3D%2262%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%2276%22%20x2%3D%22284%22%20y2%3D%2276%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%2290%22%20x2%3D%22284%22%20y2%3D%2290%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%22104%22%20x2%3D%22284%22%20y2%3D%22104%22/%3E%3Cline%20x1%3D%2296%22%20y1%3D%22118%22%20x2%3D%22284%22%20y2%3D%22118%22/%3E%3C/g%3E%3Cg%20fill%3D%22%23fbf6ee%22%3E%3Cellipse%20cx%3D%22150%22%20cy%3D%22140%22%20rx%3D%2215%22%20ry%3D%2211%22%20transform%3D%22rotate%28-22%20150%20140%29%22/%3E%3Cellipse%20cx%3D%22226%22%20cy%3D%22124%22%20rx%3D%2215%22%20ry%3D%2211%22%20transform%3D%22rotate%28-22%20226%20124%29%22/%3E%3Crect%20x%3D%22160%22%20y%3D%2264%22%20width%3D%225%22%20height%3D%2274%22/%3E%3Crect%20x%3D%22236%22%20y%3D%2250%22%20width%3D%225%22%20height%3D%2272%22/%3E%3Cpolygon%20points%3D%22160%2C62%20241%2C48%20241%2C62%20160%2C76%22/%3E%3C/g%3E%3Crect%20x%3D%2270%22%20y%3D%22190%22%20width%3D%22240%22%20height%3D%2270%22%20fill%3D%22%23fbf6ee%22/%3E%3Cg%20fill%3D%22%238e2a3b%22%3E%3Crect%20x%3D%22102.8%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22137.1%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22171.4%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22205.7%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22240%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3Crect%20x%3D%22274.3%22%20y%3D%22190%22%20width%3D%223%22%20height%3D%2270%22/%3E%3C/g%3E%3Cg%20fill%3D%22%2316181d%22%3E%3Crect%20x%3D%2294%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22128.5%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22197%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22231.5%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3Crect%20x%3D%22266%22%20y%3D%22190%22%20width%3D%2220%22%20height%3D%2242%22%20rx%3D%223%22/%3E%3C/g%3E%3Crect%20x%3D%2270%22%20y%3D%22186%22%20width%3D%22240%22%20height%3D%225%22%20fill%3D%22%2316181d%22/%3E%3C/g%3E%3C/svg%3E" alt="" width="40" height="40"><span>Melodie<i>Notitie</i></span></p>
     <p class="sub">Speel, film of kies een opname. De noten komen op papier.</p>
   </header>
 
@@ -137,7 +173,7 @@ textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;
     <p class="status" id="status" role="status"></p>
   </section>
 
-  <section class="panel" aria-labelledby="title">
+  <section class="panel" id="scorepanel" aria-labelledby="title">
     <div class="titlerow">
       <input id="title" aria-label="Titel van het stuk" value="Ode an die Freude">
       <label class="keypick"><span class="vh">Toonsoort</span><select id="keysel" aria-label="Toonsoort"></select></label>
@@ -146,11 +182,18 @@ textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;
     <div class="meta">
       <label>Tempo ♩<input type="number" id="bpm" min="30" max="240" value="100"></label>
       <label>Maat<select id="beats"><option value="4">4/4</option><option value="3">3/4</option><option value="2">2/4</option><option value="6">6/4</option></select></label>
+      <label>Opmaat<select id="pickup"></select></label>
       <label>Raster<select id="grid"><option value="1">16de noten</option><option value="2">8ste noten</option></select></label>
-      <label>Splitspunt<select id="split"></select></label>
+      <label>Handen<select id="split"></select></label>
       <label>Klank<select id="inst"><option value="piano">Piano</option><option value="epiano">Elektrische piano</option><option value="orgel">Orgel</option><option value="strijkers">Strijkers</option><option value="marimba">Marimba</option></select></label>
     </div>
-    <p class="note" id="lockinfo" hidden>Je hebt noten bewerkt, dus tempo, maat en raster veranderen nu alleen het afspelen. <button id="relayout">Opnieuw indelen vanaf de opname</button></p>
+    <div class="chips" role="group" aria-label="Weergave">
+      <button id="o-chords" class="on" aria-pressed="true">Akkoordnamen</button>
+      <button id="o-pedal" class="on" aria-pressed="true">Pedaal</button>
+      <button id="o-melody" aria-pressed="false">Alleen melodie</button>
+      <span class="grp">Transponeer<button id="tr-down" aria-label="Halve toon lager">−</button><b id="trval">0</b><button id="tr-up" aria-label="Halve toon hoger">+</button></span>
+    </div>
+    <p class="note" id="lockinfo" hidden>Je hebt noten bewerkt, dus tempo en raster veranderen nu alleen het afspelen. <button id="relayout">Opnieuw indelen vanaf de opname</button></p>
     <div class="hands"><span><i class="dot" style="background:var(--rh)"></i>Rechterhand · vioolsleutel</span><span><i class="dot" style="background:var(--lh)"></i>Linkerhand · bassleutel</span><span>Tik op een noot om hem te bewerken.</span></div>
     <div class="sheet" id="sheet"></div>
     <div class="sel" id="sel" hidden>
@@ -166,10 +209,38 @@ textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;
       <button id="s-close" aria-label="Selectie sluiten">✕</button>
     </div>
     <canvas class="roll" id="roll" aria-label="Pianorol: elke balk is een noot"></canvas>
+    <div class="practice" role="group" aria-label="Oefenen">
+      <label>Snelheid<select id="speed"><option value="1">100%</option><option value="0.9">90%</option><option value="0.75">75%</option><option value="0.6">60%</option><option value="0.5">50%</option></select></label>
+      <label>Van maat<input type="number" id="from" min="1" value="1"></label>
+      <label>t/m maat<input type="number" id="to" min="1" value="1"></label>
+      <button id="loop" aria-pressed="false">Herhalen</button>
+      <button id="metro" aria-pressed="false">Metronoom</button>
+      <button id="countin" aria-pressed="false">Aftellen</button>
+    </div>
     <div class="play">
       <button id="playnotes" class="primary big">▶ Speel de noten</button>
       <button id="playsrc" class="big">▶ Origineel</button>
       <button id="playboth" class="wide">▶ Samen: noten en origineel door elkaar</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-test">
+    <p class="label" id="h-test">Speel mee</p>
+    <p class="note">De app speelt de gekozen maten voor. Daarna speel jij ze na, en de app laat zien welke noten goed waren.</p>
+    <div class="seg" role="group" aria-label="Welke hand">
+      <button id="t-both" class="on">Beide handen</button>
+      <button id="t-R">Rechterhand</button>
+      <button id="t-L">Linkerhand</button>
+    </div>
+    <div class="play">
+      <button id="t-listen" class="big">▶ Voorspelen</button>
+      <button id="t-rec" class="primary big">● Speel na</button>
+      <label class="filebtn wide" id="t-filewrap" hidden><input type="file" id="t-file" accept="audio/*,video/*"><span>Kies je opname van het naspelen</span></label>
+    </div>
+    <div id="t-result" hidden>
+      <div class="score"><b id="t-pct">0%</b><span id="t-sum"></span></div>
+      <ul class="mist" id="t-mist"></ul>
+      <p class="note">In de pianorol zie je groen voor goed en rood voor gemist.</p>
     </div>
   </section>
 
@@ -202,15 +273,20 @@ textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;
   <section class="panel" aria-labelledby="h-out">
     <p class="label" id="h-out">Bewaren en delen</p>
     <div class="row">
-      <button id="save">Bewaar in Mijn stukken</button>
-      <select id="pieces" aria-label="Mijn stukken"><option value="">Mijn stukken…</option></select>
+      <button id="save" class="primary">Bewaar in Mijn stukken</button>
     </div>
+    <ul class="list" id="pieces"></ul>
     <div class="row">
+      <button id="share">Deel als link</button>
+      <button id="print" hidden>Afdrukken of PDF</button>
       <button id="copy">Kopieer bladmuziek</button>
+    </div>
+    <div class="sharebox" id="sharebox" hidden><input id="sharelink" readonly aria-label="Link naar dit stuk"><button id="sharecopy">Kopieer</button></div>
+    <div class="row">
       <button id="dl-svg" class="dl">Bewaar als afbeelding</button>
       <button id="dl-zip" class="dl">Bewaar voor GarageBand / MuseScore</button>
     </div>
-    <p class="note">Het pakketje bevat een MIDI-bestand (opent in GarageBand, MuseScore en Logic) en de bladmuziek als tekst.</p>
+    <p class="note">Het pakketje bevat een MIDI-bestand (opent in GarageBand, MuseScore en Logic) en de bladmuziek als tekst. Je werk wordt op dit apparaat automatisch bewaard.</p>
     <details>
       <summary>Bladmuziek als tekst (ABC)</summary>
       <textarea id="abctext" readonly aria-label="Bladmuziek als ABC-tekst"></textarea>
@@ -307,6 +383,7 @@ var MN = (function () {
     }
     return s;
   }
+  var RING = (typeof process !== 'undefined' && process.env.RING) ? +process.env.RING : 4;
   function multiPitch(D, N, sr, floor) {
     D = Float32Array.from(D);
     const found = [], banned = []; let s0 = 0;
@@ -373,16 +450,20 @@ var MN = (function () {
       const recent = new Set(events.filter(e => e.t > ons[i].t - 2.5).map(e => e.p));
       for (const p of recent) {
         if (ps.includes(p)) continue;
+        if (salience(befores[i], p, N, sr) < RING * floor) continue; // klinkt nauwelijks meer: een nieuwe aanslag zou gewoon gevonden worden
         const f0 = midiHz(p); let ea = 0, eb = 0;
-        let used = 0;
+        let used = 0, r1 = 0, h1free = false;
         for (let h = 1; h <= 6; h++) {
           const fr = h * f0;
           // sla boventonen over die ook bij een nieuw aangeslagen noot horen
           if (ps.some(q => { const g = midiHz(q); for (let k = 1; k <= 12; k++) if (Math.abs(k * g - fr) < fr * 0.03) return true; return false; })) continue;
-          const bin = partialBin(f0, h, N, sr), tol = Math.max(1, bin * 0.02);
-          ea += strictPeak(afters[i], bin); eb += strictPeak(befores[i], bin); used++;
+          const bin = partialBin(f0, h, N, sr);
+          const a1 = strictPeak(afters[i], bin), b1 = strictPeak(befores[i], bin);
+          if (h === 1) { h1free = true; r1 = b1 > 0 ? a1 / b1 : (a1 > 0 ? 99 : 0); }
+          ea += a1; eb += b1; used++;
         }
-        let restruck = used >= 2 && ea > 2 * eb;
+        // grondtoon flink harder geworden terwijl de boventonen samenvallen met "nieuwe" noten: opnieuw aangeslagen
+        let restruck = (used >= 2 && ea > 2 * eb) || (h1free && used < 2 && r1 > 2.2);
         if (!restruck && used < 2 && ps.includes(p - 12)) {
           // alle boventonen vallen samen met de noot een octaaf lager: vergelijk met wat die lagere noot zelf zou geven
           const g = midiHz(p - 12), D = diffs[i]; let rs = 0, c = 0;
@@ -396,8 +477,10 @@ var MN = (function () {
         if (restruck && salience(afters[i], p, N, sr) > 2 * floor) {
           ps.push(p);
           if (typeof process !== 'undefined' && process.env.MNDBG) console.log('  herhaald', p, (ea/eb).toFixed(2));
-          const up = ps.indexOf(p + 12); // de boventoon van de herhaalde noot is geen aparte noot
-          if (up >= 0 && !recent.has(p + 12)) ps.splice(up, 1);
+          for (const iv of [12, 19, 24]) { // boventonen van de herhaalde noot zijn geen aparte noten
+            const up = ps.indexOf(p + iv);
+            if (up >= 0 && !recent.has(p + iv)) ps.splice(up, 1);
+          }
         }
       }
       for (const p of ps) { events.push({ t: ons[i].t, p }); needed.add(p); }
@@ -449,7 +532,8 @@ var MN = (function () {
 })();
 if (typeof module !== "undefined") module.exports = MN;
 </script>
-<script>/* MelodieNotitie — muzieklogica: indelen in maten, toonsoort, ABC-notatie, MIDI, zip */
+<script>/* MelodieNotitie — muzieklogica: ritme (tempo, tellen, maatsoort, opmaat), indelen in maten,
+   handen en stemmen, toonsoort, akkoordnamen, ABC-notatie, MIDI, zip, delen */
 var ML = (function () {
   const MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
   const MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
@@ -457,18 +541,16 @@ var ML = (function () {
   const LET = ["C", "D", "E", "F", "G", "A", "B"];
   const TONIC = { 0: ["C", 0], 7: ["G", 0], 2: ["D", 0], 9: ["A", 0], 4: ["E", 0], 11: ["B", 0], 6: ["F", 1], 5: ["F", 0], 10: ["B", -1], 3: ["E", -1], 8: ["A", -1], 1: ["D", -1] };
   const SHARPKEYS = [0, 7, 2, 9, 4, 11, 6];
-  const NL = { C: "C", D: "D", E: "E", F: "F", G: "G", A: "A", B: "B" };
   const accName = (l, a) => l + (a === 1 ? "is" : a === -1 ? (l === "E" || l === "A" ? "s" : l === "B" ? "" : "es") : "");
   function keyLabel(tonicPc, minor) {
     const [l, a] = TONIC[minor ? (tonicPc + 3) % 12 : tonicPc];
     if (!minor) { const n = l === "B" && a === -1 ? "Bes" : accName(l, a); return n + "-groot"; }
-    // naam van de mineurtonica
     const sp = spellTable((tonicPc + 3) % 12)[tonicPc];
     const n = sp[0] === "B" && sp[1] === -1 ? "bes" : accName(sp[0], sp[1]).toLowerCase();
     return n + "-klein";
   }
   function spellTable(majTonic) {
-    const [tl, ta] = TONIC[majTonic];
+    const [tl] = TONIC[majTonic];
     const li = LET.indexOf(tl), steps = [0, 2, 4, 5, 7, 9, 11];
     const tab = {}, sigAlt = {};
     steps.forEach((st, i) => {
@@ -489,8 +571,9 @@ var ML = (function () {
   }
   function detectKey(notes) {
     const h = new Array(12).fill(0);
-    for (const n of notes) h[n.p % 12] += Math.sqrt(n.len || 1);
-    if (notes.length < 6) return { maj: 0, minor: false, label: "C-groot", abc: "C" };
+    let cnt = 0;
+    for (const n of notes) if (!n.rest) { h[n.p % 12] += Math.sqrt(n.len || 1); cnt++; }
+    if (cnt < 6) return { maj: 0, minor: false, tonic: 0, label: "C-groot", abc: "C" };
     const corr = (prof, r) => { let mx = 0, my = 0; for (let i = 0; i < 12; i++) { mx += h[i]; my += prof[i]; } mx /= 12; my /= 12; let a = 0, b = 0, c = 0; for (let i = 0; i < 12; i++) { const x = h[(i + r) % 12] - mx, y = prof[i] - my; a += x * y; b += x * x; c += y * y; } return a / Math.sqrt(b * c || 1); };
     let best = -2, bt = 0, bm = false;
     for (let r = 0; r < 12; r++) { const a = corr(MAJ, r), b = corr(MIN, r); if (a > best) { best = a; bt = r; bm = false; } if (b > best) { best = b; bt = r; bm = true; } }
@@ -503,37 +586,270 @@ var ML = (function () {
     const [l, a] = TONIC[maj];
     return { maj, minor, tonic, label: keyLabel(tonic, minor), abc: l + (a === 1 ? "#" : a === -1 ? "b" : "") };
   }
+  function transposeKey(k, d) { if (!k || k === "auto") return k; const [m, t] = k.split(":"); return m + ":" + (((+t + d) % 12) + 12) % 12; }
   function keyOptions() { const o = []; for (const t of [0, 7, 2, 9, 4, 11, 6, 5, 10, 3, 8, 1]) o.push(["maj:" + t, keyLabel(t, false)]); for (const t of [9, 4, 11, 6, 1, 8, 3, 2, 7, 0, 5, 10]) o.push(["min:" + t, keyLabel(t, true)]); return o; }
   function spell(p, tab) {
-    const [l, a] = tab[p % 12];
+    const [l, a] = tab[((p % 12) + 12) % 12];
     const oct = Math.floor((p - a) / 12) - 1;
     return { l, a, oct };
   }
   function abcPitch(l, oct) { return oct >= 5 ? l.toLowerCase() + "'".repeat(oct - 5) : l + ",".repeat(Math.max(0, 4 - oct)); }
 
-  /* ruwe noten (seconden) → stuk in zestienden */
-  function quantize(raw, bpm, grid, split) {
-    const unit = 60 / bpm / 4;
-    if (!raw.length) return [];
-    const t0 = Math.min(...raw.map(n => n.t));
-    const out = [];
-    for (const n of raw) {
-      const s = Math.round((n.t - t0) / unit / grid) * grid;
-      const len = Math.max(grid, Math.round(n.d / unit / grid) * grid);
-      if (!out.some(o => o.s === s && o.p === n.p)) out.push({ s, len, p: n.p, h: n.p >= split ? "R" : "L" });
+  /* ================= ritme: tellen vinden ================= */
+  const FPS = 100;
+  function onsetGroups(raw) {
+    const sorted = raw.slice().sort((a, b) => a.t - b.t);
+    const g = [];
+    for (const n of sorted) {
+      const last = g[g.length - 1];
+      if (last && n.t - last.t < 0.035) { last.ps.push(n.p); last.v = Math.max(last.v, n.v || 0.7); last.d = Math.max(last.d, n.d); }
+      else g.push({ t: n.t, ps: [n.p], v: n.v || 0.7, d: n.d });
     }
-    return out.sort((a, b) => a.s - b.s || a.p - b.p);
+    return g;
   }
-  function events(notes, h) {
+  function envelope(groups, len) {
+    const env = new Float32Array(len);
+    for (const g of groups) {
+      const i = Math.round(g.t * FPS); if (i < 0 || i >= len) continue;
+      const bass = Math.min(...g.ps) < 55 ? 0.6 : 0;
+      const w = g.v * (1 + 0.25 * (g.ps.length - 1) + bass) * (1 + 0.4 * Math.min(1, Math.log(1 + g.d)));
+      for (let k = -3; k <= 3; k++) { const j = i + k; if (j >= 0 && j < len) env[j] += w * Math.exp(-k * k / 4); }
+    }
+    let m = 0, s = 0; for (const v of env) m += v; m /= len || 1; for (const v of env) s += (v - m) * (v - m); s = Math.sqrt(s / (len || 1)) || 1;
+    for (let i = 0; i < len; i++) env[i] /= s;
+    return env;
+  }
+  function tempoPeriod(env0) {
+    // breder uitsmeren zodat wisselend tempo (rubato) de pieken niet uitvlakt
+    const env = new Float32Array(env0.length);
+    for (let i = 0; i < env0.length; i++) { let s = 0, w = 0; for (let k = -8; k <= 8; k++) { const j = i + k; if (j >= 0 && j < env0.length) { const g = Math.exp(-k * k / 32); s += env0[j] * g; w += g; } } env[i] = s / w; }
+    const ac = new Float32Array(320);
+    for (let L = 20; L < 320; L++) { let s = 0; for (let i = L; i < env.length; i++) s += env[i] * env[i - L]; ac[L] = s / (env.length - L); }
+    let best = 60, bs = -1e9;
+    for (let L = 30; L <= 150; L++) {
+      const bpm = 60 * FPS / L, prior = Math.exp(-0.5 * Math.pow(Math.log2(bpm / 105) / 0.85, 2));
+      const sc = (ac[L] + 0.5 * (ac[2 * L] || 0) + 0.25 * (ac[Math.round(L / 2)] || 0)) * prior;
+      if (sc > bs) { bs = sc; best = L; }
+    }
+    // verfijn rond de piek
+    let fine = best, fs = -1e9;
+    for (let L = best - 2; L <= best + 2; L++) if (ac[L] > fs) { fs = ac[L]; fine = L; }
+    return fine;
+  }
+  function trackBeats(env, P, first, last) {
+    const n = env.length, score = new Float32Array(n), back = new Int32Array(n).fill(-1), tight = 100;
+    for (let t = 0; t < n; t++) {
+      let best = -1e9, bi = -1;
+      for (let tau = t - Math.round(2 * P); tau <= t - Math.round(P / 2); tau++) {
+        if (tau < 0) continue;
+        const v = score[tau] - tight * Math.pow(Math.log((t - tau) / P), 2);
+        if (v > best) { best = v; bi = tau; }
+      }
+      score[t] = env[t] + (bi >= 0 ? Math.max(0, best) : 0);
+      back[t] = bi >= 0 && best > 0 ? bi : -1;
+    }
+    let end = n - 1, bs = -1e9;
+    for (let t = Math.max(0, n - Math.round(P) - 1); t < n; t++) if (score[t] > bs) { bs = score[t]; end = t; }
+    const beats = [];
+    for (let t = end; t >= 0; t = back[t]) { beats.push(t / FPS); if (back[t] < 0) break; }
+    beats.reverse();
+    const per = P / FPS;
+    // begin precies op de eerste aanslag; vul aan tot voorbij het einde
+    const out = beats.filter(b => b > first + per * 0.3);
+    out.unshift(first);
+    while (out.length > 1 && out[1] - out[0] < per * 0.55) out.splice(1, 1);
+    // gaten dichten (gemiste tellen)
+    for (let i = 1; i < out.length; i++) { const d = out[i] - out[i - 1]; if (d > per * 1.6) { const k = Math.round(d / per); const st = d / k; for (let j = 1; j < k; j++) out.splice(i - 1 + j, 0, out[i - 1] + st * j); i += k - 1; } }
+    while (out[out.length - 1] < last + per) out.push(out[out.length - 1] + per);
+    return out;
+  }
+  function beatPos(beats, t) {
+    const n = beats.length;
+    if (t <= beats[0]) { const p = beats[1] - beats[0]; return (t - beats[0]) / p; }
+    if (t >= beats[n - 1]) { const p = beats[n - 1] - beats[n - 2]; return n - 1 + (t - beats[n - 1]) / p; }
+    let lo = 0, hi = n - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (beats[m] <= t) lo = m; else hi = m; }
+    return lo + (t - beats[lo]) / (beats[lo + 1] - beats[lo]);
+  }
+  function beatTime(beats, b) {
+    const n = beats.length;
+    if (b <= 0) return beats[0] + b * (beats[1] - beats[0]);
+    if (b >= n - 1) return beats[n - 1] + (b - n + 1) * (beats[n - 1] - beats[n - 2]);
+    const i = Math.floor(b); return beats[i] + (b - i) * (beats[i + 1] - beats[i]);
+  }
+  function meterAnalysis(groups, beats, forceMeter) {
+    const acc = new Float32Array(beats.length), per = (beats[beats.length - 1] - beats[0]) / (beats.length - 1);
+    for (const g of groups) {
+      const b = beatPos(beats, g.t), i = Math.round(b);
+      if (i < 0 || i >= beats.length || Math.abs(b - i) > 0.2) continue;
+      const bass = Math.min(...g.ps);
+      acc[i] += g.v * (0.6 + 0.3 * g.ps.length) * (bass < 55 ? 1.8 : 1) * (1 + Math.min(2, g.d / per) * 0.5);
+    }
+    const res = {};
+    for (const m of [2, 3, 4]) {
+      let best = -1e9, bp = 0, sc0 = 0;
+      const mean = acc.reduce((x, y) => x + y, 0) / (acc.length || 1) || 1;
+      for (let ph = 0; ph < m; ph++) {
+        let a = 0, ac = 0, o = 0, oc = 0;
+        for (let i = 0; i < acc.length; i++) { if ((i - ph) % m === 0) { a += acc[i]; ac++; } else { o += acc[i]; oc++; } }
+        let sc = ((ac ? a / ac : 0) - (oc ? o / oc : 0)) / mean;
+        if (ph === 0) sc0 = sc;
+        else if (sc < sc0 + 0.15 * Math.abs(sc0) + 0.12) sc -= 1; // een opmaat moet duidelijk beter passen
+        if (sc > best) { best = sc; bp = ph; }
+      }
+      res[m] = { score: best, phase: bp };
+    }
+    if (typeof process !== "undefined" && process.env.MNDBG) console.log("meter", JSON.stringify(res));
+    let meter = forceMeter || (res[3].score > Math.max(res[4].score, res[2].score) * 1.1 && res[3].score > 0.08 ? 3 : 4);
+    const r = res[meter] || res[4];
+    const phase = meter === 4 && !forceMeter ? (res[4].score >= res[2].score * 0.9 ? res[4].phase : res[2].phase % 4) : (r ? r.phase : 0);
+    return { meter, phase: (r && r.score < 0.3) ? 0 : phase }; // zwak bewijs: geen opmaat gokken
+  }
+  /* volledige ritmeanalyse van ruwe noten (seconden) */
+  function analyze(raw, opts) {
+    opts = opts || {};
+    const groups = onsetGroups(raw);
+    if (groups.length < 3) { const bpm = opts.bpm || 90, per = 60 / bpm, first = groups.length ? groups[0].t : 0; const beats = []; for (let i = 0; i < 64; i++) beats.push(first + i * per); return { bpm, beats, meter: opts.meter || 4, phase: 0 }; }
+    const first = groups[0].t, last = Math.max(...groups.map(g => g.t + g.d));
+    const len = Math.ceil((last + 2) * FPS);
+    const env = envelope(groups, len);
+    const P = opts.bpm ? 60 * FPS / opts.bpm : tempoPeriod(env);
+    const beats = trackBeats(env, P, first, last);
+    const ints = []; for (let i = 1; i < beats.length; i++) ints.push(beats[i] - beats[i - 1]);
+    ints.sort((a, b) => a - b);
+    const bpm = opts.bpm || Math.round(60 / ints[ints.length >> 1]);
+    const m = meterAnalysis(groups, beats, opts.meter);
+    return { bpm, beats, meter: m.meter, phase: m.phase };
+  }
+
+  /* ================= indelen in maten ================= */
+  function assignHands(notes, split) {
+    if (split) { for (const n of notes) if (!n.handFixed && !n.rest) n.h = n.p >= split ? "R" : "L"; return; }
     const by = new Map();
-    for (const n of notes) if (n.h === h) { if (!by.has(n.s)) by.set(n.s, []); by.get(n.s).push(n); }
-    const ev = [...by.entries()].sort((a, b) => a[0] - b[0]).map(([s, ns]) => ({ s, ps: [...new Set(ns.map(n => n.p))].sort((a, b) => a - b), len: Math.max(...ns.map(n => n.len)), fixed: ns.some(n => n.fixed) }));
-    for (let i = 0; i < ev.length - 1; i++) {
-      const gap = ev[i + 1].s - ev[i].s;
-      ev[i].len = ev[i].fixed ? Math.min(ev[i].len, gap) : (gap - ev[i].len <= 4 ? gap : Math.min(ev[i].len, gap)); // kleine gaatjes dichten (legato)
+    for (const n of notes) if (!n.rest) { if (!by.has(n.s)) by.set(n.s, []); by.get(n.s).push(n); }
+    let cL = 50, cR = 67;
+    for (const s of [...by.keys()].sort((a, b) => a - b)) {
+      const g = by.get(s).sort((a, b) => a.p - b.p);
+      const free = g.filter(n => !n.handFixed);
+      const fixedL = g.filter(n => n.handFixed && n.h === "L").map(n => n.p), fixedR = g.filter(n => n.handFixed && n.h === "R").map(n => n.p);
+      let bestK = 0, bc = 1e9;
+      for (let k = 0; k <= free.length; k++) {
+        const L = free.slice(0, k).map(n => n.p).concat(fixedL), R = free.slice(k).map(n => n.p).concat(fixedR);
+        const span = a => a.length ? Math.max(...a) - Math.min(...a) : 0;
+        let c = Math.max(0, span(L) - 12) * 3 + Math.max(0, span(R) - 12) * 3 + Math.max(0, span(L) - 14) * 10 + Math.max(0, span(R) - 14) * 10;
+        c += Math.max(0, L.length - 5) * 20 + Math.max(0, R.length - 5) * 20;
+        for (const p of L) c += Math.abs(p - cL) * 0.12 + (p >= 67 ? 1.5 : 0);
+        for (const p of R) c += Math.abs(p - cR) * 0.12 + (p < 53 ? 1.5 : 0);
+        if (L.length && R.length && Math.max(...L) > Math.min(...R)) c += 50;
+        if (c < bc) { bc = c; bestK = k; }
+      }
+      free.forEach((n, i) => { n.h = i < bestK ? "L" : "R"; });
+      const Ls = g.filter(n => n.h === "L").map(n => n.p), Rs = g.filter(n => n.h === "R").map(n => n.p);
+      if (Ls.length) cL = 0.65 * cL + 0.35 * (Ls.reduce((a, b) => a + b, 0) / Ls.length);
+      if (Rs.length) cR = 0.65 * cR + 0.35 * (Rs.reduce((a, b) => a + b, 0) / Rs.length);
+      if (cR - cL < 8) { const mid = (cR + cL) / 2; cR = mid + 4; cL = mid - 4; }
     }
-    return ev;
   }
+  function markPedal(notes) {
+    for (const h of ["R", "L"]) {
+      const hs = notes.filter(n => n.h === h && !n.rest).sort((a, b) => a.s - b.s);
+      const starts = [...new Set(hs.map(n => n.s))];
+      for (const n of hs) {
+        const nx = starts.find(s => s > n.s);
+        if (nx !== undefined && n.len > (nx - n.s) + 4) { n.ov = true; n.len = nx - n.s; }
+        else n.ov = false;
+      }
+    }
+  }
+  /* ruwe noten + ritme → stuk in zestienden. Geeft ook terug hoe tijd en positie samenhangen. */
+  function quantize(raw, an, grid, split, meter, pickupForce) {
+    if (!raw.length) return { notes: [], pickup: 0, shift: 0 };
+    const M = meter * 4;
+    const pos = raw.map(n => ({ n, b: beatPos(an.beats, n.t), e: beatPos(an.beats, n.t + n.d) }));
+    let phase = an.meter === meter ? an.phase : 0;
+    let pickup = phase ? phase * 4 : 0;
+    if (pickupForce != null) { pickup = pickupForce; phase = pickup / 4; }
+    const shift = -Math.round(phase * 4) + (pickup ? M : 0);
+    const out = [], seen = new Set();
+    for (const { n, b, e } of pos) {
+      const s = Math.round(b * 4 / grid) * grid + shift;
+      const end = Math.round(e * 4 / grid) * grid + shift;
+      const key = s + ":" + n.p;
+      if (seen.has(key)) continue; seen.add(key);
+      out.push({ s: Math.max(0, s), len: Math.max(grid, end - s), p: n.p, h: "R" });
+    }
+    assignHands(out, split);
+    markPedal(out);
+    return { notes: out.sort((a, b) => a.s - b.s || a.p - b.p), pickup, shift };
+  }
+  /* positie (zestienden) → tijd in de opname */
+  function unitToTime(raw, u) { return beatTime(raw.beats, (u - raw.shift) / 4); }
+
+  /* ================= stemmen per hand ================= */
+  function voices(notes, h) {
+    const hs = notes.filter(n => n.h === h && !n.rest).sort((a, b) => a.s - b.s || a.p - b.p);
+    const by = new Map();
+    for (const n of hs) { if (!by.has(n.s)) by.set(n.s, []); by.get(n.s).push(n); }
+    const starts = [...by.keys()];
+    const v1 = [], v2 = [];
+    let v2end = -1;
+    starts.forEach((s, i) => {
+      const g = by.get(s), gap = i + 1 < starts.length ? starts[i + 1] - s : Infinity;
+      const long = g.filter(n => n.fixed && n.len > gap), short = g.filter(n => !(n.fixed && n.len > gap));
+      if (long.length) {
+        if (v2.length && v2end > s) { const last = v2[v2.length - 1]; last.len = s - last.s; }
+        v2.push({ s, notes: long, len: Math.max(...long.map(n => n.len)) }); v2end = s + Math.max(...long.map(n => n.len));
+        long.forEach(n => n._v = 2);
+      }
+      if (short.length) { v1.push({ s, notes: short, len: Math.max(...short.map(n => n.len)), fixed: short.some(n => n.fixed) }); short.forEach(n => n._v = 1); }
+    });
+    for (let i = 0; i < v1.length - 1; i++) {
+      const gap = v1[i + 1].s - v1[i].s;
+      v1[i].len = v1[i].fixed ? Math.min(v1[i].len, gap) : (gap - v1[i].len <= 4 ? gap : Math.min(v1[i].len, gap));
+    }
+    for (let i = 0; i < v2.length - 1; i++) v2[i].len = Math.min(v2[i].len, v2[i + 1].s - v2[i].s);
+    for (const e of v1.concat(v2)) { e.ps = [...new Set(e.notes.map(n => n.p))].sort((a, b) => a - b); e.len = Math.max(1, e.len); }
+    return v2.length ? [v1, v2] : [v1];
+  }
+
+  /* ================= akkoordnamen ================= */
+  const CHORDS = [["", [0, 4, 7]], ["m", [0, 3, 7]], ["7", [0, 4, 7, 10]], ["maj7", [0, 4, 7, 11]], ["m7", [0, 3, 7, 10]], ["dim", [0, 3, 6]], ["sus4", [0, 5, 7]]];
+  function chordAt(notes, a, b, tab, beat) {
+    const w = new Array(12).fill(0); let bassP = 999, any = 0;
+    for (const n of notes) {
+      if (n.rest) continue;
+      const ov = Math.min(b, n.s + n.len) - Math.max(a, n.s);
+      if (ov <= 0) continue;
+      // lange noten en noten op de tel tellen zwaarder dan doorgangsnoten
+      const onBeat = n.s >= a && (n.s - a) % (beat || 4) === 0 ? 1.5 : 1;
+      w[n.p % 12] += Math.sqrt(ov) * onBeat * (n.h === "L" ? 1.4 : 1); any++;
+      if (n.p < bassP) bassP = n.p;
+    }
+    if (any < 2) return null;
+    const bass = bassP % 12;
+    w[bass] += 0.5 * Math.max(...w);
+    const tot = w.reduce((x, y) => x + y, 0);
+    let best = null, bs = 0.35 * tot;
+    for (let r = 0; r < 12; r++) for (const [name, iv] of CHORDS) {
+      if (w[r] < 0.12 * tot) continue;
+      const tones = iv.map(i => (r + i) % 12);
+      const third = tones[1];
+      if (name !== "sus4" && w[third] < 0.06 * tot) continue;
+      if (name === "sus4" && (w[(r + 3) % 12] + w[(r + 4) % 12] > 0.03 * tot || w[tones[1]] < 0.15 * tot || w[tones[2]] < 0.1 * tot)) continue;
+      if (iv.length === 4 && w[tones[3]] < 0.12 * tot) continue; // 7 alleen als hij echt klinkt
+      let inn = 0, out = 0;
+      for (let pc = 0; pc < 12; pc++) { if (tones.includes(pc)) inn += w[pc]; else out += w[pc]; }
+      const sc = inn - 0.9 * out - (iv.length - 3) * 0.08 * tot - (name === "sus4" || name === "dim" ? 0.08 * tot : 0) + (bass === r ? 0.3 * tot : tones.includes(bass) ? 0 : -0.2 * tot);
+      if (inn < 0.62 * tot) continue; // te veel losse tonen: geen duidelijk akkoord
+      if (sc > bs) { bs = sc; best = [r, name]; }
+    }
+    if (!best) return null;
+    const [l, al] = tab[best[0]];
+    let nm = l + (al === 1 ? "♯" : al === -1 ? "♭" : "") + best[1];
+    if (bass !== best[0] && w[bass] > 0) { const [bl, ba] = tab[bass]; nm += "/" + bl + (ba === 1 ? "♯" : ba === -1 ? "♭" : ""); }
+    return nm;
+  }
+
   function pick(start, chunk, beatUnits) {
     for (const L of [16, 12, 8, 6, 4, 3, 2, 1]) {
       if (L > chunk) continue;
@@ -543,18 +859,35 @@ var ML = (function () {
     }
     return 1;
   }
+  function melodyOnly(notes) {
+    const top = new Map();
+    for (const n of notes) if (n.h === "R" && !n.rest) { const t = top.get(n.s); if (!t || n.p > t.p) top.set(n.s, n); }
+    return notes.filter(n => n.rest ? n.h === "R" : top.get(n.s) === n);
+  }
+
   /* stuk → ABC, met per noot/akkoord de tekenpositie zodat je erop kunt tikken */
   function buildAbc(piece, perLine) {
-    const key = piece.key && piece.key !== "auto" ? fixedKey(piece.key) : detectKey(piece.notes);
+    const opts = piece.opts || {};
+    const all = piece.notes;
+    const notes = opts.melody ? melodyOnly(all) : all;
+    const key = piece.key && piece.key !== "auto" ? fixedKey(piece.key) : detectKey(all);
     const tab = spellTable(key.maj);
-    const M = piece.beats * 4, beat = 4;
-    const hands = ["R", "L"], evs = {};
-    let total = 0;
-    for (const h of hands) { evs[h] = events(piece.notes, h); for (const e of evs[h]) total = Math.max(total, e.s + e.len); }
+    const M = piece.beats * 4, beat = 4, pickup = piece.pickup || 0, start0 = pickup ? M - pickup : 0;
+    const hands = opts.melody ? ["R"] : ["R", "L"];
+    let total = start0 + 1;
+    for (const n of notes) if (!opts.melody || n.h === "R") total = Math.max(total, n.s + n.len);
     const nMeas = Math.max(1, Math.ceil(total / M));
-    const measures = { R: [], L: [] };
+    const lanes = []; // {id, h, v, clef, measures}
     for (const h of hands) {
-      for (let m = 0; m < nMeas; m++) measures[h].push([]);
+      const vs = voices(notes, h);
+      vs.forEach((evs, vi) => {
+        const lane = { id: h + (vi ? "2" : ""), h, v: vi + 1, multi: vs.length > 1, measures: [], evs };
+        for (let m = 0; m < nMeas; m++) lane.measures.push([]);
+        lanes.push(lane);
+      });
+    }
+    const covered = (lane, a, b) => lanes.some(o => o.h === lane.h && o !== lane && o.evs.some(e => e.s < b && e.s + e.len > a));
+    for (const lane of lanes) {
       let acc = {}, curM = -1;
       const put = (start, len, ps, tok) => {
         while (len > 0) {
@@ -563,7 +896,7 @@ var ML = (function () {
           const r = M - (start % M), chunk = Math.min(len, r);
           const L = pick(start % M, chunk, beat);
           let txt;
-          if (!ps) txt = "z" + (L === 1 ? "" : L);
+          if (!ps) txt = (lane.v === 2 || covered(lane, start, start + L) ? "x" : "z") + (L === 1 ? "" : L);
           else {
             const parts = ps.map(p => {
               const sp = spell(p, tab), k = sp.l + sp.oct;
@@ -574,26 +907,62 @@ var ML = (function () {
             });
             txt = (parts.length > 1 ? "[" + parts.join("") + "]" : parts[0]) + (L === 1 ? "" : L) + (len - L > 0 ? "-" : "");
           }
-          if (m < nMeas) measures[h][m].push({ txt, tok });
+          if (m < nMeas) lane.measures[m].push({ txt, tok: tok && tok.first ? tok : null, cont: tok, at: start, rest: !ps });
+          if (tok) tok.first = false;
           start += L; len -= L;
         }
       };
-      let pos = 0;
-      for (const e of evs[h]) {
-        if (e.s > pos) put(pos, e.s - pos, null, null);
-        put(e.s, e.len, e.ps, { h, s: e.s });
+      let pos = start0;
+      for (const e of lane.evs) {
+        const s = Math.max(e.s, start0);
+        if (s > pos) put(pos, s - pos, null, null);
+        if (e.s + e.len <= pos) continue;
+        put(Math.max(s, pos), e.s + e.len - Math.max(s, pos), e.ps, { h: lane.h, s: e.s, v: lane.multi ? lane.v : null, end: e.s + e.len, first: true });
         pos = e.s + e.len;
       }
       if (pos < nMeas * M) put(pos, nMeas * M - pos, null, null);
     }
-    let abc = `X:1\nT:${(piece.title || "Zonder titel").replace(/\n/g, " ")}\nM:${piece.beats}/4\nL:1/16\nQ:1/4=${piece.bpm}\n%%score {R | L}\nV:R clef=treble\nV:L clef=bass\nK:${key.abc}\n`;
+    // akkoordnamen
+    const pre = new Map(); // lane.id + ":" + at → prefix
+    if (opts.chords) {
+      const win = piece.beats === 3 ? M : piece.beats === 2 ? M : 8;
+      let last = null;
+      for (let a = 0; a < nMeas * M; a += win) {
+        const nm = chordAt(all, a, a + win, tab, 4);
+        if (!nm || nm === last) continue;
+        const lane = lanes.find(l => l.v === 1 && l.measures.flat().some(sg => sg.at === a));
+        if (!lane) continue;
+        pre.set(lane.id + ":" + a, (pre.get(lane.id + ":" + a) || "") + '"' + nm + '"');
+        last = nm;
+      }
+    }
+    // pedaal
+    if (opts.pedal) {
+      for (let m = 0; m < nMeas; m++) {
+        const ins = all.filter(n => !n.rest && n.s >= m * M && n.s < (m + 1) * M);
+        if (ins.length >= 3 && ins.filter(n => n.ov).length / ins.length >= 0.4) {
+          const lane = lanes.find(l => l.h === "L" && l.v === 1) || lanes.find(l => l.v === 1);
+          const sg = lane && lane.measures[m].find(x => x.tok || x.rest);
+          if (sg) pre.set(lane.id + ":" + sg.at, (pre.get(lane.id + ":" + sg.at) || "") + '"_Ped."');
+        }
+      }
+    }
+    const stemmed = l => l.multi ? (l.v === 1 ? " stem=up" : " stem=down") : "";
+    const group = h => { const ls = lanes.filter(l => l.h === h).map(l => l.id); return ls.length > 1 ? "(" + ls.join(" ") + ")" : ls[0]; };
+    let abc = `X:1\nT:${(piece.title || "Zonder titel").replace(/[\n"]/g, " ")}\nM:${piece.beats}/4\nL:1/16\nQ:1/4=${piece.bpm}\n%%score {${hands.map(group).join(" | ")}}\n`;
+    if (opts.melody) abc = abc.replace(/%%score .*\n/, "%%score " + group("R") + "\n");
+    for (const l of lanes) abc += `V:${l.id} clef=${l.h === "R" ? "treble" : "bass"}${stemmed(l)}\n`;
+    abc += `K:${key.abc}\n`;
     const tokens = [];
     for (let m0 = 0; m0 < nMeas; m0 += perLine) {
-      for (const h of hands) {
-        abc += `[V:${h}] `;
+      for (const lane of lanes) {
+        abc += `[V:${lane.id}] `;
         for (let m = m0; m < Math.min(nMeas, m0 + perLine); m++) {
-          for (const seg of measures[h][m]) {
-            const a = abc.length; abc += seg.txt; if (seg.tok) tokens.push({ a, b: abc.length, h: seg.tok.h, s: seg.tok.s, m });
+          for (const seg of lane.measures[m]) {
+            const a = abc.length;
+            const p = pre.get(lane.id + ":" + seg.at); if (p) { abc += p; pre.delete(lane.id + ":" + seg.at); }
+            abc += seg.txt;
+            if (seg.cont) tokens.push({ a, b: abc.length, h: seg.cont.h, s: seg.cont.s, v: seg.cont.v, end: seg.cont.end, m, at: seg.at, len: 0 });
             abc += " ";
           }
           abc += m === nMeas - 1 ? "|]" : "| ";
@@ -601,7 +970,7 @@ var ML = (function () {
         abc += "\n";
       }
     }
-    return { abc, tokens, key, nMeas };
+    return { abc, tokens, key, nMeas, M, start0 };
   }
 
   /* MIDI (formaat 1, twee sporen) */
@@ -612,19 +981,21 @@ var ML = (function () {
     const track = (evs) => {
       evs.sort((a, b) => a.t - b.t || a.o - b.o);
       let last = 0; const d = [];
-      for (const e of evs) { d.push(...vlq(e.t - last), ...e.b); last = e.t; }
+      for (const e of evs) { d.push(...vlq(Math.max(0, e.t - last)), ...e.b); last = Math.max(last, e.t); }
       d.push(0, 0xff, 0x2f, 0);
       return [0x4d, 0x54, 0x72, 0x6b, (d.length >>> 24) & 255, (d.length >>> 16) & 255, (d.length >>> 8) & 255, d.length & 255, ...d];
     };
     const us = Math.round(60000000 / piece.bpm);
-    const t0 = [{ t: 0, o: 0, b: [0xff, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255] }, { t: 0, o: 0, b: [0xff, 0x58, 4, piece.beats, 2, 24, 8] }, { t: 0, o: 0, b: [0xff, 0x03, ...vlq(str(piece.title || "MelodieNotitie").length), ...str(piece.title || "MelodieNotitie")] }];
+    const title = str(piece.title || "MelodieNotitie");
+    const t0 = [{ t: 0, o: 0, b: [0xff, 0x51, 3, (us >> 16) & 255, (us >> 8) & 255, us & 255] }, { t: 0, o: 0, b: [0xff, 0x58, 4, piece.beats, 2, 24, 8] }, { t: 0, o: 0, b: [0xff, 0x03, ...vlq(title.length), ...title] }];
     const tracks = [track(t0)];
+    const off = piece.pickup ? piece.beats * 4 - piece.pickup : 0;
     ["R", "L"].forEach((h, ch) => {
-      const name = h === "R" ? "Rechterhand" : "Linkerhand";
-      const ev = [{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(str(name).length), ...str(name)] }, { t: 0, o: 0, b: [0xc0 | ch, 0] }];
-      for (const n of piece.notes) if (n.h === h) {
-        ev.push({ t: n.s * tick, o: 1, b: [0x90 | ch, n.p, 80] });
-        ev.push({ t: (n.s + n.len) * tick - 1, o: 0, b: [0x80 | ch, n.p, 0] });
+      const name = str(h === "R" ? "Rechterhand" : "Linkerhand");
+      const ev = [{ t: 0, o: 0, b: [0xff, 0x03, ...vlq(name.length), ...name] }, { t: 0, o: 0, b: [0xc0 | ch, 0] }];
+      for (const n of piece.notes) if (n.h === h && !n.rest) {
+        ev.push({ t: (n.s - off) * tick, o: 1, b: [0x90 | ch, n.p, 80] });
+        ev.push({ t: (n.s - off + n.len) * tick - 1, o: 0, b: [0x80 | ch, n.p, 0] });
       }
       tracks.push(track(ev));
     });
@@ -650,7 +1021,65 @@ var ML = (function () {
     const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(csize), ...u32(off), ...u16(0)]);
     return new Blob([...chunks, ...central, end], { type: "application/zip" });
   }
-  return { quantize, buildAbc, detectKey, midi, zip, events, keyOptions };
+
+  /* ================= speel-mee: vergelijken ================= */
+  function groupsOf(list, keyT) {
+    const g = [];
+    for (const n of list.slice().sort((a, b) => keyT(a) - keyT(b))) {
+      const last = g[g.length - 1];
+      if (last && keyT(n) - last.t < (last.tol || 0)) last.ps.add(n.p);
+      else g.push({ t: keyT(n), ps: new Set([n.p]), tol: last ? last.tol : 0 });
+    }
+    return g;
+  }
+  function compare(expected, played) {
+    // expected: [{s, ps:Set, key}] in volgorde; played: [{ps:Set}]
+    const n = expected.length, m = played.length;
+    const sim = (A, B) => { let i = 0; for (const x of A) if (B.has(x)) i++; return i / (A.size + B.size - i); };
+    const D = [], P = [];
+    for (let i = 0; i <= n; i++) { D.push(new Float32Array(m + 1)); P.push(new Int8Array(m + 1)); }
+    for (let i = 1; i <= n; i++) { D[i][0] = -0.6 * i; P[i][0] = 1; }
+    for (let j = 1; j <= m; j++) { D[0][j] = -0.4 * j; P[0][j] = 2; }
+    for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+      const s = sim(expected[i - 1].ps, played[j - 1].ps);
+      const a = D[i - 1][j - 1] + (s > 0 ? 2 * s - 0.3 : -0.8), b = D[i - 1][j] - 0.6, c = D[i][j - 1] - 0.4;
+      if (a >= b && a >= c) { D[i][j] = a; P[i][j] = 0; } else if (b >= c) { D[i][j] = b; P[i][j] = 1; } else { D[i][j] = c; P[i][j] = 2; }
+    }
+    const res = new Array(n).fill(null);
+    let i = n, j = m, extra = 0;
+    while (i > 0 || j > 0) {
+      const d = i > 0 && j > 0 ? P[i][j] : i > 0 ? 1 : 2;
+      if (d === 0) { const A = expected[i - 1].ps, B = played[j - 1].ps; let hit = 0; for (const x of A) if (B.has(x)) hit++; res[i - 1] = { hit, of: A.size, wrong: [...B].filter(x => !A.has(x)) }; i--; j--; }
+      else if (d === 1) { res[i - 1] = { hit: 0, of: expected[i - 1].ps.size, wrong: [] }; i--; }
+      else { extra++; j--; }
+    }
+    return { res, extra };
+  }
+
+  /* ================= delen via link ================= */
+  async function encodeShare(piece) {
+    const d = { t: piece.title, b: piece.bpm, m: piece.beats, k: piece.key || "auto", u: piece.pickup || 0, n: piece.notes.map(n => [n.s, n.len, n.rest ? -1 : n.p, n.h === "R" ? 1 : 0, n.fixed ? 1 : 0]) };
+    const bytes = new TextEncoder().encode(JSON.stringify(d));
+    let out = bytes;
+    if (typeof CompressionStream !== "undefined") {
+      const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+      out = new Uint8Array(await new Response(cs).arrayBuffer());
+    }
+    let s = ""; for (const b of out) s += String.fromCharCode(b);
+    return (typeof CompressionStream !== "undefined" ? "z" : "j") + btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  async function decodeShare(code) {
+    const kind = code[0], b64 = code.slice(1).replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    let txt;
+    if (kind === "z") { const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw")); txt = await new Response(ds).text(); }
+    else txt = new TextDecoder().decode(bytes);
+    const d = JSON.parse(txt);
+    return { title: d.t, bpm: d.b, beats: d.m, key: d.k, pickup: d.u, notes: d.n.map(([s, len, p, h, f]) => p < 0 ? { s, len, p: 0, h: h ? "R" : "L", rest: true } : { s, len, p, h: h ? "R" : "L", fixed: !!f, handFixed: true }) };
+  }
+
+  return { analyze, quantize, unitToTime, buildAbc, detectKey, midi, zip, voices, keyOptions, transposeKey, compare, groupsOf, encodeShare, decodeShare, melodyOnly, assignHands, onsetGroups };
 })();
 if (typeof module !== "undefined") module.exports = ML;
 </script>
@@ -659,98 +1088,155 @@ if (typeof module !== "undefined") module.exports = ML;
 const $ = id => document.getElementById(id);
 const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const NAMES = ["C","Cis","D","Es","E","F","Fis","G","As","A","Bes","B"];
-const pname = p => NAMES[p % 12] + (Math.floor(p / 12) - 1);
+const pname = p => NAMES[((p % 12) + 12) % 12] + (Math.floor(p / 12) - 1);
 const fmt = s => { s = Math.round(s); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+const APP_URL = "https://cbcsf4h8zd-web.github.io/MelodieNotitie/";
+const STANDALONE = location.protocol === "file:" || /github\.io$/.test(location.hostname);
+const LS_PIECES = "melodienotitie.stukken", LS_NOW = "melodienotitie.huidig";
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
 
 /* ---------- toestand ---------- */
-let piece = { title: "Ode an die Freude", bpm: 100, beats: 4, grid: 1, split: 60, notes: [], raw: null, edited: false };
-let srcBuf = null, srcName = "", undoStack = [], selected = null, tokens = [];
+const freshPiece = () => ({ title: "Mijn stuk", bpm: 100, beats: 4, grid: 1, split: 0, key: "auto", pickup: 0, pickupMode: "auto", transpose: 0, notes: [], raw: null, edited: true, opts: { chords: true, pedal: true, melody: false } });
+let piece = Object.assign(freshPiece(), { title: "Ode an die Freude", edited: false, demo: true });
+let srcBuf = null, srcName = "", undoStack = [], selected = null, tokens = [], layoutInfo = { M: 16, start0: 0, nMeas: 1 };
 let curDur = 4, dotted = false, chordMode = false, handMode = "auto", octave = 4, lastAppend = { R: null, L: null };
+let testHand = "both", testMarks = null;
 let ctx = null;
 const audio = () => (ctx || (ctx = new (window.AudioContext || window.webkitAudioContext)()));
 
 function setStatus(t, err) { $("status").textContent = t || ""; $("status").classList.toggle("err", !!err); }
-function snapshot() { undoStack.push(JSON.stringify(piece.notes)); if (undoStack.length > 60) undoStack.shift(); }
 
-/* ---------- splitspunt ---------- */
-for (let p = 48; p <= 72; p++) { const o = document.createElement("option"); o.value = p; o.textContent = "vanaf " + pname(p) + (p === 60 ? " (midden-C)" : ""); $("split").appendChild(o); }
-$("split").value = 60;
+/* ---------- terugzetten: de hele toestand, niet alleen de noten ---------- */
+function stateCopy() { const { raw, ...rest } = piece; return { s: JSON.parse(JSON.stringify(rest)), raw }; }
+function snapshot() { undoStack.push(stateCopy()); if (undoStack.length > 80) undoStack.shift(); delete piece.demo; }
+function restoreState(st) { piece = Object.assign(st.s, { raw: st.raw }); syncControls(); selected = null; render(); }
+
+/* ---------- keuzelijsten ---------- */
+function fillSplit() {
+  const sel = $("split"); sel.innerHTML = "";
+  sel.add(new Option("Slim verdelen", "0"));
+  for (let p = 48; p <= 72; p++) sel.add(new Option("Grens " + pname(p) + (p === 60 ? " (midden-C)" : ""), String(p)));
+}
+function fillPickup() {
+  const sel = $("pickup"), v = piece.pickupMode; sel.innerHTML = "";
+  sel.add(new Option("Automatisch", "auto"));
+  sel.add(new Option("Geen", "0"));
+  for (let b = 1; b < piece.beats; b++) sel.add(new Option(b + (b === 1 ? " tel" : " tellen"), String(b * 4)));
+  sel.value = [...sel.options].some(o => o.value === String(v)) ? String(v) : "auto";
+}
+function syncControls() {
+  $("title").value = piece.title; $("bpm").value = piece.bpm; $("beats").value = piece.beats; $("grid").value = piece.grid;
+  $("split").value = String(piece.split || 0); fillPickup();
+  $("trval").textContent = (piece.transpose > 0 ? "+" : "") + (piece.transpose || 0);
+  for (const k of ["chords", "pedal", "melody"]) { const b = $("o-" + k), on = !!piece.opts[k]; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); }
+}
+fillSplit();
+
+/* ---------- indelen vanaf de opname ---------- */
+function rawNotes() { const d = piece.transpose || 0; return piece.raw.notes.map(n => d ? Object.assign({}, n, { p: n.p + d }) : n); }
+function layout() {
+  if (!piece.raw) return render();
+  const raw = piece.raw;
+  // tempo of maat zelf aangepast: tellen opnieuw zoeken met die waarden
+  if (!raw.an || raw.an.meter !== piece.beats || raw.an.bpm !== piece.bpm) raw.an = ML.analyze(raw.notes, { bpm: piece.bpm, meter: piece.beats });
+  const pf = piece.pickupMode === "auto" ? null : +piece.pickupMode;
+  const q = ML.quantize(rawNotes(), raw.an, piece.grid, piece.split || 0, piece.beats, pf);
+  piece.notes = q.notes; piece.pickup = q.pickup; raw.shift = q.shift;
+  render();
+}
 
 /* ---------- partituur ---------- */
 function perLine() { const w = $("sheet").clientWidth || 360; return w < 480 ? 2 : w < 760 ? 3 : 4; }
+let visual = null;
 function render() {
   piece.notes.sort((a, b) => a.s - b.s || a.p - b.p);
   const out = ML.buildAbc(piece, perLine());
-  tokens = out.tokens;
+  tokens = out.tokens; layoutInfo = { M: out.M, start0: out.start0, nMeas: out.nMeas };
   const ks = $("keysel"); if (!ks.options.length) { ks.add(new Option("Toonsoort: automatisch", "auto")); ML.keyOptions().forEach(([v, t]) => ks.add(new Option(t, v))); }
   ks.options[0].textContent = (piece.key || "auto") === "auto" ? out.key.label + " (automatisch)" : "Toonsoort: automatisch";
   ks.value = piece.key || "auto";
   $("abctext").value = out.abc;
+  $("from").max = $("to").max = out.nMeas;
+  if (+$("to").value > out.nMeas || +$("to").value < 1 || $("to").dataset.auto !== "0") { $("to").value = out.nMeas; $("to").dataset.auto = "1"; }
+  if (+$("from").value > out.nMeas) $("from").value = 1;
   if (window.ABCJS) {
     const w = Math.max(300, $("sheet").clientWidth - 12);
-    ABCJS.renderAbc("sheet", out.abc, {
-      staffwidth: w - 30, scale: w < 480 ? 0.85 : 1, add_classes: true, selectionColor: "#8e2a3b",
-      paddingleft: 6, paddingright: 6, paddingtop: 6,
-      clickListener: (el) => pickAt(el && el.startChar)
-    });
+    try {
+      visual = ABCJS.renderAbc("sheet", out.abc, {
+        staffwidth: w - 30, scale: w < 480 ? 0.85 : 1, add_classes: true, selectionColor: "#8e2a3b",
+        paddingleft: 6, paddingright: 6, paddingtop: 6,
+        clickListener: (el) => pickAt(el && el.startChar)
+      })[0];
+    } catch (e) { visual = null; $("sheet").textContent = "De notenbalk kon niet worden getekend. De bladmuziek staat hieronder als tekst."; }
   } else {
-    $("sheet").textContent = "De notenbalk kon niet laden. De bladmuziek staat hieronder als tekst.";
+    $("sheet").textContent = "De notenbalk kon niet laden (geen internet?). De bladmuziek staat hieronder als tekst.";
   }
   drawRoll();
   $("lockinfo").hidden = !(piece.edited && piece.raw);
+  $("exlabel").hidden = !piece.demo;
   updateSel();
+  autosave();
 }
 function pickAt(ch) {
   const t = tokens.find(k => ch >= k.a && ch < k.b);
-  selected = t ? { h: t.h, s: t.s, m: t.m } : null;
-  updateSel();
+  selected = t ? { h: t.h, s: t.s, v: t.v } : null;
+  updateSel(); drawRoll();
   if (selected) previewSel();
 }
-function selNotes() { return selected ? piece.notes.filter(n => n.h === selected.h && n.s === selected.s) : []; }
+function selNotes() { return selected ? piece.notes.filter(n => !n.rest && n.h === selected.h && n.s === selected.s && (selected.v == null || (n._v || 1) === selected.v)) : []; }
+function measureOf(s) { return Math.floor(s / layoutInfo.M) + 1; }
 function updateSel() {
   const ns = selNotes();
-  if (!selected || !ns.length) { $("sel").hidden = true; selected = ns.length ? selected : null; return; }
+  if (!selected || !ns.length) { $("sel").hidden = true; if (!ns.length) selected = null; return; }
   $("sel").hidden = false;
-  $("selwhat").textContent = (ns.length > 1 ? "Akkoord " : "Noot ") + ns.map(n => pname(n.p)).join(" · ") + " — " + (selected.h === "R" ? "rechterhand" : "linkerhand") + ", maat " + (Math.floor(selected.s / (piece.beats * 4)) + 1);
+  $("selwhat").textContent = (ns.length > 1 ? "Akkoord " : "Noot ") + ns.map(n => pname(n.p)).join(" · ") + " — " + (selected.h === "R" ? "rechterhand" : "linkerhand") + ", maat " + measureOf(selected.s);
 }
-function edit(fn) {
+function edit(fn, check) {
   const ns = selNotes(); if (!ns.length) return;
+  if (check) { const msg = check(ns); if (msg) return setStatus(msg, true); }
   snapshot(); fn(ns); ns.forEach(n => n.fixed = true); piece.edited = true;
-  piece.notes = piece.notes.filter(n => n.p >= 21 && n.p <= 108 && n.len > 0);
-  if (selected) { const still = piece.notes.find(n => ns.includes(n)); if (still) selected = { h: still.h, s: still.s }; }
+  const still = ns.find(n => piece.notes.includes(n));
+  if (still) selected = { h: still.h, s: still.s, v: null };
   render(); previewSel();
 }
-$("s-up").onclick = () => edit(ns => ns.forEach(n => n.p++));
-$("s-down").onclick = () => edit(ns => ns.forEach(n => n.p--));
-$("s-octu").onclick = () => edit(ns => ns.forEach(n => n.p += 12));
-$("s-octd").onclick = () => edit(ns => ns.forEach(n => n.p -= 12));
-$("s-longer").onclick = () => edit(ns => ns.forEach(n => n.len += piece.grid));
-$("s-shorter").onclick = () => edit(ns => ns.forEach(n => n.len = Math.max(piece.grid, n.len - piece.grid)));
-$("s-hand").onclick = () => edit(ns => ns.forEach(n => n.h = n.h === "R" ? "L" : "R"));
+const range = d => ns => ns.some(n => n.p + d < 21) ? "Lager kan niet: dat is onder de laagste pianotoets (A0)." : ns.some(n => n.p + d > 108) ? "Hoger kan niet: dat is boven de hoogste pianotoets (C8)." : null;
+$("s-up").onclick = () => edit(ns => ns.forEach(n => n.p++), range(1));
+$("s-down").onclick = () => edit(ns => ns.forEach(n => n.p--), range(-1));
+$("s-octu").onclick = () => edit(ns => ns.forEach(n => n.p += 12), range(12));
+$("s-octd").onclick = () => edit(ns => ns.forEach(n => n.p -= 12), range(-12));
+$("s-longer").onclick = () => edit(ns => ns.forEach(n => n.len += Math.max(piece.grid, curDur)));
+$("s-shorter").onclick = () => edit(ns => ns.forEach(n => n.len = Math.max(piece.grid, n.len - Math.max(piece.grid, Math.min(curDur, n.len - piece.grid)))));
+$("s-hand").onclick = () => edit(ns => ns.forEach(n => { n.h = n.h === "R" ? "L" : "R"; n.handFixed = true; }));
 $("s-del").onclick = () => { const ns = selNotes(); if (!ns.length) return; snapshot(); piece.notes = piece.notes.filter(n => !ns.includes(n)); piece.edited = true; selected = null; render(); };
-$("s-close").onclick = () => { selected = null; render(); };
-function previewSel() { const ns = selNotes(); if (!ns.length) return; const a = audio(), t = a.currentTime + 0.02; ns.forEach(n => voice(a, a.destination, n.p, t, 0.6, 0.8)); }
+$("s-close").onclick = () => { selected = null; updateSel(); drawRoll(); };
+function previewSel() { const ns = selNotes(); if (!ns.length) return; const a = audio(); a.resume && a.resume(); const t = a.currentTime + 0.02; ns.forEach(n => voice(a, a.destination, n.p, t, 0.6, 0.8)); }
 
 /* ---------- pianorol ---------- */
 let playhead = -1;
+function shown() { return (piece.opts.melody ? ML.melodyOnly(piece.notes) : piece.notes).filter(n => !n.rest); }
+function rollGeom(W, H) {
+  const ns = shown(); if (!ns.length) return null;
+  const lo = Math.min(...ns.map(n => n.p)) - 2, hi = Math.max(...ns.map(n => n.p)) + 2;
+  const end = Math.max(...piece.notes.map(n => n.s + n.len)), M = layoutInfo.M;
+  const total = Math.max(M, Math.ceil(end / M) * M);
+  return { ns, lo, hi, total, x: s => 6 + (W - 12) * s / total, y: p => H - 6 - (H - 12) * (p - lo) / (hi - lo) };
+}
 function drawRoll() {
   const c = $("roll"), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
   c.width = W * dpr; c.height = H * dpr;
   const g = c.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
-  const ns = piece.notes;
-  if (!ns.length) { g.fillStyle = tok("--muted"); g.font = "13px " + tok("--f-body"); g.fillText("Nog geen noten. Kies een opname of tik op de toetsen hieronder.", 12, H / 2); return; }
-  let lo = Math.min(...ns.map(n => n.p)) - 2, hi = Math.max(...ns.map(n => n.p)) + 2;
-  const end = Math.max(...ns.map(n => n.s + n.len)), M = piece.beats * 4;
-  const total = Math.ceil(end / M) * M || M;
-  const x = s => 6 + (W - 12) * s / total, y = p => H - 6 - (H - 12) * (p - lo) / (hi - lo);
+  const G = rollGeom(W, H);
+  if (!G) { g.fillStyle = tok("--muted"); g.font = "13px " + tok("--f-body"); g.fillText("Nog geen noten. Kies een opname of tik op de toetsen hieronder.", 12, H / 2); return; }
+  const { ns, x, y, total, lo, hi } = G, M = layoutInfo.M;
   g.strokeStyle = tok("--line"); g.lineWidth = 1;
   for (let m = 0; m <= total; m += M) { g.beginPath(); g.moveTo(x(m) + .5, 4); g.lineTo(x(m) + .5, H - 4); g.stroke(); }
-  if (60 > lo && 60 < hi) { g.setLineDash([3, 3]); g.beginPath(); g.moveTo(6, y(piece.split) + .5); g.lineTo(W - 6, y(piece.split) + .5); g.stroke(); g.setLineDash([]); }
   const bh = Math.max(2, Math.min(7, (H - 12) / (hi - lo) - 1));
   for (const n of ns) {
     const sel = selected && n.h === selected.h && n.s === selected.s;
-    g.fillStyle = n.h === "R" ? tok("--rh") : tok("--lh");
-    g.globalAlpha = sel ? 1 : 0.8;
+    let col = n.h === "R" ? tok("--rh") : tok("--lh");
+    if (testMarks && testMarks.has(n)) col = testMarks.get(n) ? tok("--good") : tok("--bad");
+    g.fillStyle = col; g.globalAlpha = sel ? 1 : 0.82;
     g.fillRect(x(n.s), y(n.p) - bh / 2, Math.max(2, x(n.s + n.len) - x(n.s) - 1), bh);
     if (sel) { g.strokeStyle = tok("--ink"); g.strokeRect(x(n.s) - 1, y(n.p) - bh / 2 - 1, x(n.s + n.len) - x(n.s) + 1, bh + 2); }
   }
@@ -758,26 +1244,43 @@ function drawRoll() {
   if (playhead >= 0) { g.fillStyle = tok("--ink"); g.fillRect(x(playhead), 2, 2, H - 4); }
 }
 $("roll").addEventListener("click", e => {
-  const c = $("roll"), r = c.getBoundingClientRect(), ns = piece.notes; if (!ns.length) return;
-  const end = Math.max(...ns.map(n => n.s + n.len)), M = piece.beats * 4, total = Math.ceil(end / M) * M || M;
-  const s = (e.clientX - r.left - 6) / (r.width - 12) * total;
-  let lo = Math.min(...ns.map(n => n.p)) - 2, hi = Math.max(...ns.map(n => n.p)) + 2;
-  const p = lo + (r.height - 6 - (e.clientY - r.top)) / (r.height - 12) * (hi - lo);
+  const c = $("roll"), r = c.getBoundingClientRect(), G = rollGeom(r.width, r.height); if (!G) return;
+  const s = (e.clientX - r.left - 6) / (r.width - 12) * G.total;
+  const p = G.lo + (r.height - 6 - (e.clientY - r.top)) / (r.height - 12) * (G.hi - G.lo);
   let best = null, bd = 1e9;
-  for (const n of ns) { const d = Math.abs(n.p - p) * 3 + (s < n.s ? n.s - s : s > n.s + n.len ? s - n.s - n.len : 0); if (d < bd) { bd = d; best = n; } }
-  if (best && bd < 6) { selected = { h: best.h, s: best.s }; render(); previewSel(); }
+  for (const n of G.ns) { const d = Math.abs(n.p - p) * 3 + (s < n.s ? n.s - s : s > n.s + n.len ? s - n.s - n.len : 0); if (d < bd) { bd = d; best = n; } }
+  if (best && bd < 8) { selected = { h: best.h, s: best.s, v: null }; updateSel(); drawRoll(); previewSel(); }
 });
+
+/* ---------- meelopende cursor op de bladmuziek ---------- */
+let litMeasure = -1;
+function lightMeasure(m) {
+  if (m === litMeasure) return;
+  const sheet = $("sheet");
+  sheet.querySelectorAll(".mn-now").forEach(el => el.classList.remove("mn-now"));
+  litMeasure = m;
+  if (m < 0) return;
+  let els = sheet.querySelectorAll(".abcjs-mm" + m + ".abcjs-note, .abcjs-mm" + m + ".abcjs-rest");
+  if (!els.length) { const pl = perLine(); els = sheet.querySelectorAll(".abcjs-l" + Math.floor(m / pl) + ".abcjs-m" + (m % pl) + ".abcjs-note"); }
+  els.forEach(el => el.classList.add("mn-now"));
+  const first = els[0];
+  if (first && first.getBoundingClientRect) {
+    const r = first.getBoundingClientRect(), sr = sheet.getBoundingClientRect();
+    if (r.top < sr.top + 10 || r.bottom > sr.bottom - 10) sheet.scrollTop += r.top - sr.top - 40;
+    if (r.left < sr.left || r.right > sr.right) sheet.scrollLeft += r.left - sr.left - 30;
+  }
+}
 
 /* ---------- klank ---------- */
 const waves = {};
 function periodic(a, name) {
-  if (waves[name]) return waves[name];
+  const k = name + (a.sampleRate || "");
+  if (waves[k]) return waves[k];
   const H = { piano: [0, 1, .55, .32, .22, .14, .1, .07, .05, .03], epiano: [0, 1, .35, .05, .12, .02, .03], orgel: [0, 1, .8, .6, .5, .3, .4, .2, .3], strijkers: [0, 1, .7, .5, .38, .3, .24, .2, .16, .13, .1], marimba: [0, 1, 0, 0, .35, 0, 0, 0, 0, .08] }[name];
-  const re = new Float32Array(H.length), im = Float32Array.from(H);
-  return (waves[name] = a.createPeriodicWave(re, im));
+  return (waves[k] = a.createPeriodicWave(new Float32Array(H.length), Float32Array.from(H)));
 }
 function voice(a, dest, p, t, dur, vel) {
-  const inst = $("inst").value, f = ML_hz(p);
+  const inst = $("inst").value, f = 440 * Math.pow(2, (p - 69) / 12);
   const o = a.createOscillator(), gn = a.createGain(), lp = a.createBiquadFilter();
   o.setPeriodicWave(periodic(a, inst)); o.frequency.value = f;
   lp.type = "lowpass";
@@ -785,7 +1288,7 @@ function voice(a, dest, p, t, dur, vel) {
   gn.gain.setValueAtTime(0, t);
   if (inst === "orgel") { gn.gain.linearRampToValueAtTime(v * .7, t + .02); gn.gain.setValueAtTime(v * .7, t + dur); gn.gain.linearRampToValueAtTime(0, t + dur + .06); lp.frequency.value = 5000; }
   else if (inst === "strijkers") { gn.gain.linearRampToValueAtTime(v * .8, t + .12); gn.gain.setValueAtTime(v * .8, t + dur); gn.gain.linearRampToValueAtTime(0, t + dur + .25); lp.frequency.value = 3200; const lfo = a.createOscillator(), lg = a.createGain(); lfo.frequency.value = 5.2; lg.gain.value = f * .004; lfo.connect(lg).connect(o.frequency); lfo.start(t); lfo.stop(t + dur + .3); }
-  else if (inst === "marimba") { gn.gain.linearRampToValueAtTime(v * 1.2, t + .004); gn.gain.exponentialRampToValueAtTime(0.0005, t + Math.min(1.2, .25 + 60 / f)); lp.frequency.value = 6000; dur = Math.min(1.2, .25 + 60 / f); }
+  else if (inst === "marimba") { dur = Math.min(1.2, .25 + 60 / f); gn.gain.linearRampToValueAtTime(v * 1.2, t + .004); gn.gain.exponentialRampToValueAtTime(0.0005, t + dur); lp.frequency.value = 6000; }
   else {
     const decay = inst === "epiano" ? 1.6 : 1.1 + Math.max(0, (72 - p)) * 0.05;
     gn.gain.linearRampToValueAtTime(v, t + .004);
@@ -796,79 +1299,129 @@ function voice(a, dest, p, t, dur, vel) {
   o.connect(lp).connect(gn).connect(dest);
   o.start(t); o.stop(t + dur + 1);
 }
-const ML_hz = p => 440 * Math.pow(2, (p - 69) / 12);
-
-let master = null, rafId = 0, srcNode = null;
-function stopAll() {
-  if (master) { try { master.disconnect(); } catch (e) {} master = null; }
-  if (srcNode) { try { srcNode.stop(); } catch (e) {} srcNode = null; }
-  cancelAnimationFrame(rafId); playhead = -1; drawRoll();
-  ["playnotes", "playsrc", "playboth"].forEach(id => $(id).textContent = $(id).dataset.label);
+function click(a, dest, t, accent) {
+  const o = a.createOscillator(), g = a.createGain();
+  o.frequency.value = accent ? 1760 : 1175; o.type = "square";
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(accent ? .12 : .07, t + .002); g.gain.exponentialRampToValueAtTime(.0005, t + .06);
+  o.connect(g).connect(dest); o.start(t); o.stop(t + .08);
 }
-["playnotes", "playsrc", "playboth"].forEach(id => $(id).dataset.label = $(id).textContent);
-function playing() { return !!master || !!srcNode; }
-function playNotes(withSrc) {
+
+/* ---------- afspelen en oefenen ---------- */
+let master = null, rafId = 0, srcNode = null, loopTimer = 0, playMode = null;
+const toggles = { loop: false, metro: false, countin: false };
+for (const k of Object.keys(toggles)) $(k).onclick = () => { toggles[k] = !toggles[k]; $(k).classList.toggle("on", toggles[k]); $(k).setAttribute("aria-pressed", toggles[k]); };
+$("to").oninput = () => { $("to").dataset.auto = "0"; };
+function rangeUnits() {
+  const M = layoutInfo.M, n = layoutInfo.nMeas;
+  let a = Math.max(1, Math.min(n, +$("from").value || 1)), b = Math.max(a, Math.min(n, +$("to").value || n));
+  $("from").value = a; $("to").value = b;
+  return { from: Math.max((a - 1) * M, layoutInfo.start0), to: b * M, a, b };
+}
+function stopAll() {
+  clearTimeout(loopTimer); playMode = null;
+  if (master) { try { master.disconnect(); } catch (e) {} master = null; }
+  if (srcNode) { try { srcNode.onended = null; srcNode.stop(); } catch (e) {} srcNode = null; }
+  cancelAnimationFrame(rafId); playhead = -1; lightMeasure(-1); drawRoll();
+  ["playnotes", "playsrc", "playboth", "t-listen"].forEach(id => $(id).textContent = $(id).dataset.label);
+  $("srcplay").textContent = "▶ Beluister";
+}
+["playnotes", "playsrc", "playboth", "t-listen"].forEach(id => $(id).dataset.label = $(id).textContent);
+function playing() { return !!playMode; }
+function notesFor(hand) { return shown().filter(n => hand === "both" || n.h === hand); }
+function unitTime(u) { return ML.unitToTime({ beats: piece.raw.an.beats, shift: piece.raw.shift || 0 }, u); }
+function playRange(opts) {
   const a = audio(); a.resume && a.resume();
-  master = a.createGain(); master.gain.value = 1; master.connect(a.destination);
-  const sec = 60 / piece.bpm / 4, t0 = a.currentTime + 0.1;
-  for (const n of piece.notes) voice(a, master, n.p, t0 + n.s * sec, n.len * sec, 0.85);
-  const end = Math.max(0, ...piece.notes.map(n => n.s + n.len));
-  if (withSrc && srcBuf && piece.raw) {
+  if (!master) { master = a.createGain(); master.connect(a.destination); }
+  const { from, to } = opts.range, speed = opts.withSrc ? 1 : +$("speed").value;
+  const sec = 60 / (piece.bpm * speed) / 4;
+  const ns = notesFor(opts.hand || "both").filter(n => n.s < to && n.s + n.len > from && n.s >= from);
+  const M = layoutInfo.M, beatU = 4;
+  const lead = (!opts.withSrc && toggles.countin && !opts.again) ? Math.ceil(M / beatU) : 0;
+  const t0 = a.currentTime + 0.12 + lead * beatU * sec;
+  let timeOf = u => t0 + (u - from) * sec, endT = timeOf(to);
+  if (opts.withSrc) {
+    const base = unitTime(from);
+    timeOf = u => t0 + (unitTime(u) - base);
+    endT = timeOf(to);
     srcNode = a.createBufferSource(); srcNode.buffer = srcBuf;
     const sg = a.createGain(); sg.gain.value = 0.55; srcNode.connect(sg).connect(master);
-    const first = piece.raw.first || 0;
-    srcNode.start(t0, first, end * sec + 1);
+    srcNode.start(t0, Math.max(0, base), Math.max(0.1, endT - t0 + 0.3));
+  }
+  for (const n of ns) voice(a, master, n.p, timeOf(n.s), Math.max(0.05, Math.min(n.s + n.len, to) - n.s) * (opts.withSrc ? (unitTime(n.s + n.len) - unitTime(n.s)) / n.len : sec), 0.85);
+  if (!opts.withSrc && (toggles.metro || lead)) {
+    for (let k = 1; k <= lead * 1; k++) click(a, master, t0 - k * beatU * sec, k === lead);
+    if (toggles.metro) for (let u = Math.ceil(from / beatU) * beatU; u < to; u += beatU) click(a, master, timeOf(u), (u % M) === 0);
   }
   const tick = () => {
-    const s = (a.currentTime - t0) / sec;
-    if (s > end + 4) { stopAll(); return; }
-    playhead = Math.max(0, s); drawRoll(); rafId = requestAnimationFrame(tick);
+    if (!playMode) return;
+    const now = a.currentTime;
+    let u;
+    if (opts.withSrc) { u = from; for (let k = from; k <= to; k++) if (timeOf(k) <= now) u = k; }
+    else u = from + (now - t0) / sec;
+    if (now >= t0 - 0.02) { playhead = Math.max(from, u); drawRoll(); lightMeasure(Math.floor(Math.max(from, u) / M)); }
+    if (now > endT + 0.15) {
+      if (toggles.loop && opts.loopable) { srcNode = null; playRange(Object.assign({}, opts, { again: true })); return; }
+      stopAll(); opts.done && opts.done(); return;
+    }
+    rafId = requestAnimationFrame(tick);
   };
-  tick();
+  cancelAnimationFrame(rafId); tick();
 }
-$("playnotes").onclick = () => { if (playing()) return stopAll(); if (!piece.notes.length) return setStatus("Er zijn nog geen noten om af te spelen."); playNotes(false); $("playnotes").textContent = "■ Stop"; };
-$("playboth").onclick = () => { if (playing()) return stopAll(); if (!srcBuf || !piece.raw) return setStatus("Samen afspelen kan als de noten uit een opname komen."); playNotes(true); $("playboth").textContent = "■ Stop"; };
+$("playnotes").onclick = () => {
+  if (playing()) return stopAll();
+  if (!shown().length) return setStatus("Er zijn nog geen noten om af te spelen.");
+  playMode = "notes"; $("playnotes").textContent = "■ Stop";
+  playRange({ range: rangeUnits(), loopable: true });
+};
+$("playboth").onclick = () => {
+  if (playing()) return stopAll();
+  if (!srcBuf || !piece.raw || piece.edited) return setStatus(srcBuf ? "Samen afspelen kan alleen zolang de noten direct uit de opname komen. Tik op Opnieuw indelen of laad de opname opnieuw." : "Samen afspelen kan als de noten uit een opname komen die nu geladen is.");
+  playMode = "both"; $("playboth").textContent = "■ Stop";
+  playRange({ range: rangeUnits(), withSrc: true, loopable: true });
+};
 function playSource(btn) {
   if (playing()) return stopAll();
-  if (!srcBuf) return setStatus("Kies eerst een opname of video.");
+  if (!srcBuf) return setStatus("Kies eerst een opname of video. Na het heropenen van de app moet je de opname opnieuw kiezen.");
   const a = audio(); a.resume && a.resume();
+  playMode = "src";
   srcNode = a.createBufferSource(); srcNode.buffer = srcBuf; srcNode.connect(a.destination);
-  srcNode.onended = () => { if (srcNode) stopAll(); };
+  srcNode.onended = () => stopAll();
   srcNode.start(); btn.textContent = "■ Stop";
 }
 $("playsrc").onclick = () => playSource($("playsrc"));
-$("srcplay").dataset.label = "▶ Beluister";
-$("srcplay").onclick = () => { if (playing()) { stopAll(); $("srcplay").textContent = "▶ Beluister"; return; } playSource($("srcplay")); srcNode && (srcNode.onended = () => { stopAll(); $("srcplay").textContent = "▶ Beluister"; }); };
+$("srcplay").onclick = () => playSource($("srcplay"));
 
 /* ---------- opname inlezen ---------- */
-const SR = 22050, MAXS = 240;
+const SR = 22050, MAXS = 300, BIG = 120 * 1024 * 1024;
 async function toMono22k(buf) {
   const len = Math.min(buf.duration, MAXS);
-  const off = new OfflineAudioContext(1, Math.ceil(len * SR), SR);
+  const off = new OfflineAudioContext(1, Math.max(1, Math.ceil(len * SR)), SR);
   const s = off.createBufferSource(); s.buffer = buf; s.connect(off.destination); s.start(0, 0, len);
   const r = await off.startRendering();
   return r.getChannelData(0);
 }
 async function decodeFile(file) {
+  // grote video's niet in één keer in het geheugen laden: dat laat een telefoon crashen
+  if (file.size > BIG) return await decodeViaElement(file);
   const ab = await file.arrayBuffer();
-  try { return await audio().decodeAudioData(ab.slice(0)); }
+  try { return await audio().decodeAudioData(ab); }
   catch (e) { return await decodeViaElement(file); }
 }
-// sommige video's kan de browser niet direct ontleden: dan spelen we hem stil af en vangen het geluid op
+// het geluid opvangen terwijl de video stil wordt afgespeeld (werkt voor elk formaat dat de telefoon kan afspelen)
 function decodeViaElement(file) {
   return new Promise((resolve, reject) => {
     const a = audio(), url = URL.createObjectURL(file);
     const v = document.createElement(file.type.startsWith("video") ? "video" : "audio");
-    v.src = url; v.playsInline = true; v.preload = "auto";
-    v.onerror = () => reject(new Error("Dit bestand kan de app niet lezen."));
+    v.src = url; v.playsInline = true; v.muted = false; v.preload = "auto";
+    v.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Dit bestand kan de app niet lezen. Probeer een mp3, m4a, mp4 of mov.")); };
     v.onloadedmetadata = () => {
-      const dur = Math.min(v.duration || MAXS, MAXS);
-      setStatus("Het geluid wordt uit de video gehaald. Dat duurt even lang als de video (" + fmt(dur) + ").");
+      const dur = Math.min(isFinite(v.duration) ? v.duration : MAXS, MAXS);
+      setStatus("Het geluid wordt uit de video gehaald. Dat duurt even lang als de video (" + fmt(dur) + "). Laat de app openstaan.");
       const src = a.createMediaElementSource(v), proc = a.createScriptProcessor(4096, 1, 1), mute = a.createGain(); mute.gain.value = 0;
-      const chunks = []; let n = 0;
-      proc.onaudioprocess = ev => { const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); n += d.length; progress(Math.min(0.99, v.currentTime / dur)); };
+      const chunks = []; let n = 0, finished = false;
+      proc.onaudioprocess = ev => { if (finished) return; const d = ev.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); n += d.length; progress(Math.min(0.99, v.currentTime / dur)); };
       src.connect(proc); proc.connect(mute); mute.connect(a.destination);
-      const done = () => { proc.disconnect(); v.pause(); URL.revokeObjectURL(url); const b = a.createBuffer(1, n, a.sampleRate); let o = 0; for (const c of chunks) { b.copyToChannel(c, 0, o); o += c.length; } resolve(b); };
+      const done = () => { if (finished) return; finished = true; proc.disconnect(); v.pause(); URL.revokeObjectURL(url); if (!n) return reject(new Error("Er kwam geen geluid uit dit bestand.")); const b = a.createBuffer(1, n, a.sampleRate); let o = 0; for (const c of chunks) { b.copyToChannel(c, 0, o); o += c.length; } resolve(b); };
       v.onended = done; v.ontimeupdate = () => { if (v.currentTime >= dur) done(); };
       a.resume().then(() => v.play()).catch(reject);
     };
@@ -889,85 +1442,121 @@ $("file").onchange = async e => {
   } catch (err) { progress(null); setStatus((err && err.message) || "Dit bestand kan de app niet lezen. Probeer een mp3, m4a of mp4.", true); }
 };
 
-let rec = null, recChunks = [], recStream = null, recT = 0, recTimer = 0;
-$("rec").onclick = async () => {
-  if (rec) { rec.stop(); return; }
-  try {
-    recStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-  } catch (e) {
-    setStatus("Opnemen kan hier niet direct. Neem het stuk op met de Dictafoon- of camera-app en kies het bestand via Kies opname of video.", true);
-    return;
-  }
-  recChunks = []; rec = new MediaRecorder(recStream);
-  rec.ondataavailable = ev => ev.data.size && recChunks.push(ev.data);
+/* ---------- microfoon ---------- */
+async function record(btn, label, onDone) {
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+  catch (e) { return null; }
+  const chunks = [], rec = new MediaRecorder(stream), t0 = Date.now();
+  rec.ondataavailable = ev => ev.data.size && chunks.push(ev.data);
+  const timer = setInterval(() => { const s = (Date.now() - t0) / 1000; btn.textContent = "■ Stop " + fmt(s); if (s > MAXS) rec.stop(); }, 250);
   rec.onstop = async () => {
-    clearInterval(recTimer); recStream.getTracks().forEach(t => t.stop()); rec = null; $("rec").textContent = "● Opnemen"; $("rec").classList.remove("on");
-    try { const buf = await audio().decodeAudioData(await new Blob(recChunks).arrayBuffer()); showReview("Eigen opname", buf); setStatus("Luister terug, en tik dan op Noten uitwerken."); }
+    clearInterval(timer); stream.getTracks().forEach(t => t.stop()); btn.textContent = label; btn.classList.remove("on"); btn._rec = null;
+    try { onDone(await audio().decodeAudioData(await new Blob(chunks).arrayBuffer())); }
     catch (err) { setStatus("De opname kon niet worden gelezen. Probeer het nog eens.", true); }
   };
-  rec.start(); recT = Date.now(); $("rec").classList.add("on");
-  recTimer = setInterval(() => { const s = (Date.now() - recT) / 1000; $("rec").textContent = "■ Stop " + fmt(s); if (s > MAXS) rec.stop(); }, 250);
-  $("rec").textContent = "■ Stop 0:00"; setStatus("Speel maar. Tik op Stop als je klaar bent.");
+  rec.start(); btn.classList.add("on"); btn.textContent = "■ Stop 0:00"; btn._rec = rec;
+  return rec;
+}
+$("rec").onclick = async () => {
+  const b = $("rec"); if (b._rec) return b._rec.stop();
+  stopAll();
+  const r = await record(b, "● Opnemen", buf => { showReview("Eigen opname", buf); setStatus("Luister terug, en tik dan op Noten uitwerken."); });
+  if (!r) setStatus("Opnemen kan hier niet. Open MelodieNotitie vanaf je beginscherm, of neem op met Dictafoon of je camera en kies het bestand.", true);
+  else setStatus("Speel maar. Tik op Stop als je klaar bent.");
 };
 
 /* ---------- herkennen (in een achtergrondproces) ---------- */
-let worker = null;
+let worker = null, jobs = 0;
 function getWorker() {
   if (worker !== null) return worker;
   try {
-    const code = $("detect-src").textContent + "\nonmessage=e=>{const r=MN.transcribe(e.data.x,e.data.sr,f=>postMessage({p:f}));r.bpm=MN.estimateTempo(r.onsets);postMessage({r});};";
+    const code = $("detect-src").textContent + "\nonmessage=e=>{const r=MN.transcribe(e.data.x,e.data.sr,f=>postMessage({id:e.data.id,p:f}));postMessage({id:e.data.id,r});};";
     worker = new Worker(URL.createObjectURL(new Blob([code], { type: "text/javascript" })));
   } catch (e) { worker = false; }
   return worker;
 }
-function transcribe(x) {
+function transcribe(x, onProgress) {
   return new Promise(resolve => {
-    const w = getWorker();
+    const w = getWorker(), id = ++jobs;
     if (w) {
-      w.onmessage = e => { if (e.data.p != null) progress(e.data.p); if (e.data.r) resolve(e.data.r); };
-      w.onerror = () => { worker = false; resolve(runSync(x)); };
-      w.postMessage({ x, sr: SR });
-    } else setTimeout(() => resolve(runSync(x)), 30);
+      const h = e => { if (e.data.id !== id) return; if (e.data.p != null) onProgress && onProgress(e.data.p); if (e.data.r) { w.removeEventListener("message", h); resolve(e.data.r); } };
+      w.addEventListener("message", h);
+      w.onerror = () => { worker = false; resolve(MN.transcribe(x, SR)); };
+      w.postMessage({ id, x, sr: SR });
+    } else setTimeout(() => resolve(MN.transcribe(x, SR)), 30);
   });
 }
-function runSync(x) { const r = MN.transcribe(x, SR); r.bpm = MN.estimateTempo(r.onsets); return r; }
-
+function adopt(r, title) {
+  piece.raw = { notes: r.notes };
+  const an = ML.analyze(r.notes);
+  piece.raw.an = an;
+  piece.bpm = an.bpm; piece.beats = an.meter; piece.pickupMode = "auto"; piece.transpose = 0; piece.key = "auto";
+  if (title) piece.title = title;
+  piece.edited = false; selected = null; testMarks = null; $("to").dataset.auto = "1";
+  syncControls(); layout();
+}
 $("go").onclick = async () => {
   if (!srcBuf) return;
   stopAll(); $("go").disabled = true; setStatus("Noten zoeken…"); progress(0.02);
   try {
     const x = await toMono22k(srcBuf);
-    const r = await transcribe(x);
+    const r = await transcribe(x, progress);
     progress(null);
     if (!r.notes.length) { setStatus("Er zijn geen pianonoten gevonden. Is de opname hard genoeg?", true); return; }
     snapshot();
-    piece.raw = { notes: r.notes, first: Math.min(...r.notes.map(n => n.t)) };
-    piece.bpm = r.bpm; $("bpm").value = r.bpm;
-    piece.title = srcName.replace(/\.[a-z0-9]+$/i, "") || "Mijn opname"; $("title").value = piece.title;
-    piece.edited = false; selected = null;
-    layout();
-    $("exlabel").hidden = true;
-    setStatus(r.notes.length + " noten gevonden in " + fmt(x.length / SR) + ". Klopt het tempo niet? Pas het aan, dan worden de maten opnieuw ingedeeld.");
+    adopt(r, srcName.replace(/\.[a-z0-9]+$/i, "") || "Mijn opname");
+        const extra = (piece.beats !== 4 ? " Maatsoort " + piece.beats + "/4 herkend." : "") + (piece.pickup ? " Het stuk begint met een opmaat." : "");
+    setStatus(r.notes.length + " noten gevonden in " + fmt(x.length / SR) + "." + extra + " Klopt het tempo of de maat niet? Pas het aan, dan worden de maten opnieuw ingedeeld.");
   } catch (err) { progress(null); setStatus("Uitwerken lukte niet: " + (err && err.message || err), true); }
   finally { $("go").disabled = false; }
 };
-function layout() {
-  if (!piece.raw) return render();
-  piece.notes = ML.quantize(piece.raw.notes, piece.bpm, piece.grid, piece.split);
-  render();
-}
 
 /* ---------- instellingen ---------- */
-$("bpm").onchange = () => { piece.bpm = Math.max(30, Math.min(240, +$("bpm").value || 100)); $("bpm").value = piece.bpm; piece.edited ? render() : layout(); };
-$("beats").onchange = () => { piece.beats = +$("beats").value; render(); };
-$("grid").onchange = () => { piece.grid = +$("grid").value; piece.edited ? render() : layout(); };
-$("split").onchange = () => { piece.split = +$("split").value; if (!piece.edited) layout(); else { snapshot(); piece.notes.forEach(n => n.h = n.p >= piece.split ? "R" : "L"); render(); } };
+$("bpm").onchange = () => { snapshot(); piece.bpm = Math.max(30, Math.min(240, Math.round(+$("bpm").value) || 100)); $("bpm").value = piece.bpm; piece.edited ? render() : layout(); };
+$("beats").onchange = () => {
+  snapshot(); const old = piece.beats; piece.beats = +$("beats").value; fillPickup();
+  if (piece.edited) { const d = (piece.pickup ? piece.beats * 4 - piece.pickup : 0) - (piece.pickup ? old * 4 - piece.pickup : 0); if (d) piece.notes.forEach(n => n.s = Math.max(0, n.s + d)); render(); }
+  else layout();
+};
+$("pickup").onchange = () => {
+  snapshot(); piece.pickupMode = $("pickup").value;
+  if (piece.edited || !piece.raw) {
+    const M = piece.beats * 4, oldStart = piece.pickup ? M - piece.pickup : 0;
+    const want = piece.pickupMode === "auto" ? piece.pickup : +piece.pickupMode;
+    const newStart = want ? M - want : 0;
+    piece.notes.forEach(n => n.s = Math.max(0, n.s + newStart - oldStart)); piece.pickup = want; render();
+  } else layout();
+};
+$("grid").onchange = () => { snapshot(); piece.grid = +$("grid").value; piece.edited ? render() : layout(); };
+$("split").onchange = () => {
+  snapshot(); piece.split = +$("split").value;
+  if (!piece.edited) layout();
+  else { ML.assignHands(piece.notes, piece.split); render(); setStatus("Handen opnieuw verdeeld. Noten die je zelf naar een hand hebt verplaatst, blijven staan."); }
+};
 $("title").oninput = () => { piece.title = $("title").value; clearTimeout(window.__tt); window.__tt = setTimeout(render, 400); };
 $("relayout").onclick = () => { snapshot(); piece.edited = false; layout(); };
-$("newpiece").onclick = () => { stopAll(); snapshot(); restPad.R = restPad.L = 0; piece = { title: "Mijn stuk", bpm: +$("bpm").value || 100, beats: +$("beats").value, grid: +$("grid").value, split: +$("split").value, notes: [], raw: null, edited: true }; $("title").value = piece.title; $("exlabel").hidden = true; selected = null; lastAppend = { R: null, L: null }; render(); setStatus("Leeg vel klaar. Speel noten op het toetsenbord hieronder."); };
-$("undo").onclick = () => { if (!undoStack.length) return setStatus("Er is niets meer om terug te zetten."); piece.notes = JSON.parse(undoStack.pop()); selected = null; render(); };
-$("keysel").onchange = () => { piece.key = $("keysel").value; render(); };
-$("inst").onchange = () => { const a = audio(), t = a.currentTime + .02; [60, 64, 67].forEach(p => voice(a, a.destination, p, t, .5, .7)); };
+$("keysel").onchange = () => { snapshot(); piece.key = $("keysel").value; render(); };
+$("inst").onchange = () => { const a = audio(); a.resume && a.resume(); const t = a.currentTime + .02; [60, 64, 67].forEach(p => voice(a, a.destination, p, t, .5, .7)); };
+for (const k of ["chords", "pedal", "melody"]) $("o-" + k).onclick = () => { piece.opts[k] = !piece.opts[k]; syncControls(); render(); };
+function transpose(d) {
+  const ps = piece.notes.filter(n => !n.rest).map(n => n.p);
+  if (ps.length && (Math.min(...ps) + d < 21 || Math.max(...ps) + d > 108)) return setStatus("Verder transponeren kan niet: dan vallen er noten buiten de piano.", true);
+  snapshot();
+  piece.notes.forEach(n => { if (!n.rest) n.p += d; });
+  piece.transpose = (piece.transpose || 0) + d;
+  piece.key = ML.transposeKey(piece.key, d);
+  syncControls(); render();
+}
+$("tr-up").onclick = () => transpose(1);
+$("tr-down").onclick = () => transpose(-1);
+$("newpiece").onclick = () => {
+  stopAll(); snapshot();
+  piece = freshPiece(); piece.bpm = +$("bpm").value || 100;
+  srcBuf = null; $("review").hidden = true; selected = null; testMarks = null; lastAppend = { R: null, L: null }; $("to").dataset.auto = "1";
+  syncControls(); render(); setStatus("Leeg vel klaar. Speel noten op het toetsenbord hieronder.");
+};
+$("undo").onclick = () => { if (!undoStack.length) return setStatus("Er is niets meer om terug te zetten."); restoreState(undoStack.pop()); setStatus("Teruggezet."); };
 
 /* ---------- invoer met toetsenbord ---------- */
 const DURS = [[16, "𝅝", "hele noot"], [8, "𝅗𝅥", "halve noot"], [4, "♩", "kwartnoot"], [2, "♪", "achtste noot"], [1, "𝅘𝅥𝅯", "zestiende noot"]];
@@ -978,19 +1567,29 @@ $("dotted").onclick = () => { dotted = !dotted; $("dotted").classList.toggle("on
 $("chord").onclick = () => { chordMode = !chordMode; $("chord").classList.toggle("on", chordMode); $("chord").setAttribute("aria-pressed", chordMode); };
 ["auto", "R", "L"].forEach(m => $("hand-" + m).onclick = () => { handMode = m; ["auto", "R", "L"].forEach(k => $("hand-" + k).classList.toggle("on", k === m)); });
 const len = () => Math.round(curDur * (dotted ? 1.5 : 1)) || 1;
-function handEnd(h) { let e = 0; for (const n of piece.notes) if (n.h === h) e = Math.max(e, n.s + n.len); return e; }
+function handEnd(h) { let e = layoutInfo.start0; for (const n of piece.notes) if (n.h === h) e = Math.max(e, n.s + n.len); return e; }
+function pickHand(p) {
+  if (handMode !== "auto") return handMode;
+  if (piece.split) return p >= piece.split ? "R" : "L";
+  // slim: kies de hand die het dichtst bij zijn laatste noten zit
+  const last = h => { const ns = piece.notes.filter(n => n.h === h && !n.rest).slice(-4); return ns.length ? ns.reduce((a, n) => a + n.p, 0) / ns.length : (h === "R" ? 67 : 50); };
+  return Math.abs(p - last("R")) <= Math.abs(p - last("L")) ? "R" : "L";
+}
 function addNote(p) {
-  const h = handMode === "auto" ? (p >= piece.split ? "R" : "L") : handMode;
+  const h = pickHand(p);
   snapshot();
   let s;
-  if (chordMode && lastAppend[h] && piece.notes.some(n => n.h === h && n.s === lastAppend[h])) s = lastAppend[h];
-  else { s = handEnd(h) + restPad[h]; restPad[h] = 0; }
-  if (!piece.notes.some(n => n.h === h && n.s === s && n.p === p)) piece.notes.push({ s, len: len(), p, h, fixed: true });
-  lastAppend[h] = s; piece.edited = true; $("exlabel").hidden = true;
-  selected = { h, s }; render();
+  if (chordMode && lastAppend[h] != null && piece.notes.some(n => n.h === h && n.s === lastAppend[h])) s = lastAppend[h];
+  else s = handEnd(h);
+  if (!piece.notes.some(n => n.h === h && n.s === s && n.p === p)) piece.notes.push({ s, len: len(), p, h, fixed: true, handFixed: handMode !== "auto" });
+  lastAppend[h] = s; piece.edited = true;   selected = { h, s, v: null }; render();
 }
-const restPad = { R: 0, L: 0 };
-$("restbtn").onclick = () => { const h = handMode === "L" ? "L" : "R"; restPad[h] += len(); lastAppend[h] = null; setStatus("Rust toegevoegd in de " + (h === "R" ? "rechter" : "linker") + "hand. Je ziet hem zodra de volgende noot erachter staat."); };
+$("restbtn").onclick = () => {
+  const h = handMode === "L" ? "L" : "R";
+  snapshot(); piece.notes.push({ s: handEnd(h), len: len(), p: 0, h, rest: true, fixed: true });
+  lastAppend[h] = null; piece.edited = true; render();
+  setStatus("Rust toegevoegd in de " + (h === "R" ? "rechter" : "linker") + "hand. Kies Linkerhand voor een rust links.");
+};
 function buildKeys() {
   const box = $("keys"); box.innerHTML = "";
   const narrow = box.clientWidth < 420, octs = narrow ? 1 : 2;
@@ -1005,49 +1604,144 @@ function buildKeys() {
 function press(b, p) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 160); const a = audio(); a.resume && a.resume(); voice(a, a.destination, p, a.currentTime + .01, Math.max(.25, len() * 60 / piece.bpm / 4), .8); addNote(p); }
 $("octdown").onclick = () => { octave = Math.max(1, octave - 1); buildKeys(); };
 $("octup").onclick = () => { octave = Math.min(6, octave + 1); buildKeys(); };
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, textarea, select")) return;
+  if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); $("undo").click(); return; }
+  if (e.key === " ") { if (e.target.closest("button")) return; e.preventDefault(); $("playnotes").click(); return; }
+  if (!selected) return;
+  const map = { ArrowUp: "s-up", ArrowDown: "s-down", Delete: "s-del", Backspace: "s-del", Escape: "s-close", ArrowRight: "s-longer", ArrowLeft: "s-shorter" };
+  if (map[e.key]) { e.preventDefault(); $(map[e.key]).click(); }
+});
+
+/* ---------- speel mee ---------- */
+["both", "R", "L"].forEach(h => $("t-" + h).onclick = () => { testHand = h; ["both", "R", "L"].forEach(k => $("t-" + k).classList.toggle("on", k === h)); });
+$("t-listen").onclick = () => {
+  if (playing()) return stopAll();
+  if (!notesFor(testHand).length) return setStatus("Er zijn geen noten voor deze hand in de gekozen maten.");
+  playMode = "test"; $("t-listen").textContent = "■ Stop";
+  playRange({ range: rangeUnits(), hand: testHand });
+};
+async function checkPlaying(buf) {
+  setStatus("Jouw spel wordt beluisterd…"); progress(0.02);
+  const x = await toMono22k(buf), r = await transcribe(x, progress);
+  progress(null);
+  const { from, to, a, b } = rangeUnits();
+  const exp = notesFor(testHand).filter(n => n.s >= from && n.s < to);
+  if (!exp.length) return setStatus("Er zijn geen noten om mee te vergelijken in de gekozen maten.", true);
+  const expG = []; for (const n of exp) { let g = expG.find(g => g.s === n.s); if (!g) expG.push(g = { s: n.s, ps: new Set(), notes: [] }); g.ps.add(n.p); g.notes.push(n); }
+  expG.sort((p, q) => p.s - q.s);
+  const allExp = new Set(exp.map(n => n.p));
+  // octaaffouten van de herkenning niet aanrekenen
+  const fix = p => allExp.has(p) ? p : allExp.has(p + 12) ? p + 12 : allExp.has(p - 12) ? p - 12 : p;
+  const playG = [];
+  for (const n of r.notes.slice().sort((p, q) => p.t - q.t)) { const g = playG[playG.length - 1]; if (g && n.t - g.t < 0.045) g.ps.add(fix(n.p)); else playG.push({ t: n.t, ps: new Set([fix(n.p)]) }); }
+  const cmp = ML.compare(expG, playG);
+  testMarks = new Map(); let hit = 0, tot = 0; const mist = [];
+  cmp.res.forEach((res, i) => {
+    const g = expG[i]; tot += g.ps.size; hit += res ? res.hit : 0;
+    g.notes.forEach(n => testMarks.set(n, false));
+    if (res && res.hit) { let k = res.hit; for (const n of g.notes) { if (k <= 0) break; testMarks.set(n, true); k--; } }
+    if (!res || res.hit < g.ps.size) mist.push("Maat " + measureOf(g.s) + ": " + [...g.ps].map(pname).join(" + ") + (res && res.hit ? " (deels)" : " gemist"));
+    if (res && res.wrong && res.wrong.length) mist.push("Maat " + measureOf(g.s) + ": " + res.wrong.map(pname).join(", ") + " te veel");
+  });
+  const pct = Math.round(100 * hit / Math.max(1, tot));
+  $("t-result").hidden = false; $("t-pct").textContent = pct + "%";
+  $("t-sum").textContent = hit + " van " + tot + " noten goed in maat " + a + (b > a ? " t/m " + b : "") + (cmp.extra ? " · " + cmp.extra + " keer iets extra gespeeld" : "") + (pct >= 90 ? ". Prima!" : pct >= 70 ? ". Bijna, oefen de rode noten nog even." : ". Probeer het langzamer, met Snelheid op 75% of lager.");
+  const ul = $("t-mist"); ul.innerHTML = ""; mist.slice(0, 8).forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+  if (mist.length > 8) { const li = document.createElement("li"); li.textContent = "en nog " + (mist.length - 8) + " andere plekken"; ul.appendChild(li); }
+  drawRoll(); setStatus("");
+}
+$("t-rec").onclick = async () => {
+  const b = $("t-rec"); if (b._rec) return b._rec.stop();
+  stopAll();
+  const r = await record(b, "● Speel na", buf => checkPlaying(buf).catch(err => setStatus("Vergelijken lukte niet: " + (err.message || err), true)));
+  if (!r) { $("t-filewrap").hidden = false; setStatus("Opnemen kan hier niet. Neem je naspelen op met Dictafoon of je camera en kies het bestand hieronder, of open de app vanaf je beginscherm.", true); }
+  else setStatus("Speel de maten na. Tik op Stop als je klaar bent.");
+};
+$("t-file").onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try { const buf = await decodeFile(f); await checkPlaying(buf); } catch (err) { progress(null); setStatus((err && err.message) || "Dit bestand kan de app niet lezen.", true); }
+};
 
 /* ---------- bewaren ---------- */
-const LS = "melodienotitie.stukken";
-function loadList() { try { return JSON.parse(localStorage.getItem(LS) || "[]"); } catch (e) { return []; } }
+const packPiece = () => { const { raw, ...rest } = piece; return Object.assign(JSON.parse(JSON.stringify(rest)), raw ? { raw: { notes: raw.notes, an: raw.an, shift: raw.shift } } : {}); };
+let saveT = 0;
+function autosave() { clearTimeout(saveT); if (piece.demo) return; saveT = setTimeout(() => lsSet(LS_NOW, JSON.stringify({ at: Date.now(), piece: packPiece() })), 500); }
+function loadList() { try { return JSON.parse(lsGet(LS_PIECES) || "[]"); } catch (e) { return []; } }
 function fillList() {
-  const l = loadList(), sel = $("pieces"); sel.innerHTML = '<option value="">Mijn stukken' + (l.length ? " (" + l.length + ")" : "") + "…</option>";
-  l.forEach((it, i) => { const o = document.createElement("option"); o.value = i; o.textContent = it.title + " · " + new Date(it.at).toLocaleDateString("nl-NL"); sel.appendChild(o); });
+  const l = loadList(), ul = $("pieces"); ul.innerHTML = "";
+  l.forEach((it, i) => {
+    const li = document.createElement("li");
+    const t = document.createElement("span"); t.className = "t"; t.textContent = it.title + " ";
+    const d = document.createElement("span"); d.className = "d"; d.textContent = new Date(it.at).toLocaleDateString("nl-NL"); t.appendChild(d);
+    const open = document.createElement("button"); open.textContent = "Open"; open.onclick = () => openPiece(it);
+    const del = document.createElement("button"); del.textContent = "Verwijder"; del.setAttribute("aria-label", "Verwijder " + it.title);
+    del.onclick = () => {
+      if (!del.classList.contains("sure")) { del.classList.add("sure"); del.textContent = "Zeker?"; setTimeout(() => { del.classList.remove("sure"); del.textContent = "Verwijder"; }, 3000); return; }
+      const cur = loadList(); cur.splice(i, 1); lsSet(LS_PIECES, JSON.stringify(cur)); fillList(); setStatus("“" + it.title + "” is verwijderd.");
+    };
+    li.append(t, open, del); ul.appendChild(li);
+  });
+}
+function openPiece(it, msg) {
+  stopAll(); snapshot();
+  piece = Object.assign(freshPiece(), it.piece); piece.opts = Object.assign({ chords: true, pedal: true, melody: false }, piece.opts || {});
+  srcBuf = null; $("review").hidden = true; selected = null; testMarks = null; $("to").dataset.auto = "1";
+  syncControls(); render(); setStatus(msg || "“" + piece.title + "” geopend.");
 }
 $("save").onclick = () => {
   const l = loadList().filter(it => it.title !== piece.title);
-  l.unshift({ title: piece.title || "Zonder titel", at: Date.now(), piece: { ...piece } });
-  try { localStorage.setItem(LS, JSON.stringify(l.slice(0, 30))); setStatus("Bewaard in Mijn stukken op dit apparaat."); fillList(); }
-  catch (e) { setStatus("Bewaren lukt niet in deze weergave. Gebruik Bewaar voor GarageBand / MuseScore.", true); }
-};
-$("pieces").onchange = () => {
-  const it = loadList()[+$("pieces").value]; $("pieces").value = ""; if (!it) return;
-  stopAll(); snapshot(); piece = { ...it.piece, edited: true }; srcBuf = null; $("review").hidden = true;
-  $("title").value = piece.title; $("bpm").value = piece.bpm; $("beats").value = piece.beats; $("grid").value = piece.grid; $("split").value = piece.split; $("exlabel").hidden = true;
-  selected = null; render(); setStatus("“" + piece.title + "” geopend.");
+  l.unshift({ title: piece.title || "Zonder titel", at: Date.now(), piece: packPiece() });
+  if (lsSet(LS_PIECES, JSON.stringify(l.slice(0, 40)))) { setStatus("Bewaard in Mijn stukken op dit apparaat."); fillList(); }
+  else setStatus("Bewaren lukt niet in deze weergave. Gebruik Bewaar voor GarageBand / MuseScore.", true);
 };
 $("copy").onclick = async () => {
   const t = $("abctext").value;
   try { await navigator.clipboard.writeText(t); setStatus("Bladmuziek gekopieerd. Plak hem in MuseScore, Flat.io of een notitie."); }
   catch (e) { $("abctext").closest("details").open = true; $("abctext").select(); setStatus("Kopiëren lukte niet automatisch. De tekst is geselecteerd: kopieer hem zelf."); }
 };
+
+/* ---------- delen ---------- */
+$("share").onclick = async () => {
+  try {
+    const url = APP_URL + "#s=" + await ML.encodeShare(piece);
+    if (STANDALONE && navigator.share) { try { await navigator.share({ title: piece.title, text: "Bladmuziek van " + piece.title + " in MelodieNotitie", url }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+    $("sharebox").hidden = false; $("sharelink").value = url;
+    try { await navigator.clipboard.writeText(url); setStatus("Link gekopieerd. Wie hem opent, ziet dit stuk in MelodieNotitie."); }
+    catch (e) { $("sharelink").select(); setStatus("Kopieer de link hieronder."); }
+  } catch (e) { setStatus("Een link maken lukte niet.", true); }
+};
+$("sharecopy").onclick = async () => { try { await navigator.clipboard.writeText($("sharelink").value); setStatus("Link gekopieerd."); } catch (e) { $("sharelink").select(); } };
+if (STANDALONE) { $("print").hidden = false; $("print").onclick = () => window.print(); }
 let dls = null;
-(async () => { try { dls = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dls = null; } document.querySelectorAll(".dl").forEach(b => b.hidden = !dls && window.top !== window); })();
-document.querySelectorAll(".dl").forEach(b => b.hidden = window.top !== window);
 const safe = () => (piece.title || "MelodieNotitie").replace(/[^\p{L}\p{N} _-]+/gu, "").trim() || "MelodieNotitie";
-async function save(filename, data) {
-  if (!dls) { const u = URL.createObjectURL(data instanceof Blob ? data : new Blob([data])); const a = document.createElement("a"); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); setStatus(filename + " wordt gedownload."); return; }
-  try { await dls.save({ filename, data }); setStatus(filename + " is bewaard."); }
-  catch (e) { if (e && e.code === "declined") setStatus("Niet bewaard."); else setStatus("Bewaren lukt hier niet (" + ((e && e.code) || "onbekend") + ").", true); }
+async function save(filename, data, type) {
+  if (dls) {
+    try { await dls.save({ filename, data }); setStatus(filename + " is bewaard."); }
+    catch (e) { if (e && e.code === "declined") setStatus("Niet bewaard."); else setStatus("Bewaren lukt hier niet (" + ((e && e.code) || "onbekend") + ").", true); }
+    return;
+  }
+  const blob = data instanceof Blob ? data : new Blob([data], { type });
+  try {
+    const file = new File([blob], filename, { type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: filename }); setStatus(filename + " gedeeld."); return; }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  const u = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+  setStatus(filename + " wordt gedownload.");
 }
+document.querySelectorAll(".dl").forEach(b => b.hidden = !STANDALONE);
+(async () => { try { dls = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dls = null; } if (dls) document.querySelectorAll(".dl").forEach(b => b.hidden = false); })();
 $("dl-svg").onclick = () => {
-  const svg = $("sheet").querySelector("svg"); if (!svg) return;
+  const svg = $("sheet").querySelector("svg"); if (!svg) return setStatus("Er is nog geen bladmuziek om te bewaren.", true);
   const c = svg.cloneNode(true); c.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  c.querySelectorAll(".mn-now").forEach(el => el.classList.remove("mn-now"));
   c.insertAdjacentHTML("afterbegin", '<rect width="100%" height="100%" fill="#ffffff"/>');
-  save(safe() + ".svg", new XMLSerializer().serializeToString(c));
+  save(safe() + ".svg", new XMLSerializer().serializeToString(c), "image/svg+xml");
 };
 $("dl-zip").onclick = () => {
-  const z = ML.zip([{ name: safe() + ".mid", data: ML.midi(piece) }, { name: safe() + ".abc.txt", data: $("abctext").value }]);
-  save(safe() + ".zip", z);
+  const view = Object.assign({}, piece, { notes: shown() });
+  save(safe() + ".zip", ML.zip([{ name: safe() + ".mid", data: ML.midi(view) }, { name: safe() + ".abc.txt", data: $("abctext").value }]), "application/zip");
 };
 
 /* ---------- voorbeeld: Ode an die Freude (Beethoven, vrij van rechten) ---------- */
@@ -1058,9 +1752,10 @@ function demoAudio() {
   let t = 0.4; mel.forEach((p, i) => { notes.push({ t, d: ml[i] * q * .92, p, v: .85 }); t += ml[i] * q; });
   const ch = [[48, 55], [43, 55], [45, 52], [43, 50], [48, 55], [43, 55], [45, 52], [43, 48]];
   ch.forEach((c, i) => c.forEach(p => notes.push({ t: 0.4 + i * 4 * q, d: 4 * q * .95, p, v: .55 })));
-  const len = t + 1.5, a = audio(), buf = a.createBuffer(1, Math.ceil(len * sr), sr), x = buf.getChannelData(0);
+  const total = t + 1.5, a = audio(), buf = a.createBuffer(1, Math.ceil(total * sr), sr), x = buf.getChannelData(0);
   for (const n of notes) {
-    const f0 = ML_hz(n.p), s0 = Math.round(n.t * sr), L = Math.min(x.length - s0, Math.round((n.d + .4) * sr));
+    const nxt = notes.filter(m => m.p === n.p && m.t > n.t + .01).reduce((m, o) => Math.min(m, o.t), 1e9);
+    const f0 = 440 * Math.pow(2, (n.p - 69) / 12), s0 = Math.round(n.t * sr), L = Math.min(x.length - s0, Math.round(Math.min(n.d + .4, nxt - n.t) * sr));
     for (let h = 1; h <= 12; h++) {
       const f = h * f0 * Math.sqrt(1 + .0004 * h * h); if (f > 9000) break;
       const amp = .22 * n.v / Math.pow(h, 1.15) * (n.p < 45 && h === 1 ? .4 : 1), dec = 1.1 + h * .55, w = 2 * Math.PI * f / sr, ph = h * 1.7;
@@ -1069,23 +1764,47 @@ function demoAudio() {
   }
   return buf;
 }
-async function boot() {
-  buildKeys();
-  fillList();
-  try {
-    const buf = demoAudio();
-    showReview("Voorbeeld: Ode an die Freude", buf);
-    const x = await toMono22k(buf);
-    const r = await transcribe(x);
-    piece.raw = { notes: r.notes, first: Math.min(...r.notes.map(n => n.t)) };
-    piece.bpm = r.bpm; $("bpm").value = r.bpm;
-    progress(null); layout();
-    setStatus("Dit is een voorbeeld dat de app zelf heeft uitgewerkt. Kies je eigen opname of video om te beginnen.");
-  } catch (e) { render(); }
+async function loadDemo() {
+  const buf = demoAudio();
+  showReview("Voorbeeld: Ode an die Freude", buf);
+  const x = await toMono22k(buf);
+  const r = await transcribe(x);
+  adopt(r, "Ode an die Freude"); piece.demo = true; render();
+  setStatus("Dit is een voorbeeld dat de app zelf heeft uitgewerkt. Kies je eigen opname of video om te beginnen.");
 }
-let rz = 0; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { buildKeys(); render(); }, 200); });
+async function boot() {
+  buildKeys(); fillList(); syncControls();
+  // 1. een gedeelde link
+  const m = STANDALONE && location.hash.match(/^#s=([A-Za-z0-9_-]+)$/);
+  if (m) {
+    try {
+      const p = await ML.decodeShare(m[1]);
+      openPiece({ piece: Object.assign(p, { edited: true, grid: 1, split: 0 }) }, "Gedeeld stuk geopend: “" + (p.title || "Zonder titel") + "”. Tik op Bewaar om het te houden.");
+      history.replaceState(null, "", location.pathname);
+      return;
+    } catch (e) { setStatus("Deze link kon niet worden geopend. Misschien is hij niet helemaal gekopieerd.", true); }
+  }
+  // 2. je laatste werk
+  try {
+    const now = JSON.parse(lsGet(LS_NOW) || "null");
+    if (now && now.piece && (now.piece.notes || []).length) {
+      openPiece({ piece: now.piece }, "Je laatste stuk is teruggezet: “" + (now.piece.title || "Zonder titel") + "”.");
+      return;
+    }
+  } catch (e) {}
+  // 3. het voorbeeld
+  try { await loadDemo(); } catch (e) { render(); }
+}
+window.addEventListener("hashchange", async () => {
+  const m = STANDALONE && location.hash.match(/^#s=([A-Za-z0-9_-]+)$/); if (!m) return;
+  try { const p = await ML.decodeShare(m[1]); openPiece({ piece: Object.assign(p, { edited: true, grid: 1, split: 0 }) }, "Gedeeld stuk geopend: “" + (p.title || "Zonder titel") + "”. Tik op Bewaar om het te houden."); history.replaceState(null, "", location.pathname); }
+  catch (e) { setStatus("Deze link kon niet worden geopend.", true); }
+});
+let rz = 0, lastW = 0; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) < 20) return; lastW = window.innerWidth; buildKeys(); render(); }, 200); });
+lastW = window.innerWidth;
 render();
 boot();
+if (STANDALONE && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
 </script>
 
