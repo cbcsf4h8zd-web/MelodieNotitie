@@ -1,5 +1,5 @@
-/* MelodieNotitie offline: versie eca79767 */
-const CACHE = "mn-eca79767";
+/* MelodieNotitie offline: versie 01fe4f11 */
+const CACHE = "mn-01fe4f11";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 const LIB = "https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js";
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE).then(() => fetch(LIB, { mode: "no-cors" }).then(r => c.put(LIB, r)).catch(() => {}))).then(() => self.skipWaiting())); });

@@ -346,12 +346,12 @@ var MN = (function () {
       flux[t] = f; rms[t] = e; prev = m;
     }
     let mx = 0; for (const v of flux) mx = Math.max(mx, v);
-    const out = [], gap = Math.round(0.06 * sr / hop), W = Math.round(0.25 * sr / hop);
+    const out = [], gap = Math.round(OGAP * sr / hop), W = Math.round(0.25 * sr / hop);
     for (let t = 1; t < frames - 1; t++) {
       if (flux[t] < flux[t - 1] || flux[t] < flux[t + 1]) continue;
       let s = 0, c = 0;
       for (let u = Math.max(0, t - W); u <= Math.min(frames - 1, t + W); u++) { s += flux[u]; c++; }
-      const thr = 1.5 * s / c + 0.06 * mx;
+      const thr = OK1 * s / c + OK2 * mx;
       if (flux[t] < thr) continue;
       if (out.length && t - out[out.length - 1].f < gap) { if (flux[t] > out[out.length - 1].v) out[out.length - 1] = { f: t, v: flux[t] }; continue; }
       out.push({ f: t, v: flux[t] });
@@ -359,8 +359,12 @@ var MN = (function () {
     return out.map(o => ({ t: (o.f * hop) / sr, strength: o.v / mx }));
   }
 
-  const B = 0.0004; // inharmoniciteit piano
-  function partialBin(f0, h, N, sr) { return h * f0 * Math.sqrt(1 + B * h * h) * N / sr; }
+  var FL = (typeof process !== 'undefined' && process.env.F != null) ? process.env.F : "abghm";
+  const on = c => FL.indexOf(c) >= 0;
+  // inharmoniciteit: hoge snaren zijn korter en stijver, hun boventonen liggen verder boven de "zuivere" plek
+  function inharm(f0) { if (!on("a")) return 0.0004; const p = 69 + 12 * Math.log2(f0 / 440); return Math.min(0.006, Math.max(0.00008, 0.00035 * Math.pow(2, (p - 60) / 14))); }
+  function partialBin(f0, h, N, sr) { return h * f0 * Math.sqrt(1 + inharm(f0) * h * h) * N / sr; }
+  function ptol(bin, h) { return Math.max(1, bin * (on("b") ? 0.018 + 0.0025 * h : 0.025)); }
   function peakAt(D, bin, tol) {
     const lo = Math.max(1, Math.floor(bin - tol)), hi = Math.min(D.length - 1, Math.ceil(bin + tol));
     let best = 0, bi = -1; for (let k = lo; k <= hi; k++) if (D[k] > best) { best = D[k]; bi = k; }
@@ -377,33 +381,85 @@ var MN = (function () {
     const f0 = midiHz(n); let s = 0;
     for (let h = 1; h <= 14; h++) {
       const bin = partialBin(f0, h, N, sr); if (bin * sr / N > 6000) break;
-      const tol = Math.max(1, bin * 0.025);
-      const [a] = peakAt(D, bin, tol);
+      const [a] = peakAt(D, bin, ptol(bin, h));
       s += a * (f0 + 52) / (h * f0 + 320);
     }
     return s;
   }
+  var SUB = (typeof process !== 'undefined' && process.env.SUB) ? +process.env.SUB : 0.27;
+  var AMB = (typeof process !== 'undefined' && process.env.AMB) ? +process.env.AMB : 0.35;
+  var RHO = (typeof process !== 'undefined' && process.env.RHO) ? +process.env.RHO : 0;
+  var THR = (typeof process !== 'undefined' && process.env.THR) ? +process.env.THR : 0.45;
+  var PEAK = (typeof process !== 'undefined' && process.env.PEAK) ? +process.env.PEAK : 6;
+  var OK1 = (typeof process !== 'undefined' && process.env.OK1) ? +process.env.OK1 : 1.3;
+  var OK2 = (typeof process !== 'undefined' && process.env.OK2) ? +process.env.OK2 : 0.03;
+  var OGAP = (typeof process !== 'undefined' && process.env.OGAP) ? +process.env.OGAP : 0.06;
+  var KHZ = (typeof process !== 'undefined' && process.env.KHZ) ? +process.env.KHZ : 5500;
+  var RSTR = (typeof process !== 'undefined' && process.env.RSTR) ? +process.env.RSTR : 1.6;
+  var LOC = (typeof process !== 'undefined' && process.env.LOC) ? +process.env.LOC : 18;
+  var TG = (typeof process !== 'undefined' && process.env.TG) ? +process.env.TG : 0.08;
+  var THRH = (typeof process !== 'undefined' && process.env.THRH) ? +process.env.THRH : 0.45;
+  var RS = (typeof process !== 'undefined' && process.env.RS) ? +process.env.RS : 2;
+  var OCTR = (typeof process !== 'undefined' && process.env.OCTR) ? +process.env.OCTR : 0.6;
+  var THRL = (typeof process !== 'undefined' && process.env.THRL) ? +process.env.THRL : 0.45;
+  var GHOST = (typeof process !== 'undefined' && process.env.GHOST) ? +process.env.GHOST : 0.4;
   var RING = (typeof process !== 'undefined' && process.env.RING) ? +process.env.RING : 4;
   function multiPitch(D, N, sr, floor) {
     D = Float32Array.from(D);
     const found = [], banned = []; let s0 = 0;
+    // hoe sterk elke toonhoogte op zichzelf al klinkt (om dubbelzinnige boventonen te herkennen)
+    const S0 = new Float32Array(110); let S0max = 0;
+    if (on("f")) for (let n = 21; n <= 103; n++) { S0[n] = salience(D, n, N, sr); if (S0[n] > S0max) S0max = S0[n]; }
     for (let it = 0; it < 8; it++) {
       let best = 0, bn = -1;
-      for (let n = 28; n <= 103; n++) { if (found.includes(n) || banned.includes(n)) continue; const s = salience(D, n, N, sr); if (s > best) { best = s; bn = n; } }
+      for (let n = on("c") ? 21 : 28; n <= 103; n++) { if (found.includes(n) || banned.includes(n)) continue; const s = salience(D, n, N, sr); if (s > best) { best = s; bn = n; } }
       if (bn < 0) break;
+      // zwakke grondtoon: is dit eigenlijk een boventoon (2×, 3×, 4×, 5×) van een lagere noot?
+      // Bewijs: die lagere noot heeft óók boventonen die deze noot niet kan verklaren.
+      if (on("e")) {
+        for (let guard = 0; guard < 3; guard++) {
+          let pickL = -1, pickR = 0;
+          const f = midiHz(bn); let own = 0;
+          for (const h of [1, 2, 3]) { const bin = partialBin(f, h, N, sr); if (bin * sr / N > 6000) break; own += peakAt(D, bin, ptol(bin, h))[0]; }
+          own /= 3;
+          for (const [iv, k] of [[12, 2], [19, 3], [24, 4], [28, 5]]) {
+            const L = bn - iv; if (L < 21 || found.includes(L) || banned.includes(L)) continue;
+            const fl = midiHz(L); let un = 0, c = 0;
+            for (let j = 1; j <= 9 && c < 4; j++) {
+              if (j % k === 0) continue;
+              const fj = fl * j, q = Math.round(69 + 12 * Math.log2(fj / 440));
+              if (on("f") && j > 1 && q !== bn && q <= 103 && S0[q] > AMB * S0max) continue; // kan ook een eigen noot zijn (akkoordtoon)
+              const bin = partialBin(fl, j, N, sr); if (bin * sr / N > 6000) break; un += peakAt(D, bin, ptol(bin, j))[0]; c++;
+            }
+            if (c < 2) continue;
+            const ratio = (un / c) / (own || 1e-9);
+            if (ratio > SUB * (k === 2 ? 1 : 1.3) && ratio > pickR) { pickR = ratio; pickL = L; }
+          }
+          if (pickL < 0) break;
+          bn = pickL; best = salience(D, bn, N, sr);
+        }
+      } else if (on("c") && bn <= 64 && bn - 12 >= 21 && !found.includes(bn - 12) && !banned.includes(bn - 12)) {
+        const lo = midiHz(bn - 12); let oddL = 0, own = 0, c = 0;
+        for (const h of [3, 5, 7]) { const bin = partialBin(lo, h, N, sr); if (bin * sr / N > 6000) break; oddL += peakAt(D, bin, ptol(bin, h))[0]; c++; }
+        for (const h of [1, 2, 3]) { const bin = partialBin(midiHz(bn), h, N, sr); own += peakAt(D, bin, ptol(bin, h))[0]; }
+        if (c >= 2 && oddL / c > 0.22 * own / 3) { bn = bn - 12; best = salience(D, bn, N, sr); }
+      }
       if (it === 0) s0 = best;
       if (best < 0.22 * s0 || best < floor) break;
       // controleer dat de grondtoon (of 2e harmonische) echt aanwezig is: tegen subharmonische fouten
       const f0 = midiHz(bn), amps = [], bins = [];
       for (let h = 1; h <= 14; h++) {
         const bin = partialBin(f0, h, N, sr); if (bin * sr / N > 6000) break;
-        const [a, bi] = peakAt(D, bin, Math.max(1, bin * 0.025)); amps.push(a); bins.push(bi);
+        const [a, bi] = peakAt(D, bin, ptol(bin, h)); amps.push(a); bins.push(bi);
       }
       const odd = (amps[0] || 0) + (amps[2] || 0) + (amps[4] || 0), even = (amps[1] || 0) + (amps[3] || 0) + (amps[5] || 0);
       const tot = amps.reduce((a, b) => a + b, 0) || 1;
       const own = (amps[0] || 0) + (amps[4] || 0) + (amps[6] || 0); // h1,h5,h7: niet te verklaren door octaaf of kwint erboven
       const subharm = (bn < 96 && odd < 0.25 * even) || (bn < 52 && amps[0] < 0.3 * amps[1] && amps[2] > 0.3 * amps[1]) || (amps.length >= 7 && own < 0.12 * tot); // spooknoot onder een akkoord
       const cluster = found.some(f => Math.abs(f - bn) === 1) && best < 0.5 * s0; // halve toon naast een gevonden noot: meestal ruis
+      // precies een boventoon-afstand boven een gevonden noot (octaaf, duodecime, ...): eerder een restje boventoon dan een echte noot
+      const ghostUp = on("d") && found.some(f => [12, 19, 24, 28, 31, 34, 36].includes(bn - f)) && best < GHOST * s0;
+      if (ghostUp) { banned.push(bn); it--; if (banned.length > 8) break; continue; }
       if (subharm) { banned.push(bn); it--; if (banned.length > 6) break; continue; } // spooknoot: niet aftrekken, alleen overslaan
       if (!cluster) found.push(bn);
       for (let h = 0; h < amps.length; h++) {
@@ -415,6 +471,67 @@ var MN = (function () {
       }
     }
     return found;
+  }
+
+  /* Alle toetsen tegelijk: welke combinatie van noten verklaart dit spectrum het best?
+     Elke toets heeft twee klankvoorbeelden (helder en dof); een strafterm houdt het aantal noten klein. */
+  let TPL = null;
+  function templates(N, sr, K) {
+    if (TPL && TPL.N === N && TPL.K === K) return TPL;
+    const cols = [], pitch = [];
+    for (let p = 21; p <= 108; p++) {
+      const f0 = midiHz(p);
+      for (const slope of [0.6, 1.3]) {
+        const idx = [], val = [];
+        for (let h = 1; h <= 20; h++) {
+          const bin = partialBin(f0, h, N, sr); if (bin >= K - 1) break;
+          let a = Math.pow(h, -slope); if (p < 45 && h === 1) a *= 0.35; else if (p < 55 && h === 1) a *= 0.7;
+          const b0 = Math.floor(bin), fr = bin - b0;
+          for (const [k, w] of [[b0 - 1, 0.25 * (1 - fr)], [b0, 1 - fr * 0.5], [b0 + 1, 0.5 + fr * 0.5], [b0 + 2, 0.25 * fr]]) if (k > 0 && k < K) { idx.push(k); val.push(a * w); }
+        }
+        let nn = 0; for (const v of val) nn += v; for (let i = 0; i < val.length; i++) val[i] /= nn;
+        cols.push({ idx: Int32Array.from(idx), val: Float32Array.from(val) }); pitch.push(p);
+      }
+    }
+    return (TPL = { N, K, cols, pitch });
+  }
+  function jointPitch(D, N, sr, floor) {
+    const K = Math.min(D.length - 2, Math.ceil(KHZ * N / sr));
+    const T = templates(N, sr, K), C = T.cols.length;
+    const V = new Float32Array(K); let tot = 0;
+    for (let k = 1; k < K; k++) { V[k] = Math.sqrt(D[k]); tot += V[k]; }
+    if (tot <= 0) return [];
+    const W = new Float32Array(C).fill(tot / C), Vh = new Float32Array(K), num = new Float32Array(C);
+    for (let it = 0; it < 60; it++) {
+      Vh.fill(1e-9);
+      for (let c = 0; c < C; c++) { const col = T.cols[c], w = W[c]; if (w < 1e-12) continue; for (let i = 0; i < col.idx.length; i++) Vh[col.idx[i]] += w * col.val[i]; }
+      for (let c = 0; c < C; c++) { const col = T.cols[c]; let s = 0; for (let i = 0; i < col.idx.length; i++) s += col.val[i] * V[col.idx[i]] / Vh[col.idx[i]]; num[c] = s; }
+      for (let c = 0; c < C; c++) W[c] *= Math.pow(num[c], 1 + RHO); // macht > 1: sterke noten winnen, zwakke verdwijnen (spaarzaam)
+    }
+    const act = new Float32Array(112);
+    for (let c = 0; c < C; c++) act[T.pitch[c]] += W[c];
+    let mx = 0; for (const v of act) mx = Math.max(mx, v);
+    let out = [];
+    for (let p = 21; p <= 108; p++) {
+      // vergelijk met de buurt (± LOC halve tonen): een zachte hoge noot naast een luide bas telt ook
+      let lm = 0; for (let q = Math.max(21, p - LOC); q <= Math.min(108, p + LOC); q++) lm = Math.max(lm, act[q]);
+      const ref = on("k") ? lm : mx, thr = p >= 84 ? THRH : p < 60 ? THRL : THR; // hoge noten: weinig energie; begeleiding links: vaak zachter
+      if (act[p] > thr * ref && act[p] > TG * mx && act[p] >= act[p - 1] * 0.5 && act[p] >= (act[p + 1] || 0) * 0.5) out.push(p);
+    }
+    // octaaf (of octaaf+kwint) boven een gevonden noot met weinig eigen energie: waarschijnlijk zijn boventoon
+    if (on("m")) out = out.filter(p => !((out.includes(p - 12) && act[p] < OCTR * act[p - 12]) || (out.includes(p - 19) && act[p] < OCTR * 0.8 * act[p - 19])));
+    // ruis (een tik, geritsel) heeft geen toonpieken: een echte noot heeft er minstens twee op de plek van zijn boventonen
+    if (on("h")) {
+      const srt = Array.from(D.subarray(1, K)).sort((a, b) => a - b), med = srt[srt.length >> 1] || 0;
+      out = out.filter(p => {
+        const f0 = midiHz(p); let pk = 0;
+        let avail = 0;
+        for (let h = 1; h <= 6; h++) { const bin = partialBin(f0, h, N, sr); if (bin >= K - 1) break; avail++; if (strictPeak(D, bin) > PEAK * med) pk++; }
+        return pk >= Math.min(2, avail) && (p >= 84 || salience(D, p, N, sr) >= floor);
+      });
+      if (out.length > 10) out = out.sort((a, b) => act[b] - act[a]).slice(0, 10);
+    }
+    return out;
   }
 
   function transcribe(x, sr, progress) {
@@ -444,7 +561,17 @@ var MN = (function () {
     const needed = new Set();
     const events = [];
     for (let i = 0; i < ons.length; i++) {
-      const ps = multiPitch(diffs[i], N, sr, floor);
+      let ps = on("g") ? jointPitch(diffs[i], N, sr, floor) : multiPitch(diffs[i], N, sr, floor);
+      // een noot die nog luid doorklinkt telt alleen als nieuwe aanslag als hij duidelijk harder wordt
+      if (on("j")) {
+        const ringing = new Set(events.filter(e => e.t > ons[i].t - 4).map(e => e.p));
+        ps = ps.filter(p => {
+          if (!ringing.has(p) || salience(befores[i], p, N, sr) < RING * floor) return true;
+          const f0 = midiHz(p); let ea = 0, eb = 0;
+          for (let h = 1; h <= 4; h++) { const bin = partialBin(f0, h, N, sr); ea += peakAt(afters[i], bin, ptol(bin, h))[0]; eb += peakAt(befores[i], bin, ptol(bin, h))[0]; }
+          return ea > RSTR * eb;
+        });
+      }
       if (typeof process !== 'undefined' && process.env.MNDBG) console.log('onset', ons[i].t.toFixed(2), 'mp', ps.join(','));
       // herhaalde noot: dezelfde toon die al klonk wordt opnieuw aangeslagen
       const recent = new Set(events.filter(e => e.t > ons[i].t - 2.5).map(e => e.p));
@@ -463,17 +590,7 @@ var MN = (function () {
           ea += a1; eb += b1; used++;
         }
         // grondtoon flink harder geworden terwijl de boventonen samenvallen met "nieuwe" noten: opnieuw aangeslagen
-        let restruck = (used >= 2 && ea > 2 * eb) || (h1free && used < 2 && r1 > 2.2);
-        if (!restruck && used < 2 && ps.includes(p - 12)) {
-          // alle boventonen vallen samen met de noot een octaaf lager: vergelijk met wat die lagere noot zelf zou geven
-          const g = midiHz(p - 12), D = diffs[i]; let rs = 0, c = 0;
-          for (let h = 1; h <= 3; h++) {
-            const mine = strictPeak(D, partialBin(g, 2 * h, N, sr));
-            const nb = (strictPeak(D, partialBin(g, 2 * h - 1, N, sr)) + strictPeak(D, partialBin(g, 2 * h + 1, N, sr))) / 2;
-            if (nb > 0) { rs += mine / nb; c++; }
-          }
-          restruck = c >= 2 && rs / c > 1.8;
-        }
+        let restruck = (used >= 2 && ea > RS * eb) || (h1free && used < 2 && r1 > RS * 1.1);
         if (restruck && salience(afters[i], p, N, sr) > 2 * floor) {
           ps.push(p);
           if (typeof process !== 'undefined' && process.env.MNDBG) console.log('  herhaald', p, (ea/eb).toFixed(2));
@@ -483,7 +600,7 @@ var MN = (function () {
           }
         }
       }
-      for (const p of ps) { events.push({ t: ons[i].t, p }); needed.add(p); }
+        for (const p of ps) { events.push({ t: ons[i].t, p }); needed.add(p); }
       if (i % 10 === 0 && progress) progress(0.5 + 0.3 * i / ons.length);
     }
     // energiecurves voor de gevonden toonhoogtes
