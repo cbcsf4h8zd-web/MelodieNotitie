@@ -334,24 +334,86 @@ var MN = (function () {
     return m;
   }
   const midiHz = m => 440 * Math.pow(2, (m - 69) / 12);
+  // complex spectrum met fase gemeten in het midden van het venster
+  function spectrumC(x, center, N) {
+    const w = winCache[N] || (winCache[N] = hann(N));
+    const re = new Float32Array(N), im = new Float32Array(N);
+    const s = Math.round(center) - N / 2;
+    for (let i = 0; i < N; i++) { const j = s + i; re[i] = (j >= 0 && j < x.length) ? x[j] * w[i] : 0; }
+    fft(re, im);
+    for (let k = 1; k < N / 2; k += 2) { re[k] = -re[k]; im[k] = -im[k]; }
+    return { re, im };
+  }
+  /* "Onverwachte" energie na een aanslag: voorspel uit twee vensters vóór de aanslag hoe elke toon
+     zou doorklinken (fase én sterkte). Wat daar niet bij past, is nieuw aangeslagen — ook als dezelfde toets
+     opnieuw wordt ingedrukt en het geluid even hard blijft. */
+  function surprise(x, s0, N, sr, endLimit) {
+    const hc = N / 8, g = Math.round(0.003 * sr), g2 = Math.round(0.005 * sr);
+    let c0 = s0 + N / 2 + g2; if (endLimit && c0 + N / 2 > endLimit) c0 = Math.max(s0 + N / 2, endLimit - N / 2);
+    const c1 = s0 - N / 2 - g, c2 = c1 - hc, d = c0 - c1;
+    const X0 = spectrumC(x, c0, N), X1 = spectrumC(x, c1, N), X2 = spectrumC(x, c2, N);
+    const out = new Float32Array(N / 2), mag = new Float32Array(N / 2), TAU = 2 * Math.PI;
+    for (let k = 1; k < N / 2; k++) {
+      const m0 = Math.hypot(X0.re[k], X0.im[k]), m1 = Math.hypot(X1.re[k], X1.im[k]), m2 = Math.hypot(X2.re[k], X2.im[k]);
+      mag[k] = m0;
+      if (m0 <= 1e-9) continue;
+      const p1 = Math.atan2(X1.im[k], X1.re[k]), p2 = Math.atan2(X2.im[k], X2.re[k]);
+      let dev = p1 - p2 - TAU * k * hc / N; dev -= TAU * Math.round(dev / TAU);
+      const f = k / N + dev / (TAU * hc);           // cycli per sample
+      const ph = p1 + TAU * f * d;
+      const r = m2 > 1e-9 ? Math.min(1, m1 / m2) : 1;
+      const mp = m1 * Math.pow(r, d / hc);
+      const er = X0.re[k] - mp * Math.cos(ph), ei = X0.im[k] - mp * Math.sin(ph);
+      const u = Math.hypot(er, ei) / (m0 + mp + 1e-9);
+      const wgt = Math.min(1, Math.max(0, (u - SU0) / 0.35));
+      out[k] = m0 * wgt;
+    }
+    out.mag = mag;
+    return out;
+  }
 
   function onsets(x, sr) {
     const N = 1024, hop = 256, frames = Math.floor(x.length / hop);
     const kLo = Math.floor(30 * N / sr), kHi = Math.floor(6000 * N / sr);
-    let prev = null; const flux = new Float32Array(frames), rms = new Float32Array(frames);
+    let prev = null; let flux = new Float32Array(frames), rms = new Float32Array(frames);
+    const cd = new Float32Array(frames); let P1 = null, P2 = null;
     for (let t = 0; t < frames; t++) {
-      const m = spectrum(x, t * hop, N);
+      let m;
+      if (on("v")) {
+        // complex domein: wijkt het spectrum af van wat je uit fase en sterkte van de vorige twee frames verwacht?
+        const X = spectrumC(x, t * hop, N); m = new Float32Array(N / 2);
+        const ph = new Float32Array(N / 2);
+        let c = 0;
+        for (let k = 1; k < N / 2; k++) {
+          m[k] = Math.hypot(X.re[k], X.im[k]); ph[k] = Math.atan2(X.im[k], X.re[k]);
+          if (P1 && P2 && k >= kLo && k < kHi && m[k] >= P1.m[k]) {
+            const pp = 2 * P1.ph[k] - P2.ph[k];
+            c += Math.hypot(X.re[k] - P1.m[k] * Math.cos(pp), X.im[k] - P1.m[k] * Math.sin(pp));
+          }
+        }
+        cd[t] = c; P2 = P1; P1 = { m: m.slice(), ph };
+      } else m = spectrum(x, t * hop, N);
       let f = 0, e = 0;
       for (let k = kLo; k < kHi; k++) { const c = Math.log(1 + 1000 * m[k]); if (prev) { const d = c - prev[k]; if (d > 0) f += d; } m[k] = c; e += c; }
       flux[t] = f; rms[t] = e; prev = m;
     }
+    if (on("v")) {
+      // samenvoegen: beide functies even zwaar (genormaliseerd op hun 99e percentiel), cd gecomprimeerd
+      const q = a => { const z = Array.from(a).sort((u, v) => u - v); return z[Math.floor(z.length * 0.99)] || 1; };
+      for (let t = 0; t < frames; t++) cd[t] = Math.sqrt(cd[t]);
+      const qf = q(flux), qc = q(cd);
+      for (let t = 0; t < frames; t++) flux[t] = flux[t] / qf + CW * cd[t] / qc;
+    }
     let mx = 0; for (const v of flux) mx = Math.max(mx, v);
+    // lokaal maximum (± 1,5 s): een zachte passage na een luide klap wordt niet overschreeuwd
+    const LW = Math.round(1.5 * sr / hop), lmx = new Float32Array(frames);
+    if (on("w")) { for (let t = 0; t < frames; t++) { let a = 0; for (let u = Math.max(0, t - LW); u <= Math.min(frames - 1, t + LW); u++) a = Math.max(a, flux[u]); lmx[t] = a; } }
     const out = [], gap = Math.round(OGAP * sr / hop), W = Math.round(0.25 * sr / hop);
     for (let t = 1; t < frames - 1; t++) {
       if (flux[t] < flux[t - 1] || flux[t] < flux[t + 1]) continue;
       let s = 0, c = 0;
       for (let u = Math.max(0, t - W); u <= Math.min(frames - 1, t + W); u++) { s += flux[u]; c++; }
-      const thr = OK1 * s / c + OK2 * mx;
+      const thr = OK1 * s / c + OK2 * (on("w") ? Math.max(lmx[t], 0.25 * mx) : mx);
       if (flux[t] < thr) continue;
       if (out.length && t - out[out.length - 1].f < gap) { if (flux[t] > out[out.length - 1].v) out[out.length - 1] = { f: t, v: flux[t] }; continue; }
       out.push({ f: t, v: flux[t] });
@@ -359,7 +421,7 @@ var MN = (function () {
     return out.map(o => ({ t: (o.f * hop) / sr, strength: o.v / mx }));
   }
 
-  var FL = (typeof process !== 'undefined' && process.env.F != null) ? process.env.F : "abghm";
+  var FL = (typeof process !== 'undefined' && process.env.F != null) ? process.env.F : "abghmpxDE";
   const on = c => FL.indexOf(c) >= 0;
   // inharmoniciteit: hoge snaren zijn korter en stijver, hun boventonen liggen verder boven de "zuivere" plek
   function inharm(f0) { if (!on("a")) return 0.0004; const p = 69 + 12 * Math.log2(f0 / 440); return Math.min(0.006, Math.max(0.00008, 0.00035 * Math.pow(2, (p - 60) / 14))); }
@@ -402,6 +464,20 @@ var MN = (function () {
   var RS = (typeof process !== 'undefined' && process.env.RS) ? +process.env.RS : 2;
   var OCTR = (typeof process !== 'undefined' && process.env.OCTR) ? +process.env.OCTR : 0.6;
   var THRL = (typeof process !== 'undefined' && process.env.THRL) ? +process.env.THRL : 0.45;
+  var RN = (typeof process !== 'undefined' && process.env.RN) ? +process.env.RN : 1.8;
+  var RNA = (typeof process !== 'undefined' && process.env.RNA) ? +process.env.RNA : 0.25;
+  var OB = (typeof process !== 'undefined' && process.env.OB) ? +process.env.OB : 1.1;
+  var SU0 = (typeof process !== 'undefined' && process.env.SU0) ? +process.env.SU0 : 0.5;
+  var SR = (typeof process !== 'undefined' && process.env.SR) ? +process.env.SR : 0.7;
+  var BEAT = (typeof process !== 'undefined' && process.env.BEAT) ? +process.env.BEAT : 0.9;
+  var OBD = (typeof process !== 'undefined' && process.env.OBD) ? +process.env.OBD : 1.1;
+  var MR = (typeof process !== 'undefined' && process.env.MR) ? +process.env.MR : 1.5;
+  var CW = (typeof process !== 'undefined' && process.env.CW) ? +process.env.CW : 1;
+  var EQK = (typeof process !== 'undefined' && process.env.EQK) ? +process.env.EQK : 8;
+  var EQS = (typeof process !== 'undefined' && process.env.EQS) ? +process.env.EQS : 1;
+  var DROP = (typeof process !== 'undefined' && process.env.DROP) ? +process.env.DROP : 35;
+  var OFFS = (typeof process !== 'undefined' && process.env.OFFS) ? +process.env.OFFS : 50;
+  var EBIAS = (typeof process !== 'undefined' && process.env.EBIAS) ? +process.env.EBIAS : -0.05;
   var GHOST = (typeof process !== 'undefined' && process.env.GHOST) ? +process.env.GHOST : 0.4;
   var RING = (typeof process !== 'undefined' && process.env.RING) ? +process.env.RING : 4;
   function multiPitch(D, N, sr, floor) {
@@ -475,25 +551,85 @@ var MN = (function () {
 
   /* Alle toetsen tegelijk: welke combinatie van noten verklaart dit spectrum het best?
      Elke toets heeft twee klankvoorbeelden (helder en dof); een strafterm houdt het aantal noten klein. */
-  let TPL = null;
+  const TPLS = {};
+  /* klankkleur van déze piano + microfoon: per frequentieband hoe sterk boventonen klinken t.o.v. het standaardmodel */
+  let EQ = null;
+  const EQB = 3; // banden per octaaf
+  function eqAt(f) { const b = EQB * Math.log2(Math.max(30, f) / 30), i = Math.floor(b), fr = b - i; const g = EQ.g; const a = g[Math.min(g.length - 1, Math.max(0, i))], c = g[Math.min(g.length - 1, Math.max(0, i + 1))]; return a * (1 - fr) + c * fr; }
+  function learnEQ(diffs, sets, N, sr) {
+    const nb = Math.ceil(EQB * Math.log2(6000 / 30)) + 1, sum = new Float64Array(nb), cnt = new Float64Array(nb);
+    for (let i = 0; i < diffs.length; i++) {
+      const ps = sets[i]; if (!ps || !ps.length || ps.length > 3) continue;
+      for (const p of ps) {
+        const f0 = midiHz(p), obs = [], pred = [], fr = [];
+        for (let h = 1; h <= 12; h++) {
+          const f = h * f0 * Math.sqrt(1 + inharm(f0) * h * h); if (f > 5500) break;
+          // boventonen die samenvallen met een andere noot uit dezelfde aanslag overslaan
+          if (ps.some(q => q !== p && (() => { const g = midiHz(q); for (let j = 1; j <= 14; j++) if (Math.abs(j * g - f) < f * 0.03) return true; return false; })())) continue;
+          const bin = f * N / sr, o = Math.sqrt(peakAt(diffs[i], bin, ptol(bin, h))[0]);
+          let a = Math.pow(h, -0.95); if (p < 45 && h === 1) a *= 0.35; else if (p < 55 && h === 1) a *= 0.7;
+          obs.push(o); pred.push(a); fr.push(f);
+        }
+        if (obs.length < 3) continue;
+        const so = obs.reduce((u, v) => u + v, 0), sp = pred.reduce((u, v) => u + v, 0); if (so <= 0) continue;
+        for (let j = 0; j < obs.length; j++) {
+          const r = (obs[j] / so + 1e-3) / (pred[j] / sp + 1e-3), b = Math.round(EQB * Math.log2(fr[j] / 30));
+          if (b >= 0 && b < nb) { sum[b] += Math.log(r); cnt[b]++; }
+        }
+      }
+    }
+    const g = new Float32Array(nb);
+    for (let b = 0; b < nb; b++) { const m = cnt[b] ? sum[b] / cnt[b] : 0; g[b] = m * cnt[b] / (cnt[b] + EQK); }
+    // gladstrijken en begrenzen
+    const sm = new Float32Array(nb);
+    for (let b = 0; b < nb; b++) { let s = 0, w = 0; for (let k = -1; k <= 1; k++) { const j = b + k; if (j >= 0 && j < nb) { const wt = k ? 0.5 : 1; s += g[j] * wt; w += wt; } } sm[b] = Math.exp(Math.max(-1.6, Math.min(1.6, EQS * s / w))); }
+    return { g: sm, id: Math.random() };
+  }
+  function hannK(d) { d = Math.abs(d); if (d < 1e-6) return 1; if (Math.abs(d - 1) < 1e-6) return 0.5; return Math.abs(Math.sin(Math.PI * d) / (Math.PI * d) / (1 - d * d)); }
   function templates(N, sr, K) {
-    if (TPL && TPL.N === N && TPL.K === K) return TPL;
+    const key = N + ":" + K + FL + ":" + (EQ ? EQ.id : 0); if (TPLS[key]) return TPLS[key];
     const cols = [], pitch = [];
     for (let p = 21; p <= 108; p++) {
       const f0 = midiHz(p);
-      for (const slope of [0.6, 1.3]) {
-        const idx = [], val = [];
+      const vars = on("y") ? [[0.45, 1], [0.9, 1], [1.5, 1]].concat(p < 60 ? [[0.8, 0.15]] : []) : [[0.6, 1], [1.3, 1]];
+      for (const [slope, h1] of vars) {
+        const amap = new Map();
         for (let h = 1; h <= 20; h++) {
           const bin = partialBin(f0, h, N, sr); if (bin >= K - 1) break;
           let a = Math.pow(h, -slope); if (p < 45 && h === 1) a *= 0.35; else if (p < 55 && h === 1) a *= 0.7;
-          const b0 = Math.floor(bin), fr = bin - b0;
-          for (const [k, w] of [[b0 - 1, 0.25 * (1 - fr)], [b0, 1 - fr * 0.5], [b0 + 1, 0.5 + fr * 0.5], [b0 + 2, 0.25 * fr]]) if (k > 0 && k < K) { idx.push(k); val.push(a * w); }
+          if (h === 1) a *= h1;
+          if (EQ) a *= eqAt(h * f0);
+          if (on("x")) {
+            for (let k = Math.floor(bin) - 2; k <= Math.floor(bin) + 3; k++) if (k > 0 && k < K) { const w = Math.sqrt(hannK(k - bin)); if (w > 0.05) amap.set(k, (amap.get(k) || 0) + a * w); }
+          } else {
+            const b0 = Math.floor(bin), fr = bin - b0;
+            for (const [k, w] of [[b0 - 1, 0.25 * (1 - fr)], [b0, 1 - fr * 0.5], [b0 + 1, 0.5 + fr * 0.5], [b0 + 2, 0.25 * fr]]) if (k > 0 && k < K) amap.set(k, (amap.get(k) || 0) + a * w);
+          }
         }
+        const idx = [...amap.keys()], val = idx.map(k => amap.get(k));
         let nn = 0; for (const v of val) nn += v; for (let i = 0; i < val.length; i++) val[i] /= nn;
         cols.push({ idx: Int32Array.from(idx), val: Float32Array.from(val) }); pitch.push(p);
       }
     }
-    return (TPL = { N, K, cols, pitch });
+    return (TPLS[key] = { N, K, cols, pitch });
+  }
+  // activatie per toets: hoeveel van dit spectrum elke toets verklaart
+  function jointAct(D, N, sr) {
+    const K = Math.min(D.length - 2, Math.ceil(KHZ * N / sr));
+    const T = templates(N, sr, K), C = T.cols.length;
+    const V = new Float32Array(K); let tot = 0;
+    for (let k = 1; k < K; k++) { V[k] = Math.sqrt(D[k]); tot += V[k]; }
+    const act = new Float32Array(112);
+    if (tot <= 0) return act;
+    const W = new Float32Array(C).fill(tot / C), Vh = new Float32Array(K), num = new Float32Array(C);
+    for (let it = 0; it < 60; it++) {
+      Vh.fill(1e-9);
+      for (let c = 0; c < C; c++) { const col = T.cols[c], w = W[c]; if (w < 1e-12) continue; for (let i = 0; i < col.idx.length; i++) Vh[col.idx[i]] += w * col.val[i]; }
+      for (let c = 0; c < C; c++) { const col = T.cols[c]; let s = 0; for (let i = 0; i < col.idx.length; i++) s += col.val[i] * V[col.idx[i]] / Vh[col.idx[i]]; num[c] = s; }
+      for (let c = 0; c < C; c++) W[c] *= num[c];
+    }
+    for (let c = 0; c < C; c++) act[T.pitch[c]] += W[c];
+    return act;
   }
   function jointPitch(D, N, sr, floor) {
     const K = Math.min(D.length - 2, Math.ceil(KHZ * N / sr));
@@ -548,7 +684,12 @@ var MN = (function () {
       const A = spectrum(x, aft, N), Bm = spectrum(x, bef, N), Bm1 = spectrum(x, bef - Math.round(0.1 * sr), N);
       const D = new Float32Array(A.length);
       // voorspel hoe de oude klank verder wegsterft, zodat herhaalde noten zichtbaar blijven
-      for (let k = 0; k < A.length; k++) { const trend = Bm1[k] > 1e-6 ? Math.min(1, Bm[k] / Bm1[k]) : 1; D[k] = Math.max(0, A[k] - 1.1 * Bm[k] * trend); }
+      for (let k = 0; k < A.length; k++) {
+        let b = Bm[k];
+        if (on("t")) b = Math.max(Bm[k], k > 0 ? Bm[k - 1] : 0, Bm[k + 1] || 0); // kleine toonhoogteschommeling
+        if (on("s")) { b = Math.max(b, Bm1[k] * BEAT); D[k] = Math.max(0, A[k] - OBD * b); continue; } // zweving: neem de luidste van de twee
+        const trend = Bm1[k] > 1e-6 ? Math.min(1, Bm[k] / Bm1[k]) : 1; D[k] = Math.max(0, A[k] - 1.1 * b * trend);
+      }
       diffs.push(D); afters.push(A); befores.push(Bm);
     }
     let ref = [];
@@ -560,8 +701,27 @@ var MN = (function () {
     const hop = 512, frames = Math.floor(x.length / hop), env = {};
     const needed = new Set();
     const events = [];
+    EQ = null;
+    if (on("z")) {
+      // eerste ronde: klankkleur leren van de noten die al goed te herkennen zijn
+      const sets = diffs.map(D => jointPitch(D, N, sr, floor));
+      EQ = learnEQ(diffs, sets, N, sr);
+    }
     for (let i = 0; i < ons.length; i++) {
       let ps = on("g") ? jointPitch(diffs[i], N, sr, floor) : multiPitch(diffs[i], N, sr, floor);
+      // een noot die al klonk en nu alleen op een paar boventonen wat luider lijkt (zweving), is niet nieuw:
+      // een echte nieuwe aanslag maakt (bijna) álle boventonen luider. Echte herhalingen vangt de fase-methode hieronder op.
+      if (on("u")) {
+        const ringing = new Set(events.filter(e => e.t > ons[i].t - 4).map(e => e.p));
+        ps = ps.filter(p => {
+          if (!ringing.has(p) || salience(befores[i], p, N, sr) < RING * floor) return true;
+          const f0 = midiHz(p), rr = [];
+          for (let h = 1; h <= 8; h++) { const bin = partialBin(f0, h, N, sr); if (bin * sr / N > 5000) break; const a = peakAt(afters[i], bin, ptol(bin, h))[0], b = peakAt(befores[i], bin, ptol(bin, h))[0]; if (b > 0) rr.push(a / b); }
+          if (rr.length < 3) return true;
+          rr.sort((u, v) => u - v);
+          return rr[rr.length >> 1] > MR;
+        });
+      }
       // een noot die nog luid doorklinkt telt alleen als nieuwe aanslag als hij duidelijk harder wordt
       if (on("j")) {
         const ringing = new Set(events.filter(e => e.t > ons[i].t - 4).map(e => e.p));
@@ -573,6 +733,58 @@ var MN = (function () {
         });
       }
       if (typeof process !== 'undefined' && process.env.MNDBG) console.log('onset', ons[i].t.toFixed(2), 'mp', ps.join(','));
+      // herhaalde noot (methode p): fase-voorspelling
+      if (on("p")) {
+        const gapS = i > 0 ? ons[i].t - ons[i - 1].t : 9;
+        let Nc = 2048; while (Nc > 512 && (Nc + Nc / 8) / sr + 0.01 > gapS) Nc >>= 1;
+        const s0 = Math.round(ons[i].t * sr), nextT = i + 1 < ons.length ? Math.round(ons[i + 1].t * sr) - Math.round(0.005 * sr) : x.length;
+        const Dc = surprise(x, s0, Nc, sr, nextT);
+        const got = jointPitch(Dc, Nc, sr, floor * Nc / N);
+        const ringing = new Set(events.filter(e => e.t > ons[i].t - 3).map(e => e.p));
+        const minP = Nc >= 2048 ? 43 : Nc >= 1024 ? 55 : 67;
+        const base = ps.slice();
+        for (const p of got) {
+          if (p < minP || ps.includes(p) || !(ringing.has(p) || on("r"))) continue;
+          // alleen boventonen die níet samenvallen met een nieuw aangeslagen noot tellen als bewijs
+          const f0 = midiHz(p); let su = 0, mg = 0, c = 0;
+          for (let h = 1; h <= 10 && c < 5; h++) {
+            const fr = h * f0 * Math.sqrt(1 + inharm(f0) * h * h); if (fr > 5000) break;
+            if (base.some(q => { const g = midiHz(q); for (let j = 1; j <= 16; j++) { const fq = j * g * Math.sqrt(1 + inharm(g) * j * j); if (Math.abs(fq - fr) < fr * 0.02 + 6) return true; } return false; })) continue;
+            const bin = fr * Nc / sr, [a, bi] = peakAt(Dc.mag, bin, ptol(bin, h));
+            if (bi < 0 || a <= 0) continue;
+            su += Dc[bi]; mg += a; c++;
+          }
+          if (c >= 2 && su > SR * mg) ps.push(p);
+        }
+      }
+      // snelle herhaling (methode o): het lange venster vóór de aanslag bevat de vorige aanslag nog helemaal.
+      // Gebruik dan korte vensters die precies tussen de twee aanslagen passen.
+      if (on("o") && i > 0) {
+        const gap = ons[i].t - ons[i - 1].t;
+        if (gap < N / sr + 0.03) {
+          let Ns = 2048; while (Ns > 512 && Ns / sr > gap - 0.015) Ns >>= 1;
+          const s0 = Math.round(ons[i].t * sr), hs = Ns / 2;
+          const nextT = i + 1 < ons.length ? Math.round(ons[i + 1].t * sr) : x.length;
+          const aC = Math.min(s0 + hs + Math.round(0.01 * sr), Math.max(s0 + hs, nextT - hs));
+          const As = spectrum(x, aC, Ns), Bs = spectrum(x, s0 - hs - Math.round(0.004 * sr), Ns);
+          const Ds = new Float32Array(As.length);
+          for (let k = 0; k < As.length; k++) Ds[k] = Math.max(0, As[k] - OB * Bs[k]);
+          const extra = jointPitch(Ds, Ns, sr, floor * Ns / N);
+          const ringing = new Set(events.filter(e => e.t > ons[i].t - 3).map(e => e.p));
+          const minP = Ns >= 2048 ? 45 : Ns >= 1024 ? 57 : 69; // korte vensters: lage tonen zijn niet scherp genoeg
+          for (const p of extra) if (p >= minP && !ps.includes(p) && (ringing.has(p) || !on("q"))) ps.push(p);
+        }
+      }
+      // herhaalde noot (methode n): vergelijk per toets wat er vlak na en vlak voor de aanslag klinkt
+      if (on("n")) {
+        const aA = jointAct(afters[i], N, sr), aB = jointAct(befores[i], N, sr);
+        let mA = 0; for (const v of aA) mA = Math.max(mA, v);
+        const ringing = new Set(events.filter(e => e.t > ons[i].t - 3).map(e => e.p));
+        for (const p of ringing) {
+          if (ps.includes(p) || ps.includes(p - 12) && aA[p] < 0.6 * aA[p - 12]) continue;
+          if (aA[p] > RNA * mA && aA[p] > RN * aB[p]) ps.push(p);
+        }
+      }
       // herhaalde noot: dezelfde toon die al klonk wordt opnieuw aangeslagen
       const recent = new Set(events.filter(e => e.t > ons[i].t - 2.5).map(e => e.p));
       for (const p of recent) {
@@ -604,28 +816,57 @@ var MN = (function () {
       if (i % 10 === 0 && progress) progress(0.5 + 0.3 * i / ons.length);
     }
     // energiecurves voor de gevonden toonhoogtes
-    const specs = [];
-    for (let t = 0; t < frames; t += 2) specs.push(spectrum(x, t * hop, 2048));
-    const N2 = 2048, fh = 2 * hop / sr;
+    const specs = [], step = on("D") ? 1 : 2;
+    for (let t = 0; t < frames; t += step) specs.push(spectrum(x, t * hop, 2048));
+    const N2 = 2048, fh = step * hop / sr;
+    let eAll = 0;
     for (const p of needed) {
-      const f0 = midiHz(p), e = new Float32Array(specs.length);
+      const f0 = midiHz(p), e = new Float32Array(specs.length), eh = [];
+      for (let h = 1; h <= 4; h++) eh.push(new Float32Array(specs.length));
       for (let j = 0; j < specs.length; j++) {
-        let s = 0; for (let h = 1; h <= 3; h++) { const bin = partialBin(f0, h, N2, sr); s += peakAt(specs[j], bin, Math.max(1, bin * 0.02))[0]; }
+        let s = 0; for (let h = 1; h <= 4; h++) { const bin = partialBin(f0, h, N2, sr); const a = peakAt(specs[j], bin, Math.max(1, bin * 0.02))[0]; eh[h - 1][j] = a; if (h <= 3) s += a; }
         e[j] = s;
       }
-      env[p] = e;
+      env[p] = e; env[p].eh = eh;
     }
     progress && progress(0.95);
     events.sort((a, b) => a.t - b.t || a.p - b.p);
     const notes = [];
     for (let i = 0; i < events.length; i++) {
-      const ev = events[i], e = env[ev.p];
+      const ev = events[i];
+      let e = env[ev.p];
+      if (on("E")) {
+        // alleen boventonen gebruiken die niet samenvallen met andere noten die rond dezelfde tijd klinken
+        const f0 = midiHz(ev.p), others = [...new Set(events.filter(o => o.p !== ev.p && o.t > ev.t - 2.5 && o.t < ev.t + 2).map(o => o.p))];
+        const free = [];
+        for (let h = 1; h <= 4; h++) {
+          const fr = h * f0 * Math.sqrt(1 + inharm(f0) * h * h);
+          if (!others.some(q => { const g = midiHz(q); for (let k = 1; k <= 16; k++) { const fq = k * g * Math.sqrt(1 + inharm(g) * k * k); if (Math.abs(fq - fr) < fr * 0.03 + 8) return true; } return false; })) free.push(h);
+        }
+        if (free.length) { const eh = e.eh, f = new Float32Array(e.length); for (let j = 0; j < e.length; j++) { let s2 = 0; for (const h of free) s2 += eh[h - 1][j]; f[j] = s2; } e = f; }
+      }
       let nextSame = Infinity;
       for (let j = i + 1; j < events.length; j++) if (events[j].p === ev.p && events[j].t > ev.t + 0.03) { nextSame = events[j].t; break; }
       const j0 = Math.floor(ev.t / fh);
       let pk = 0; for (let j = j0; j < Math.min(e.length, j0 + 6); j++) pk = Math.max(pk, e[j]);
       let end = e.length - 1;
-      for (let j = j0 + 3; j < e.length; j++) if (e[j] < 0.05 * pk) { end = j; break; }
+      if (on("D")) {
+        // loslaten: de demper legt de snaar stil, het geluid zakt dan veel sneller weg dan een piano vanzelf uitklinkt
+        const dB = j => 20 * Math.log10(e[j] + 1e-9), Lpk = 20 * Math.log10(pk + 1e-9), w = Math.max(2, Math.round(0.07 / fh));
+        const lastJ = Math.min(e.length - 1, nextSame < Infinity ? Math.floor(nextSame / fh) : e.length - 1);
+        for (let j = j0 + 2; j < e.length; j++) {
+          if (dB(j) < Lpk - DROP) { end = j; break; }
+          if (j + w < e.length && j + w <= lastJ + 1) {
+            const slope = (dB(j + w) - dB(j)) / (w * fh);
+            if (slope < -OFFS && dB(j) < Lpk - 2) {
+              // het moment van loslaten = waar het geluid het steilst wegzakt (dan zit de demper midden in het venster)
+              let bk = j, bs = 0;
+              for (let k = Math.max(j0 + 1, j - 1); k < Math.min(e.length - 1, j + 2 * w); k++) { const d1 = dB(k + 1) - dB(k); if (d1 < bs) { bs = d1; bk = k; } }
+              end = bk + 0.5 + EBIAS / fh; break;
+            }
+          }
+        }
+      } else for (let j = j0 + 3; j < e.length; j++) if (e[j] < 0.05 * pk) { end = j; break; }
       let dur = Math.min(end * fh, nextSame) - ev.t;
       dur = Math.max(0.08, Math.min(dur, 6));
       notes.push({ t: ev.t, d: dur, p: ev.p, v: Math.min(1, 0.4 + ons.find(o => o.t === ev.t).strength) });
