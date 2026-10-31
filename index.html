@@ -139,6 +139,24 @@ textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;
 .ex{font-size:.75rem;color:var(--felt);font-weight:600;text-transform:uppercase;letter-spacing:.08em}
 .sharebox{display:flex;gap:6px}
 .sharebox input{flex:1;min-width:0;font-family:var(--f-mono);font-size:.78rem;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.libbar{display:flex;gap:8px}
+.lib{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.lib button{width:100%;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:10px 12px;min-height:64px}
+.lib b{font-family:var(--f-display);font-size:1.08rem}
+.lib span{font-size:.78rem;color:var(--muted);font-weight:400}
+.lib .lv{color:var(--felt);font-weight:600}
+.lesbar{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.lesbar b{font-family:var(--f-display);font-size:1.3rem}
+.progress{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--good);transition:width .3s}
+.step{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--bg)}
+.steptitle{margin:0;font-weight:700;font-size:1.05rem}
+.kb{width:100%;height:120px;display:block;border-radius:8px}
+.steps{margin:6px 0 0;padding-left:22px;font-size:.86rem;color:var(--muted)}
+.steps li{margin:3px 0;cursor:pointer}
+.steps li.ok{color:var(--good)}
+.steps li.now{color:var(--ink);font-weight:700}
+.search{flex:1;min-width:0;min-height:44px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--paper)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{
   body{background:#fff;padding:0}
@@ -224,23 +242,36 @@ textarea{width:100%;min-height:110px;font-family:var(--f-mono);font-size:.78rem;
     </div>
   </section>
 
-  <section class="panel" aria-labelledby="h-test">
-    <p class="label" id="h-test">Speel mee</p>
-    <p class="note">De app speelt de gekozen maten voor. Daarna speel jij ze na, en de app laat zien welke noten goed waren.</p>
-    <div class="seg" role="group" aria-label="Welke hand">
-      <button id="t-both" class="on">Beide handen</button>
-      <button id="t-R">Rechterhand</button>
-      <button id="t-L">Linkerhand</button>
+  <section class="panel" id="tutor" aria-labelledby="h-test">
+    <p class="label" id="h-test">Leraar</p>
+    <p class="note">Kies een stuk. De leraar knipt het in kleine stukjes: eerst elke hand apart en langzaam, daarna samen en op tempo. Bij elk stukje doet hij het voor, jij speelt het na, en je hoort wat er beter kan.</p>
+    <div class="libbar">
+      <input id="libq" type="search" class="search" placeholder="Zoek een stuk, bijvoorbeeld Bach of Twinkle" aria-label="Zoek een stuk">
     </div>
-    <div class="play">
-      <button id="t-listen" class="big">▶ Voorspelen</button>
-      <button id="t-rec" class="primary big">● Speel na</button>
-      <label class="filebtn wide" id="t-filewrap" hidden><input type="file" id="t-file" accept="audio/*,video/*"><span>Kies je opname van het naspelen</span></label>
-    </div>
-    <div id="t-result" hidden>
-      <div class="score"><b id="t-pct">0%</b><span id="t-sum"></span></div>
-      <ul class="mist" id="t-mist"></ul>
-      <p class="note">In de pianorol zie je groen voor goed en rood voor gemist.</p>
+    <ul class="lib" id="liblist"></ul>
+    <button id="les-own">Les van het stuk hierboven (je eigen opname of video)</button>
+    <div id="les" hidden>
+      <div class="lesbar"><b id="les-title"></b><span id="les-count" class="mono"></span></div>
+      <div class="progress" aria-hidden="true"><i id="les-prog"></i></div>
+      <div class="step">
+        <p class="steptitle" id="les-step"></p>
+        <p class="note" id="les-tip"></p>
+        <canvas class="kb" id="les-kb" aria-label="Toetsenbord met de toetsen van dit stukje"></canvas>
+        <div class="play">
+          <button id="les-show" class="big">▶ Doe het voor</button>
+          <button id="les-rec" class="primary big">● Speel na</button>
+          <label class="filebtn wide" id="les-filewrap" hidden><input type="file" id="les-file" accept="audio/*,video/*"><span>Kies je opname van het naspelen</span></label>
+        </div>
+      </div>
+      <div id="les-result" hidden>
+        <div class="score"><b id="les-pct">0%</b><span id="les-sum"></span></div>
+        <ul class="mist" id="les-mist"></ul>
+      </div>
+      <div class="row">
+        <button id="les-prev">← Vorige stap</button>
+        <button id="les-next">Volgende stap →</button>
+      </div>
+      <details><summary>Alle stappen</summary><ol class="steps" id="les-steps"></ol></details>
     </div>
   </section>
 
@@ -1757,8 +1788,8 @@ var ML = (function () {
     let i = n, j = m, extra = 0;
     while (i > 0 || j > 0) {
       const d = i > 0 && j > 0 ? P[i][j] : i > 0 ? 1 : 2;
-      if (d === 0) { const A = expected[i - 1].ps, B = played[j - 1].ps; let hit = 0; for (const x of A) if (B.has(x)) hit++; res[i - 1] = { hit, of: A.size, wrong: [...B].filter(x => !A.has(x)) }; i--; j--; }
-      else if (d === 1) { res[i - 1] = { hit: 0, of: expected[i - 1].ps.size, wrong: [] }; i--; }
+      if (d === 0) { const A = expected[i - 1].ps, B = played[j - 1].ps; let hit = 0; for (const x of A) if (B.has(x)) hit++; res[i - 1] = { hit, of: A.size, wrong: [...B].filter(x => !A.has(x)), missed: [...A].filter(x => !B.has(x)), j: j - 1 }; i--; j--; }
+      else if (d === 1) { res[i - 1] = { hit: 0, of: expected[i - 1].ps.size, wrong: [], missed: [...expected[i - 1].ps], j: -1 }; i--; }
       else { extra++; j--; }
     }
     return { res, extra };
@@ -1790,6 +1821,67 @@ var ML = (function () {
   return { analyze, quantize, unitToTime, buildAbc, detectKey, midi, zip, voices, keyOptions, transposeKey, compare, groupsOf, encodeShare, decodeShare, melodyOnly, assignHands, onsetGroups };
 })();
 if (typeof module !== "undefined") module.exports = ML;
+</script>
+<script>/* MelodieNotitie — bibliotheek met stukken zonder auteursrecht (volksliedjes en klassiek van vóór 1900),
+   in eenvoudige bewerkingen voor de leraarstand. Notatie: "noot:tellen", akkoord "C3+E3+G3:2", rust "r:1", maatstreep "|". */
+var MLIB = (function () {
+  const NAT = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  function midi(name) { const m = /^([A-G])(#|b)?(-?\d)$/.exec(name); if (!m) throw new Error("onbekende noot " + name); return 12 * (+m[3] + 1) + NAT[m[1]] + (m[2] === "#" ? 1 : m[2] === "b" ? -1 : 0); }
+  function parse(seq, hand, beats) {
+    const out = [], bars = seq.split("|"); let pos = 0;
+    bars.forEach((bar, bi) => {
+      const start = pos;
+      for (const tok of bar.trim().split(/\s+/).filter(Boolean)) {
+        const [n, d = "1"] = tok.split(":"), len = Math.round(parseFloat(d) * 4);
+        if (n !== "r") for (const one of n.split("+")) out.push({ s: pos, len, p: midi(one), h: hand, fixed: true, handFixed: true });
+        pos += len;
+      }
+      if (pos - start !== beats * 4) throw new Error(`maat ${bi + 1} (${hand}) heeft ${(pos - start) / 4} tellen in plaats van ${beats}`);
+    });
+    return out;
+  }
+  const P = [
+    { id: "twinkle", title: "Twinkle Twinkle Little Star", by: "volksliedje", level: 1, beats: 4, bpm: 96,
+      rh: "C4 C4 G4 G4 | A4 A4 G4:2 | F4 F4 E4 E4 | D4 D4 C4:2 | G4 G4 F4 F4 | E4 E4 D4:2 | G4 G4 F4 F4 | E4 E4 D4:2 | C4 C4 G4 G4 | A4 A4 G4:2 | F4 F4 E4 E4 | D4 D4 C4:2",
+      lh: "C3:4 | F3:2 C3:2 | F3:2 C3:2 | G3:2 C3:2 | C3:2 F3:2 | C3:2 G3:2 | C3:2 F3:2 | C3:2 G3:2 | C3:4 | F3:2 C3:2 | F3:2 C3:2 | G3:2 C3:2" },
+    { id: "frere", title: "Vader Jacob", by: "volksliedje", level: 1, beats: 4, bpm: 104,
+      rh: "C4 D4 E4 C4 | C4 D4 E4 C4 | E4 F4 G4:2 | E4 F4 G4:2 | G4:.5 A4:.5 G4:.5 F4:.5 E4 C4 | G4:.5 A4:.5 G4:.5 F4:.5 E4 C4 | C4 G3 C4:2 | C4 G3 C4:2",
+      lh: "C3:4 | C3:4 | C3:4 | C3:4 | C3:4 | C3:4 | C3:2 G2:2 | C3:2 G2:2" },
+    { id: "ode", title: "Ode an die Freude", by: "Ludwig van Beethoven", level: 1, beats: 4, bpm: 100,
+      rh: "E4 E4 F4 G4 | G4 F4 E4 D4 | C4 C4 D4 E4 | E4:1.5 D4:.5 D4:2 | E4 E4 F4 G4 | G4 F4 E4 D4 | C4 C4 D4 E4 | D4:1.5 C4:.5 C4:2",
+      lh: "C3+G3:4 | G2+G3:4 | A2+E3:4 | G2+D3:4 | C3+G3:4 | G2+G3:4 | A2+E3:4 | G2+D3:2 C3:2" },
+    { id: "jingle", title: "Jingle Bells (refrein)", by: "James Lord Pierpont", level: 2, beats: 4, bpm: 116,
+      rh: "E4 E4 E4:2 | E4 E4 E4:2 | E4 G4 C4:1.5 D4:.5 | E4:4 | F4 F4 F4:1.5 F4:.5 | F4 E4 E4 E4:.5 E4:.5 | E4 D4 D4 E4 | D4:2 G4:2 | E4 E4 E4:2 | E4 E4 E4:2 | E4 G4 C4:1.5 D4:.5 | E4:4 | F4 F4 F4 F4 | F4 E4 E4 E4:.5 E4:.5 | G4 G4 F4 D4 | C4:4",
+      lh: "C3:4 | C3:4 | C3:4 | C3:4 | F3:4 | C3:4 | G2:4 | G2:4 | C3:4 | C3:4 | C3:4 | C3:4 | F3:4 | C3:4 | G2:4 | C3:4" },
+    { id: "canon", title: "Canon in D (eenvoudig)", by: "Johann Pachelbel", level: 2, beats: 4, bpm: 66,
+      rh: "F#5:2 E5:2 | D5:2 C#5:2 | B4:2 A4:2 | B4:2 C#5:2 | F#5:2 E5:2 | D5:2 C#5:2 | B4:2 A4:2 | B4:2 C#5:2",
+      lh: "D3:2 A2:2 | B2:2 F#2:2 | G2:2 D2:2 | G2:2 A2:2 | D3:2 A2:2 | B2:2 F#2:2 | G2:2 D2:2 | G2:2 A2:2" },
+    { id: "minuet", title: "Menuet in G", by: "Christian Petzold", level: 3, beats: 3, bpm: 108, note: "begeleiding vereenvoudigd",
+      rh: "D5 G4:.5 A4:.5 B4:.5 C5:.5 | D5 G4 G4 | E5 C5:.5 D5:.5 E5:.5 F#5:.5 | G5 G4 G4 | C5 D5:.5 C5:.5 B4:.5 A4:.5 | B4 C5:.5 B4:.5 A4:.5 G4:.5 | F#4 G4:.5 A4:.5 B4:.5 G4:.5 | A4:3 | D5 G4:.5 A4:.5 B4:.5 C5:.5 | D5 G4 G4 | E5 C5:.5 D5:.5 E5:.5 F#5:.5 | G5 G4 G4 | C5 D5:.5 C5:.5 B4:.5 A4:.5 | B4 C5:.5 B4:.5 A4:.5 G4:.5 | A4 B4:.5 A4:.5 G4:.5 F#4:.5 | G4:3",
+      lh: "G3+B3:2 A3 | B3:3 | C4:3 | B3:3 | A3:3 | G3:3 | D4 B3 G3 | D4 D3 C4 | G3+B3:2 A3 | B3:3 | C4:3 | B3:3 | A3:3 | G3:3 | C4 D4 D3 | G3:2 G2" },
+    { id: "prelude", title: "Prelude in C (begin)", by: "Johann Sebastian Bach", level: 3, beats: 4, bpm: 66, build: "prelude" }
+  ];
+  // Bach: per halve maat de vijf tonen van het akkoord in het vaste patroon 1 2 3 4 5 3 4 5 (zestienden);
+  // de eerste twee worden aangehouden (linkerhand), de rest speelt de rechterhand
+  function prelude() {
+    const chords = [["C4", "E4", "G4", "C5", "E5"], ["C4", "D4", "A4", "D5", "F5"], ["B3", "D4", "G4", "D5", "F5"], ["C4", "E4", "G4", "C5", "E5"]];
+    const out = [];
+    chords.forEach((c, bi) => { for (let half = 0; half < 2; half++) {
+      const s0 = bi * 16 + half * 8, m = c.map(midi);
+      out.push({ s: s0, len: 8, p: m[0], h: "L", fixed: true, handFixed: true });
+      out.push({ s: s0 + 1, len: 7, p: m[1], h: "L", fixed: true, handFixed: true });
+      [m[2], m[3], m[4], m[2], m[3], m[4]].forEach((p, k) => out.push({ s: s0 + 2 + k, len: 1, p, h: "R", fixed: true, handFixed: true }));
+    } });
+    return out;
+  }
+  function piece(id) {
+    const d = P.find(x => x.id === id); if (!d) return null;
+    const notes = d.build === "prelude" ? prelude() : parse(d.rh, "R", d.beats).concat(parse(d.lh, "L", d.beats));
+    return { title: d.title, bpm: d.bpm, beats: d.beats, grid: 1, split: 0, key: "auto", pickup: 0, pickupMode: "0", transpose: 0, notes, raw: null, edited: true, lib: id };
+  }
+  return { list: P.map(({ id, title, by, level, note }) => ({ id, title, by, level, note })), piece, midi };
+})();
+if (typeof module !== "undefined") module.exports = MLIB;
 </script>
 <script>
 (() => {
@@ -2030,21 +2122,21 @@ function stopAll() {
   if (master) { try { master.disconnect(); } catch (e) {} master = null; }
   if (srcNode) { try { srcNode.onended = null; srcNode.stop(); } catch (e) {} srcNode = null; }
   cancelAnimationFrame(rafId); playhead = -1; lightMeasure(-1); drawRoll();
-  ["playnotes", "playsrc", "playboth", "t-listen"].forEach(id => $(id).textContent = $(id).dataset.label);
+  ["playnotes", "playsrc", "playboth", "les-show"].forEach(id => $(id).textContent = $(id).dataset.label);
   $("srcplay").textContent = "▶ Beluister";
 }
-["playnotes", "playsrc", "playboth", "t-listen"].forEach(id => $(id).dataset.label = $(id).textContent);
+["playnotes", "playsrc", "playboth"].forEach(id => $(id).dataset.label = $(id).textContent);
 function playing() { return !!playMode; }
 function notesFor(hand) { return shown().filter(n => hand === "both" || n.h === hand); }
 function unitTime(u) { return ML.unitToTime({ beats: piece.raw.an.beats, shift: piece.raw.shift || 0 }, u); }
 function playRange(opts) {
   const a = audio(); a.resume && a.resume();
   if (!master) { master = a.createGain(); master.connect(a.destination); }
-  const { from, to } = opts.range, speed = opts.withSrc ? 1 : +$("speed").value;
+  const { from, to } = opts.range, speed = opts.withSrc ? 1 : (opts.speed || +$("speed").value);
   const sec = 60 / (piece.bpm * speed) / 4;
   const ns = notesFor(opts.hand || "both").filter(n => n.s < to && n.s + n.len > from && n.s >= from);
   const M = layoutInfo.M, beatU = 4;
-  const lead = (!opts.withSrc && toggles.countin && !opts.again) ? Math.ceil(M / beatU) : 0;
+  const lead = (!opts.withSrc && (toggles.countin || opts.countin) && !opts.again) ? Math.ceil(M / beatU) : 0;
   const t0 = a.currentTime + 0.12 + lead * beatU * sec;
   let timeOf = u => t0 + (u - from) * sec, endT = timeOf(to);
   if (opts.withSrc) {
@@ -2066,7 +2158,8 @@ function playRange(opts) {
     let u;
     if (opts.withSrc) { u = from; for (let k = from; k <= to; k++) if (timeOf(k) <= now) u = k; }
     else u = from + (now - t0) / sec;
-    if (now >= t0 - 0.02) { playhead = Math.max(from, u); drawRoll(); lightMeasure(Math.floor(Math.max(from, u) / M)); }
+    if (now >= t0 - 0.02) { playhead = Math.max(from, u); drawRoll(); lightMeasure(Math.floor(Math.max(from, u) / M)); opts.onTick && opts.onTick(u); }
+    else opts.onTick && opts.onTick(-1, Math.ceil((t0 - now) / (beatU * sec)));
     if (now > endT + 0.15) {
       if (toggles.loop && opts.loopable) { srcNode = null; playRange(Object.assign({}, opts, { again: true })); return; }
       stopAll(); opts.done && opts.done(); return;
@@ -2359,55 +2452,180 @@ document.addEventListener("keydown", e => {
   if (map[e.key]) { e.preventDefault(); $(map[e.key]).click(); }
 });
 
-/* ---------- speel mee ---------- */
-["both", "R", "L"].forEach(h => $("t-" + h).onclick = () => { testHand = h; ["both", "R", "L"].forEach(k => $("t-" + k).classList.toggle("on", k === h)); });
-$("t-listen").onclick = () => {
+/* ---------- leraar ---------- */
+let les = null;
+const LS_LES = "melodienotitie.les:";
+function pieceKey() { if (piece.lib) return "lib:" + piece.lib; let h = 0; for (const n of piece.notes) h = (h * 31 + n.s * 7 + n.p) | 0; return (piece.title || "") + ":" + h; }
+function buildPlan() {
+  const M = layoutInfo.M, start0 = layoutInfo.start0, all = shown();
+  if (!all.length) return [];
+  const end = Math.max(...all.map(n => n.s + n.len)), nMeas = Math.ceil(end / M);
+  const dens = all.length / Math.max(1, nMeas), per = dens > 14 ? 1 : 2; // drukke muziek: kleinere stukjes
+  const has = (h, a, b) => all.some(n => n.h === h && n.s >= a && n.s < b);
+  const steps = [], secs = [];
+  for (let m = Math.floor(start0 / M); m < nMeas; m += per) {
+    const from = Math.max(m * M, start0), to = Math.min((m + per) * M, nMeas * M);
+    if (!all.some(n => n.s >= from && n.s < to)) continue;
+    secs.push([from, to]);
+    const R = has("R", from, to), L = has("L", from, to);
+    if (R) steps.push({ from, to, hand: "R", speed: 0.6 });
+    if (L) steps.push({ from, to, hand: "L", speed: 0.6 });
+    if (R && L) steps.push({ from, to, hand: "both", speed: 0.6 });
+    steps.push({ from, to, hand: R && L ? "both" : R ? "R" : "L", speed: 1 });
+    if (secs.length % 2 === 0) { const [a] = secs[secs.length - 2]; steps.push({ from: a, to, hand: "both", speed: 1, join: true }); }
+  }
+  // tot slot het hele stuk (of in delen van 8 maten)
+  for (let a = start0; a < nMeas * M; a += 8 * M) { const b = Math.min(nMeas * M, a + 8 * M); if (b - a > per * M) steps.push({ from: a, to: b, hand: "both", speed: 1, whole: true }); }
+  return steps;
+}
+const HANDNAME = { R: "Rechterhand", L: "Linkerhand", both: "Beide handen" };
+function stepLabel(st) {
+  const a = measureOf(st.from), b = measureOf(st.to - 1);
+  return (st.whole ? "Het geheel, " : st.join ? "Aan elkaar, " : "") + "maat " + a + (b > a ? "–" + b : "") + " · " + HANDNAME[st.hand] + " · " + Math.round(st.speed * 100) + "%";
+}
+function stepTip(st) {
+  const ns = notesFor(st.hand).filter(n => n.s >= st.from && n.s < st.to);
+  const seq = []; for (const n of ns) { const g = seq[seq.length - 1]; if (g && g.s === n.s) g.ps.push(n.p); else seq.push({ s: n.s, ps: [n.p] }); }
+  const names = seq.slice(0, 16).map(g => g.ps.map(pname).join("+")).join(" ");
+  const why = st.whole ? "Speel alles achter elkaar zonder stoppen. Een foutje mag, gewoon doorspelen." :
+    st.join ? "Speel de twee stukjes achter elkaar, zonder pauze ertussen." :
+    st.speed < 1 ? (st.hand === "both" ? "Nu beide handen samen, nog rustig." : "Eerst deze hand alleen, rustig. Kijk welke toetsen oplichten.") :
+    "Nu op het echte tempo.";
+  return why + " De leraar telt eerst af. Noten: " + names + (seq.length > 16 ? " …" : "");
+}
+function saveLes() { if (les) lsSet(LS_LES + les.key, JSON.stringify({ i: les.i, done: [...les.done] })); }
+function startLesson(msg) {
+  const steps = buildPlan();
+  if (!steps.length) return setStatus("Er zijn nog geen noten om een les van te maken. Kies een stuk of werk eerst een opname uit.", true);
+  const key = pieceKey(); let saved = null; try { saved = JSON.parse(lsGet(LS_LES + key) || "null"); } catch (e) {}
+  les = { key, steps, i: saved && saved.i < steps.length ? saved.i : 0, done: new Set(saved ? saved.done.filter(k => k < steps.length) : []) };
+  $("les").hidden = false; $("les-title").textContent = piece.title || "Zonder titel";
+  showStep(); $("les").scrollIntoView({ behavior: "smooth", block: "start" });
+  setStatus(msg || (saved ? "Je gaat verder waar je gebleven was." : "De les staat klaar. Begin met ▶ Doe het voor."));
+}
+function showStep() {
+  const st = les.steps[les.i];
+  $("les-count").textContent = "stap " + (les.i + 1) + " van " + les.steps.length;
+  $("les-prog").style.width = Math.round(100 * les.done.size / les.steps.length) + "%";
+  $("les-step").textContent = (les.done.has(les.i) ? "✓ " : "") + stepLabel(st);
+  $("les-tip").textContent = stepTip(st);
+  $("les-result").hidden = true; testMarks = null;
+  $("les-prev").disabled = les.i === 0; $("les-next").disabled = les.i >= les.steps.length - 1;
+  $("les-next").classList.toggle("primary", les.done.has(les.i));
+  const ol = $("les-steps"); ol.innerHTML = "";
+  les.steps.forEach((s, k) => { const li = document.createElement("li"); li.textContent = stepLabel(s); li.className = (les.done.has(k) ? "ok " : "") + (k === les.i ? "now" : ""); li.onclick = () => { stopAll(); les.i = k; saveLes(); showStep(); }; ol.appendChild(li); });
+  // de oefenmaten volgen de stap, zodat de pianorol en bladmuziek meelopen
+  $("from").value = measureOf(st.from); $("to").value = measureOf(st.to - 1); $("to").dataset.auto = "0";
+  drawKb(null);
+  drawRoll();
+}
+function drawKb(active, count) {
+  const c = $("les-kb"), dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight; if (!W) return;
+  c.width = W * dpr; c.height = H * dpr; const g = c.getContext("2d"); g.scale(dpr, dpr);
+  const st = les.steps[les.i], ns = notesFor(st.hand).filter(n => n.s >= st.from && n.s < st.to);
+  const ps = ns.map(n => n.p); let lo = Math.min(...ps) - 2, hi = Math.max(...ps) + 2;
+  const isB = p => [1, 3, 6, 8, 10].includes(((p % 12) + 12) % 12);
+  while (isB(lo)) lo--; while (isB(hi)) hi++;
+  let whites = []; for (let p = lo; p <= hi; p++) if (!isB(p)) whites.push(p);
+  while (whites.length < 15) { lo -= 1; while (isB(lo)) lo--; hi += 1; while (isB(hi)) hi++; whites = []; for (let p = lo; p <= hi; p++) if (!isB(p)) whites.push(p); }
+  const ww = W / whites.length, target = new Map(); for (const n of ns) target.set(n.p, n.h);
+  const col = h => h === "L" ? tok("--lh") : tok("--rh");
+  g.fillStyle = tok("--bg"); g.fillRect(0, 0, W, H);
+  whites.forEach((p, i) => {
+    const on = active && active.has(p);
+    g.fillStyle = on ? col(active.get(p)) : tok("--key"); g.fillRect(i * ww + 1, 0, ww - 2, H - 1);
+    g.strokeStyle = tok("--line"); g.strokeRect(i * ww + 1, 0, ww - 2, H - 1);
+    if (target.has(p) && !on) { g.fillStyle = col(target.get(p)); g.globalAlpha = .35; g.fillRect(i * ww + 3, H - 30, ww - 6, 26); g.globalAlpha = 1; }
+    if (target.has(p) || p % 12 === 0) { g.fillStyle = on ? "#fff" : "#5b6170"; g.font = "600 " + Math.min(12, ww * .42) + "px " + tok("--f-body"); g.textAlign = "center"; g.fillText(pname(p).replace(/\d+$/, ""), i * ww + ww / 2, H - 10); }
+  });
+  for (let p = lo; p <= hi; p++) if (isB(p)) {
+    const i = whites.indexOf(p - 1); if (i < 0) continue;
+    const x = (i + 1) * ww - ww * .3, on = active && active.has(p);
+    g.fillStyle = on ? col(active.get(p)) : tok("--keyb"); g.fillRect(x, 0, ww * .6, H * .6);
+    if (target.has(p) && !on) { g.fillStyle = col(target.get(p)); g.globalAlpha = .6; g.fillRect(x + 2, H * .6 - 14, ww * .6 - 4, 11); g.globalAlpha = 1; }
+  }
+  if (count) { g.fillStyle = tok("--felt"); g.font = "700 40px " + tok("--f-display"); g.textAlign = "center"; g.fillText(count, W / 2, H / 2 + 6); }
+}
+$("les-show").dataset.label = $("les-show").textContent;
+$("les-show").onclick = () => {
   if (playing()) return stopAll();
-  if (!notesFor(testHand).length) return setStatus("Er zijn geen noten voor deze hand in de gekozen maten.");
-  playMode = "test"; $("t-listen").textContent = "■ Stop";
-  playRange({ range: rangeUnits(), hand: testHand });
+  const st = les.steps[les.i];
+  playMode = "les"; $("les-show").textContent = "■ Stop";
+  const ns = notesFor(st.hand).filter(n => n.s >= st.from && n.s < st.to);
+  playRange({ range: { from: st.from, to: st.to }, hand: st.hand, speed: st.speed, countin: true, done: () => drawKb(null),
+    onTick: (u, cnt) => { if (u < 0) return drawKb(null, cnt); const act = new Map(); for (const n of ns) if (n.s <= u && u < n.s + n.len) act.set(n.p, n.h); drawKb(act); } });
 };
-async function checkPlaying(buf) {
-  setStatus("Jouw spel wordt beluisterd…"); progress(0.02);
+async function judge(buf) {
+  const st = les.steps[les.i];
+  setStatus("De leraar luistert naar je spel…"); progress(0.02);
   const x = await toMono22k(buf), r = await transcribe(x, progress);
   progress(null);
-  const { from, to, a, b } = rangeUnits();
-  const exp = notesFor(testHand).filter(n => n.s >= from && n.s < to);
-  if (!exp.length) return setStatus("Er zijn geen noten om mee te vergelijken in de gekozen maten.", true);
+  const exp = notesFor(st.hand).filter(n => n.s >= st.from && n.s < st.to);
   const expG = []; for (const n of exp) { let g = expG.find(g => g.s === n.s); if (!g) expG.push(g = { s: n.s, ps: new Set(), notes: [] }); g.ps.add(n.p); g.notes.push(n); }
   expG.sort((p, q) => p.s - q.s);
   const allExp = new Set(exp.map(n => n.p));
-  // octaaffouten van de herkenning niet aanrekenen
-  const fix = p => allExp.has(p) ? p : allExp.has(p + 12) ? p + 12 : allExp.has(p - 12) ? p - 12 : p;
+  const fix = p => allExp.has(p) ? p : allExp.has(p + 12) ? p + 12 : allExp.has(p - 12) ? p - 12 : p; // octaaffoutjes van het luisteren niet aanrekenen
   const playG = [];
   for (const n of r.notes.slice().sort((p, q) => p.t - q.t)) { const g = playG[playG.length - 1]; if (g && n.t - g.t < 0.045) g.ps.add(fix(n.p)); else playG.push({ t: n.t, ps: new Set([fix(n.p)]) }); }
+  if (!playG.length) { setStatus("De leraar hoorde geen pianonoten. Speel wat harder of dichter bij de telefoon.", true); return; }
   const cmp = ML.compare(expG, playG);
-  testMarks = new Map(); let hit = 0, tot = 0; const mist = [];
+  testMarks = new Map(); let hit = 0, tot = 0; const msgs = [], pairs = [];
   cmp.res.forEach((res, i) => {
-    const g = expG[i]; tot += g.ps.size; hit += res ? res.hit : 0;
-    g.notes.forEach(n => testMarks.set(n, false));
-    if (res && res.hit) { let k = res.hit; for (const n of g.notes) { if (k <= 0) break; testMarks.set(n, true); k--; } }
-    if (!res || res.hit < g.ps.size) mist.push("Maat " + measureOf(g.s) + ": " + [...g.ps].map(pname).join(" + ") + (res && res.hit ? " (deels)" : " gemist"));
-    if (res && res.wrong && res.wrong.length) mist.push("Maat " + measureOf(g.s) + ": " + res.wrong.map(pname).join(", ") + " te veel");
+    const g = expG[i], m = "Maat " + measureOf(g.s) + ": "; tot += g.ps.size; hit += res ? res.hit : 0;
+    g.notes.forEach(n => testMarks.set(n, !!(res && !res.missed.includes(n.p))));
+    if (res && res.j >= 0) pairs.push([g.s, playG[res.j].t]);
+    if (res && res.hit === g.ps.size && !res.wrong.length) return;
+    if (!res || res.j < 0) msgs.push(m + [...g.ps].map(pname).join(" + ") + " overgeslagen");
+    else if (res.missed.length === 1 && res.wrong.length === 1) msgs.push(m + "je speelde " + pname(res.wrong[0]) + " in plaats van " + pname(res.missed[0]));
+    else { if (res.missed.length) msgs.push(m + res.missed.map(pname).join(" + ") + " vergeten"); if (res.wrong.length) msgs.push(m + res.wrong.map(pname).join(" + ") + " is te veel"); }
   });
-  const pct = Math.round(100 * hit / Math.max(1, tot));
-  $("t-result").hidden = false; $("t-pct").textContent = pct + "%";
-  $("t-sum").textContent = hit + " van " + tot + " noten goed in maat " + a + (b > a ? " t/m " + b : "") + (cmp.extra ? " · " + cmp.extra + " keer iets extra gespeeld" : "") + (pct >= 90 ? ". Prima!" : pct >= 70 ? ". Bijna, oefen de rode noten nog even." : ". Probeer het langzamer, met Snelheid op 75% of lager.");
-  const ul = $("t-mist"); ul.innerHTML = ""; mist.slice(0, 8).forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
-  if (mist.length > 8) { const li = document.createElement("li"); li.textContent = "en nog " + (mist.length - 8) + " andere plekken"; ul.appendChild(li); }
+  // tempo en gelijkmatigheid: rechte lijn door (verwachte tijd, gespeelde tijd)
+  const unit = 60 / (piece.bpm * st.speed) / 4, beat = 4 * unit; let tempoMsg = "";
+  if (pairs.length >= 4) {
+    const X = pairs.map(q => (q[0] - pairs[0][0]) * unit), Y = pairs.map(q => q[1]);
+    const mx = X.reduce((a, b) => a + b, 0) / X.length, my = Y.reduce((a, b) => a + b, 0) / Y.length;
+    let sxy = 0, sxx = 0; X.forEach((x, k) => { sxy += (x - mx) * (Y[k] - my); sxx += (x - mx) * (x - mx); });
+    const b = sxx > 0 ? sxy / sxx : 1, a0 = my - b * mx, res = X.map((x, k) => Math.abs(Y[k] - (a0 + b * x))).sort((p, q) => p - q), med = res[res.length >> 1];
+    if (b > 1.25) tempoMsg = "Je speelde langzamer dan het voorbeeld. Dat is prima om te leren; probeer het daarna iets vlotter.";
+    else if (b < 0.85) tempoMsg = "Je speelde sneller dan het voorbeeld. Rustig aan: eerst goed, dan snel.";
+    if (med > 0.22 * beat * b) tempoMsg += (tempoMsg ? " " : "") + "Het ritme was nog wat ongelijk. Tel zachtjes mee, of zet de metronoom aan bij Oefenen.";
+  }
+  const pct = Math.round(100 * hit / Math.max(1, tot)), pass = pct >= 85;
+  $("les-result").hidden = false; $("les-pct").textContent = pct + "%";
+  $("les-sum").textContent = hit + " van " + tot + " noten goed. " + (pass ? (les.i < les.steps.length - 1 ? "Goed gedaan! Je kunt door naar de volgende stap." : "Goed gedaan! Je hebt het hele stuk geleerd.") : pct >= 60 ? "Bijna. Luister nog een keer naar het voorbeeld en probeer het opnieuw." : "Nog even oefenen. Kijk goed welke toetsen oplichten bij ▶ Doe het voor.");
+  const ul = $("les-mist"); ul.innerHTML = "";
+  [...msgs.slice(0, 6), ...(msgs.length > 6 ? ["en nog " + (msgs.length - 6) + " andere plekken"] : []), ...(tempoMsg ? [tempoMsg] : [])].forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+  if (pass) { les.done.add(les.i); saveLes(); $("les-prog").style.width = Math.round(100 * les.done.size / les.steps.length) + "%"; $("les-next").classList.add("primary"); $("les-step").textContent = "✓ " + stepLabel(st); }
   drawRoll(); setStatus("");
 }
-$("t-rec").onclick = async () => {
-  const b = $("t-rec"); if (b._rec) return b._rec.stop();
+$("les-rec").onclick = async () => {
+  const b = $("les-rec"); if (b._rec) return b._rec.stop();
   stopAll();
-  const r = await record(b, "● Speel na", buf => checkPlaying(buf).catch(err => setStatus("Vergelijken lukte niet: " + (err.message || err), true)));
-  if (!r) { $("t-filewrap").hidden = false; setStatus("Opnemen kan hier niet. Neem je naspelen op met Dictafoon of je camera en kies het bestand hieronder, of open de app vanaf je beginscherm.", true); }
-  else setStatus("Speel de maten na. Tik op Stop als je klaar bent.");
+  const r = await record(b, "● Speel na", buf => judge(buf).catch(err => { progress(null); setStatus("Beoordelen lukte niet: " + (err.message || err), true); }));
+  if (!r) { $("les-filewrap").hidden = false; setStatus("Opnemen kan hier niet. Open MelodieNotitie vanaf je beginscherm, of neem je naspelen op met Dictafoon of je camera en kies het bestand hieronder.", true); }
+  else setStatus("Speel het stukje na. Tik op Stop als je klaar bent.");
 };
-$("t-file").onchange = async e => {
+$("les-file").onchange = async e => {
   const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-  try { const buf = await decodeFile(f); await checkPlaying(buf); } catch (err) { progress(null); setStatus((err && err.message) || "Dit bestand kan de app niet lezen.", true); }
+  try { await judge(await decodeFile(f)); } catch (err) { progress(null); setStatus((err && err.message) || "Dit bestand kan de app niet lezen.", true); }
 };
+$("les-prev").onclick = () => { if (les.i > 0) { stopAll(); les.i--; saveLes(); showStep(); } };
+$("les-next").onclick = () => { if (les.i < les.steps.length - 1) { stopAll(); les.i++; saveLes(); showStep(); } };
+$("les-own").onclick = () => startLesson();
+function fillLib() {
+  const q = ($("libq").value || "").toLowerCase().trim(), ul = $("liblist"); ul.innerHTML = "";
+  const items = MLIB.list.filter(it => !q || (it.title + " " + it.by).toLowerCase().includes(q));
+  for (const it of items) {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.innerHTML = "<b></b><span></span>"; b.querySelector("b").textContent = it.title;
+    b.querySelector("span").textContent = it.by + " · " + ["", "beginner", "gevorderde beginner", "iets moeilijker"][it.level] + (it.note ? " · " + it.note : "");
+    b.onclick = () => { openPiece({ piece: MLIB.piece(it.id) }, "“" + it.title + "” geopend."); startLesson(); };
+    li.appendChild(b); ul.appendChild(li);
+  }
+  if (!items.length) { const li = document.createElement("li"); li.className = "note"; li.textContent = "Dit stuk zit niet in de bibliotheek. Kies een opname of video van het stuk bovenaan, dan maakt de leraar er een les van."; ul.appendChild(li); }
+}
+$("libq").oninput = fillLib;
+fillLib();
 
 /* ---------- bewaren ---------- */
 const packPiece = () => { const { raw, ...rest } = piece; return Object.assign(JSON.parse(JSON.stringify(rest)), raw ? { raw: { notes: raw.notes, an: raw.an, shift: raw.shift } } : {}); };
@@ -2546,7 +2764,7 @@ window.addEventListener("hashchange", async () => {
   try { const p = await ML.decodeShare(m[1]); openPiece({ piece: Object.assign(p, { edited: true, grid: 1, split: 0 }) }, "Gedeeld stuk geopend: “" + (p.title || "Zonder titel") + "”. Tik op Bewaar om het te houden."); history.replaceState(null, "", location.pathname); }
   catch (e) { setStatus("Deze link kon niet worden geopend.", true); }
 });
-let rz = 0, lastW = 0; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) < 20) return; lastW = window.innerWidth; buildKeys(); render(); }, 200); });
+let rz = 0, lastW = 0; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (Math.abs(window.innerWidth - lastW) < 20) return; lastW = window.innerWidth; buildKeys(); render(); if (les) drawKb(null); }, 200); });
 lastW = window.innerWidth;
 render();
 boot();
