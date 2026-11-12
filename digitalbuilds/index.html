@@ -1,51 +1,1014 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>DigitalBuilds</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="DigitalBuilds">
 <meta name="application-name" content="DigitalBuilds">
-<meta name="theme-color" content="#111827">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="theme-color" content="#0b1020">
+<link rel="apple-touch-icon" href="icon-180.png?v=3">
 <link rel="manifest" href="manifest.webmanifest">
+
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <style>
-  :root{--bg:#111827;--ink:#F4F1E6;--muted:#c9d6e6;--gold:#22d3ee}
-  html,body{height:100%;margin:0}
-  body{background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px 16px;box-sizing:border-box}
-  main{max-width:360px;text-align:center}
-  img{width:132px;height:132px;border-radius:30px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  h1{font-size:1.7rem;margin:18px 0 6px}
-  p{color:var(--muted);margin:0 0 18px}
-  a.go{display:block;background:var(--gold);color:#1d1d1b;text-decoration:none;font-weight:700;border-radius:14px;padding:14px}
-  ol{text-align:left;color:var(--muted);padding-left:20px;margin:22px 0 0}
-  ol li{margin:6px 0}
+:root{--bg:#0d1117;--panel:#141b24;--ink:#eef2f7;--muted:#93a1b3;--line:#253244;--acc:#22d3ee;--acc2:#a78bfa;--red:#f87171}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100%;padding-top:env(safe-area-inset-top)}
+#top{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line)}
+#top h1{margin:0;font-size:17px;flex:1;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#top h1 b{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tb{min-width:38px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:13px;font-weight:700;padding:0 9px}
+.tb:disabled{opacity:.4}
+#view{flex:1;position:relative;min-height:180px}
+#view canvas{display:block;width:100%;height:100%;touch-action:none}
+#status{position:absolute;left:10px;top:10px;right:10px;font-size:12.5px;background:rgba(20,27,36,.9);border:1px solid var(--line);border-radius:10px;padding:6px 10px;pointer-events:none}
+#objCount{position:absolute;right:10px;bottom:10px;font-size:11.5px;color:var(--muted);background:rgba(20,27,36,.85);border-radius:8px;padding:3px 8px;pointer-events:none}
+#panel{background:var(--panel);border-top:1px solid var(--line);padding:8px 10px calc(10px + env(safe-area-inset-bottom));height:44%;max-height:360px;display:flex;flex-direction:column}
+#tabs{display:flex;gap:6px;margin-bottom:8px}
+#tabs button{flex:1;white-space:nowrap;padding:0 4px;min-height:36px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);font:inherit;font-weight:700;font-size:13px}
+#tabs button.on{background:var(--acc);border-color:var(--acc);color:#04222a}
+.pane{flex:1;overflow:auto;display:none}
+.pane.on{display:block}
+textarea{width:100%;font:inherit;padding:10px;border-radius:12px;border:1px solid var(--line);background:#0e141c;color:var(--ink);resize:none}
+#prompt{height:76px}
+#code{height:100%;min-height:150px;font:12px/1.4 ui-monospace,Menlo,monospace}
+.row{display:flex;gap:7px;margin-top:8px}
+.btn{flex:1;min-height:44px;border-radius:12px;border:1px solid var(--line);background:#1b2532;color:var(--ink);font:inherit;font-weight:700;font-size:14px}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#04222a}
+.btn.alt{background:var(--acc2);border-color:var(--acc2);color:#160b33}
+.btn:disabled{opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip.on{background:var(--acc2);color:#160b33;border-color:var(--acc2)}
+.chip{border:1px solid var(--line);background:#0e141c;color:var(--muted);border-radius:999px;padding:6px 10px;font:inherit;font-size:12.5px}
+.shapes{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.shapes button{min-height:62px;border-radius:12px;border:1px solid var(--line);background:#1b2532;color:var(--ink);font:inherit;font-size:12px;font-weight:600}
+.shapes button span{display:block;font-size:22px;margin-bottom:2px}
+.ctl{display:grid;grid-template-columns:86px 1fr 44px;align-items:center;gap:6px;margin:5px 0;font-size:12.5px;color:var(--muted)}
+.ctl input[type=range]{width:100%;accent-color:var(--acc)}
+.ctl output{text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.hint{color:var(--muted);font-size:12.5px;margin-top:6px}
+.err{color:var(--red);font-size:12.5px;margin-top:6px;min-height:1px}
+#ov{position:fixed;inset:0;background:rgba(3,6,10,.82);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9}
+#ov .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;max-width:380px;width:100%;max-height:80vh;overflow:auto}
+#ov h2{margin:0 0 10px;font-size:19px}
+.proj{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+.proj span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.proj small{color:var(--muted)}
+.proj button{min-height:34px;border-radius:9px;border:1px solid var(--line);background:#1b2532;color:var(--ink);font:inherit;font-size:12.5px;padding:0 10px}
+#vtools{position:absolute;right:10px;top:56px;display:flex;flex-direction:column;gap:6px;z-index:3}
+#vtools button{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:rgba(20,27,36,.9);color:var(--ink);font-size:17px}
+#vtools button:disabled{opacity:.35}
+#status{right:10px!important}
+#menu{position:fixed;inset:0;background:rgba(3,6,10,.7);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+#menu .card{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));width:100%;max-width:480px}
+.mi{display:block;width:100%;text-align:left;min-height:46px;border-radius:12px;border:1px solid var(--line);background:#1b2532;color:var(--ink);font:inherit;font-weight:650;font-size:14.5px;padding:0 12px;margin-top:7px}
+.seg2{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.lst{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.lst span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lst button{min-height:32px;border-radius:8px;border:1px solid var(--line);background:#1b2532;color:var(--ink);font:inherit;font-size:12px;padding:0 9px}
+.sec{font-weight:800;font-size:13px;color:var(--ink);margin:10px 0 2px}
+.hidden{display:none!important}
+#gbar{position:absolute;left:8px;right:8px;bottom:40px;display:flex;gap:5px;z-index:3}
+#gbar button{flex:1;min-height:42px;border-radius:11px;border:1px solid var(--line);background:rgba(20,27,36,.92);color:var(--ink);font:inherit;font-size:12.5px;font-weight:700;padding:0 4px}
+#gbar button.on{background:var(--acc);border-color:var(--acc);color:#04222a}
+.choice{display:block;width:100%;text-align:left;border-radius:16px;border:1px solid var(--line);background:#1b2532;color:var(--ink);font:inherit;padding:14px;margin-top:10px}
+.choice b{font-size:17px;display:block}
+.choice span{color:var(--muted);font-size:13px}
+.choice.ai{background:linear-gradient(135deg,#0e3a44,#2a1f55);border-color:var(--acc)}
+input[type=color]{width:44px;height:34px;border:1px solid var(--line);border-radius:8px;background:none;padding:0}
 </style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 </head>
 <body>
-<main>
-  <img src="icon-180.png" alt="">
-  <h1>DigitalBuilds</h1>
-  <p id="msg">Bouw alles in 3D, met AI.</p>
-  <a class="go" id="go" href="https://claude.ai/artifact/LeKKr1uUvMKrRbvWpi6ArH">Open DigitalBuilds</a>
-  <ol id="uitleg">
-    <li>Tik onderin Safari op de deelknop.</li>
-    <li>Kies "Zet op beginscherm".</li>
-    <li>Tik op "Voeg toe".</li>
-  </ol>
-</main>
-<script>
-  // Opgestart vanaf het beginscherm (?open=1): meteen door naar de app.
-  var APP="https://claude.ai/artifact/LeKKr1uUvMKrRbvWpi6ArH";
-  if(/[?&]open=1/.test(location.search)){
-    document.getElementById("msg").textContent="DigitalBuilds wordt geopend...";
-    document.getElementById("uitleg").style.display="none";
-    location.replace(APP);
-  }else{
-    // Zo bewaart "Zet op beginscherm" het adres mét ?open=1.
-    try{history.replaceState(null,"",location.pathname+"?open=1")}catch(e){}
+<div id="app">
+  <div id="top">
+    <img src="data:image/png;base64,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" alt="" style="width:28px;height:28px;border-radius:7px"><h1><span id="pname" style="font-size:14px">Nieuw project</span></h1>
+    <button class="tb" id="bBuild" type="button" style="background:linear-gradient(90deg,var(--acc),var(--acc2));color:#0b1020;border:0">🏗️ Bouwen</button>
+    <button class="tb" id="bMenu" type="button" aria-label="Menu">☰</button>
+  </div>
+  <div id="view"><div id="vtools"><button type="button" id="bUndo" aria-label="Ongedaan maken" disabled>↶</button><button type="button" id="bRedo" aria-label="Opnieuw" disabled>↷</button><button type="button" id="bFit" aria-label="Alles in beeld">⌖</button><button type="button" id="bShot" aria-label="Foto maken">📸</button></div><div id="gbar" class="hidden"><button type="button" data-m="schuif" class="on">✋ Schuif</button><button type="button" data-m="hoogte">↕ Hoogte</button><button type="button" data-m="draai">↻ Draai</button><button type="button" data-m="maat">⤢ Maat</button><button type="button" data-m="cam">🎥</button><button type="button" data-m="uit">✕</button></div><div id="placeBar" class="hidden" style="position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:6px;z-index:2"><button class="btn pri" id="pRot" type="button">↻ Draai 90°</button><button class="btn" id="pDone" type="button">✓ Klaar met plaatsen</button></div><div id="status">Typ wat je wilt bouwen, of voeg zelf vormen toe.</div><div id="objCount">0 onderdelen</div></div>
+  <div id="panel">
+    <div id="tabs">
+      <button type="button" data-t="bieb">➕ Erbij</button>
+      <button type="button" data-t="ai" class="on">✨ AI</button>
+      <button type="button" data-t="bewerk">🎛️ Bewerk</button>
+      <button type="button" data-t="wereld">🌍 Wereld</button>
+    </div>
+    <div class="pane on" id="p-ai">
+      <textarea id="prompt" placeholder="Bijv. een middeleeuws kasteel met vier torens en een slotgracht"></textarea>
+      <div class="row"><button class="btn pri" id="bNew" type="button">✨ Maak nieuw</button><button class="btn alt" id="bEdit" type="button">🪄 Pas aan</button></div>
+      <div class="chips" id="ideas">
+        <button class="chip" type="button">Raket op een lanceerplatform</button>
+        <button class="chip" type="button">Ridderkasteel met torens</button>
+        <button class="chip" type="button">Sportauto</button>
+        <button class="chip" type="button">Zonnestelsel dat draait</button>
+        <button class="chip" type="button">Huis met tuin en bomen</button>
+        <button class="chip" type="button">Robot</button>
+      </div>
+      <div class="err" id="aiErr" role="alert"></div>
+    </div>
+    <div class="pane" id="p-bieb">
+      <div class="chips" id="cats" style="margin-top:0"></div>
+      <div class="shapes" id="libItems" style="margin-top:8px"></div>
+      <div class="shapes hidden" id="shapes" style="margin-top:8px"></div>
+      <div class="row" style="align-items:center;flex-wrap:wrap"><label class="hint" style="margin:0"><input type="checkbox" id="snapOn" checked> Vastklikken op raster</label><label class="hint" style="margin:0 0 0 10px"><input type="checkbox" id="multiOn"> Meerdere keren plaatsen</label></div>
+      <div class="hint">1. Kies iets hierboven. 2. Tik in het 3D-beeld waar het moet komen. 3. Schuif, draai of vergroot het met je vinger.</div>
+    </div>
+    <div class="pane" id="p-wereld">
+      <div class="sec">☀️ Lucht</div><div class="seg2" id="wSky"></div>
+      <div class="sec">🌱 Grond</div><div class="seg2" id="wGround"></div>
+      <div class="row" style="margin-top:2px"><label class="hint" style="margin:0;flex:1"><input type="checkbox" id="wGrid" checked> Raster tonen</label><label class="hint" style="margin:0;flex:1"><input type="checkbox" id="wShadow" checked> Schaduwen</label></div>
+      <div class="sec">📋 Alles in je bouwwerk</div><div id="wList" class="hint">Nog leeg.</div>
+    </div>
+    <div class="pane" id="p-bewerk"><div id="editBox" class="hint">Tik eerst op een onderdeel in het 3D-beeld.</div></div>
+    <div class="pane" id="p-code">
+      <div class="hint" style="margin-top:0">{ } De code van je bouwwerk. Voor gevorderden: pas getallen aan en druk op Toepassen.</div>
+      <textarea id="code" spellcheck="false"></textarea>
+      <div class="row"><button class="btn pri" id="bApply" type="button">▶ Code toepassen</button><button class="btn" id="bCopy" type="button">Kopieer</button></div>
+      <div class="err" id="codeErr" role="alert"></div>
+    </div>
+  </div>
+</div>
+<div id="menu" class="hidden"><div class="card">
+  <h2 style="margin:0 0 6px;font-size:19px">☰ Menu</h2>
+  <button class="mi" type="button" id="mNew">🆕 Nieuw leeg project</button>
+  <button class="mi" type="button" id="bProj">📁 Mijn projecten</button>
+  <button class="mi" type="button" id="bSave">💾 Opslaan</button>
+  <button class="mi" type="button" id="bShot2">📸 Foto van je bouwwerk downloaden</button>
+  <button class="mi" type="button" id="bStl">🖨️ Download voor 3D-printer (STL in ZIP)</button>
+  <button class="mi" type="button" id="mJson">📄 Project als bestand downloaden</button>
+  <button class="mi" type="button" id="mCode">{ } Code bekijken en aanpassen</button>
+  <button class="mi" type="button" id="mHelp">❔ Hoe werkt het?</button>
+  <button class="btn" type="button" id="mClose" style="width:100%;margin-top:10px">Sluiten</button>
+</div></div>
+<div id="ov" class="hidden"><div class="card" id="ovCard"></div></div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { STLExporter } from "three/addons/exporters/STLExporter.js";
+
+const $ = id => document.getElementById(id);
+const SHAPES = { blok: "🧊", bol: "⚪", cilinder: "🛢️", kegel: "🔺", piramide: "🔼", prisma: "🏠", torus: "🍩", capsule: "💊", vlak: "⬜", figuur: "🧍" };
+let model = { naam: "Nieuw project", achtergrond: "#0d1117", objecten: [] };
+let history = [], sel = null, sample = null, db = null, uid = null, projId = null, busy = false;
+
+// ---------- three ----------
+const view = $("view");
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+view.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 2000);
+camera.position.set(8, 6, 10);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.target.set(0, 1, 0);
+scene.add(new THREE.HemisphereLight(0xdfe9ff, 0x2a2018, 0.9));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(8, 14, 6); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, far: 60 });
+scene.add(sun);
+const ground = new THREE.Mesh(new THREE.CircleGeometry(40, 64), new THREE.MeshStandardMaterial({ color: 0x1b2430, roughness: 1 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const grid = new THREE.GridHelper(40, 40, 0x2c3b50, 0x1f2a38); grid.position.y = 0.002; scene.add(grid);
+const group = new THREE.Group(); scene.add(group);
+const selBox = new THREE.BoxHelper(undefined, 0x22d3ee); selBox.visible = false; scene.add(selBox);
+
+const GEO = {
+  blok: () => new THREE.BoxGeometry(1, 1, 1),
+  bol: () => new THREE.SphereGeometry(0.5, 40, 24),
+  cilinder: () => new THREE.CylinderGeometry(0.5, 0.5, 1, 40),
+  kegel: () => new THREE.ConeGeometry(0.5, 1, 40),
+  piramide: () => { const g = new THREE.ConeGeometry(0.7071, 1, 4); g.rotateY(Math.PI / 4); return g; },
+  torus: () => new THREE.TorusGeometry(0.4, 0.1, 20, 64),
+  capsule: () => new THREE.CapsuleGeometry(0.25, 0.5, 8, 24),
+  vlak: () => new THREE.BoxGeometry(1, 0.02, 1),
+  prisma: () => { const s = new THREE.Shape(); s.moveTo(-0.5, -0.5); s.lineTo(0.5, -0.5); s.lineTo(0, 0.5); s.closePath(); const g = new THREE.ExtrudeGeometry(s, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; }
+};
+// ================= TEXTURES =================
+const TEX = {
+  geen: { naam: "Glad", k: null },
+  hout: { naam: "Hout", k: "#9a6a3c" }, parket: { naam: "Parket", k: "#b07a45" },
+  baksteen: { naam: "Baksteen", k: "#a4472d" }, steen: { naam: "Natuursteen", k: "#9ca3af" },
+  beton: { naam: "Beton", k: "#a8a29e" }, tegels: { naam: "Tegels", k: "#e5e7eb" },
+  marmer: { naam: "Marmer", k: "#f1f5f9" }, gras: { naam: "Gras", k: "#4d9a3a" },
+  zand: { naam: "Zand", k: "#e6c98f" }, water: { naam: "Water", k: "#2f7fd1" },
+  metaal: { naam: "Metaal", k: "#b8c0c8" }, stof: { naam: "Stof", k: "#6b7fb3" },
+  dakpannen: { naam: "Dakpannen", k: "#a33a26" }, glas: { naam: "Glas", k: "#bfe6ff" }
+};
+const texCache = {};
+function rng(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function noiseCanvas(fn, size = 256) {
+  const c = document.createElement("canvas"); c.width = c.height = size;
+  const g = c.getContext("2d"); fn(g, size); return c;
+}
+function speckle(g, S, r, n, a, light) { for (let i = 0; i < n; i++) { const v = light ? 255 : 0; g.fillStyle = `rgba(${v},${v},${v},${r() * a})`; g.fillRect(r() * S, r() * S, 1 + r() * 2, 1 + r() * 2); } }
+const TEXGEN = {
+  hout: (g, S) => { const r = rng(3); g.fillStyle = "#d9d9d9"; g.fillRect(0, 0, S, S); for (let y = 0; y < S; y += 1) { const v = 200 + 40 * Math.sin(y * 0.18 + Math.sin(y * 0.031) * 4) + r() * 12; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(0, y, S, 1); } for (let k = 0; k < 4; k++) { g.strokeStyle = "rgba(0,0,0,.18)"; g.beginPath(); g.ellipse(r() * S, r() * S, 6 + r() * 8, 3 + r() * 4, 0, 0, 7); g.stroke(); } speckle(g, S, r, 1500, .08); },
+  parket: (g, S) => { const r = rng(5); const w = S / 4, h = S / 2; for (let row = 0; row < 2; row++) for (let col = 0; col < 4; col++) { const v = 185 + r() * 50; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(col * w, row * h + (col % 2) * h / 2 - (col % 2 ? h : 0), w, h); g.fillRect(col * w, row * h + (col % 2) * h / 2, w, h); for (let y = 0; y < h; y += 3) { g.fillStyle = `rgba(0,0,0,${r() * .08})`; g.fillRect(col * w, row * h + y + (col % 2) * h / 2, w, 1); } } g.strokeStyle = "rgba(0,0,0,.35)"; for (let col = 0; col <= 4; col++) { g.beginPath(); g.moveTo(col * w, 0); g.lineTo(col * w, S); g.stroke(); } for (let col = 0; col < 4; col++) for (let k = 0; k < 3; k++) { const y = (k * h + (col % 2) * h / 2) % S; g.beginPath(); g.moveTo(col * w, y); g.lineTo(col * w + w, y); g.stroke(); } },
+  baksteen: (g, S) => { const r = rng(7); g.fillStyle = "#bdbdbd"; g.fillRect(0, 0, S, S); const bh = S / 8, bw = S / 4; for (let row = 0; row < 8; row++) for (let col = -1; col < 5; col++) { const x = col * bw + (row % 2) * bw / 2, v = 200 + r() * 55; g.fillStyle = `rgb(${v},${v * .97},${v * .95})`; g.fillRect(x + 2, row * bh + 2, bw - 4, bh - 4); } speckle(g, S, r, 2500, .15); },
+  steen: (g, S) => { const r = rng(11); g.fillStyle = "#8a8a8a"; g.fillRect(0, 0, S, S); for (let i = 0; i < 26; i++) { const x = r() * S, y = r() * S, w = 30 + r() * 50, h = 22 + r() * 30, v = 170 + r() * 70; g.fillStyle = `rgb(${v},${v},${v})`; g.beginPath(); g.ellipse(x, y, w / 2, h / 2, r() * 3, 0, 7); g.fill(); } speckle(g, S, r, 3000, .2); },
+  beton: (g, S) => { const r = rng(13); g.fillStyle = "#d4d4d4"; g.fillRect(0, 0, S, S); speckle(g, S, r, 6000, .12); speckle(g, S, r, 2000, .12, true); },
+  tegels: (g, S) => { const r = rng(17); g.fillStyle = "#9a9a9a"; g.fillRect(0, 0, S, S); const t = S / 4; for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) { const v = 230 + r() * 25; g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(x * t + 2, y * t + 2, t - 4, t - 4); } },
+  marmer: (g, S) => { const r = rng(19); g.fillStyle = "#f2f2f2"; g.fillRect(0, 0, S, S); for (let k = 0; k < 14; k++) { g.strokeStyle = `rgba(90,90,100,${.1 + r() * .25})`; g.lineWidth = .5 + r() * 2; g.beginPath(); let x = r() * S, y = 0; g.moveTo(x, y); while (y < S) { x += (r() - .5) * 30; y += 10 + r() * 20; g.lineTo(x, y); } g.stroke(); } },
+  gras: (g, S) => { const r = rng(23); g.fillStyle = "#bdbdbd"; g.fillRect(0, 0, S, S); for (let i = 0; i < 5000; i++) { const v = 150 + r() * 105; g.strokeStyle = `rgb(${v},${v},${v})`; const x = r() * S, y = r() * S; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - .5) * 3, y - 3 - r() * 5); g.stroke(); } },
+  zand: (g, S) => { const r = rng(29); g.fillStyle = "#e0e0e0"; g.fillRect(0, 0, S, S); speckle(g, S, r, 9000, .14); for (let y = 0; y < S; y += 9) { g.strokeStyle = "rgba(0,0,0,.04)"; g.beginPath(); g.moveTo(0, y); for (let x = 0; x <= S; x += 16) g.lineTo(x, y + Math.sin(x * .05 + y) * 3); g.stroke(); } },
+  water: (g, S) => { const r = rng(31); g.fillStyle = "#cfcfcf"; g.fillRect(0, 0, S, S); for (let k = 0; k < 60; k++) { g.strokeStyle = `rgba(255,255,255,${.15 + r() * .3})`; g.lineWidth = 1 + r() * 2; const y = r() * S, x = r() * S; g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + 15, y - 5, x + 30, y); g.stroke(); } },
+  metaal: (g, S) => { const r = rng(37); g.fillStyle = "#d8d8d8"; g.fillRect(0, 0, S, S); for (let y = 0; y < S; y++) { g.fillStyle = `rgba(${r() < .5 ? 0 : 255},${r() < .5 ? 0 : 255},255,${r() * .06})`; g.fillRect(0, y, S, 1); } },
+  stof: (g, S) => { const r = rng(41); g.fillStyle = "#d0d0d0"; g.fillRect(0, 0, S, S); for (let i = 0; i < S; i += 4) { g.fillStyle = "rgba(0,0,0,.07)"; g.fillRect(i, 0, 2, S); g.fillRect(0, i, S, 2); } speckle(g, S, r, 2000, .08); },
+  dakpannen: (g, S) => { const r = rng(43); g.fillStyle = "#8f8f8f"; g.fillRect(0, 0, S, S); const rh = S / 8, tw = S / 6; for (let row = 0; row < 8; row++) for (let col = -1; col < 7; col++) { const x = col * tw + (row % 2) * tw / 2, v = 190 + r() * 50; const gr = g.createLinearGradient(0, row * rh, 0, row * rh + rh); gr.addColorStop(0, `rgb(${v},${v},${v})`); gr.addColorStop(1, `rgb(${v * .7},${v * .7},${v * .7})`); g.fillStyle = gr; g.beginPath(); g.moveTo(x, row * rh); g.lineTo(x + tw - 2, row * rh); g.quadraticCurveTo(x + tw - 2, row * rh + rh, x + tw / 2, row * rh + rh); g.quadraticCurveTo(x, row * rh + rh, x, row * rh); g.fill(); } }
+};
+function getTex(name) {
+  if (!TEXGEN[name]) return null;
+  if (!texCache[name]) {
+    const t = new THREE.CanvasTexture(noiseCanvas(TEXGEN[name]));
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    texCache[name] = t;
   }
+  return texCache[name];
+}
+function makeMaterial(o) {
+  const name = o.textuur || "geen";
+  const p = { color: o.kleur, metalness: o.metaal, roughness: o.ruw };
+  if (name === "glas") Object.assign(p, { transparent: true, opacity: 0.35, metalness: 0.2, roughness: 0.05 });
+  if (name === "water") Object.assign(p, { transparent: true, opacity: 0.8, metalness: 0.1, roughness: 0.1 });
+  if (name === "metaal") Object.assign(p, { metalness: Math.max(0.7, o.metaal), roughness: Math.min(0.35, o.ruw) });
+  if (o.gloed) Object.assign(p, { emissive: o.kleur, emissiveIntensity: 0.8 });
+  const base = getTex(name);
+  if (base) { const t = base.clone(); t.needsUpdate = true; const big = Math.max(o.sx, o.sz), rep = name === "dakpannen" ? 1.2 : name === "tegels" || name === "parket" ? 0.8 : 0.5; t.repeat.set(Math.max(1, big / rep), Math.max(1, Math.max(o.sy, name === "gras" || name === "zand" ? o.sz : 0) / rep)); p.map = t; }
+  return new THREE.MeshStandardMaterial(p);
+}
+
+// ================= FIGURES (rigged people & animals) =================
+const FIGS = {
+  man: { naam: "Man", mens: true, k: 1 }, vrouw: { naam: "Vrouw", mens: true, k: 0.95, vrouw: true }, kind: { naam: "Kind", mens: true, k: 0.62 },
+  hond: { naam: "Hond", dier: { body: [0.62, 0.15], legH: 0.34, legR: 0.045, head: 0.14, snout: 0.12, neck: 0.12, tail: 0.28, ears: "flap", y: 0.42 } },
+  kat: { naam: "Kat", dier: { body: [0.45, 0.1], legH: 0.22, legR: 0.03, head: 0.11, snout: 0.03, neck: 0.06, tail: 0.38, ears: "punt", y: 0.3 } },
+  paard: { naam: "Paard", dier: { body: [1.65, 0.37], legH: 0.95, legR: 0.07, head: 0.23, snout: 0.42, neck: 0.7, neckA: -0.75, tail: 0.6, ears: "punt", mane: true, y: 1.25 } },
+  koe: { naam: "Koe", dier: { body: [1.4, 0.38], legH: 0.75, legR: 0.08, head: 0.22, snout: 0.2, neck: 0.25, tail: 0.6, ears: "flap", horns: true, udder: true, spots: true, y: 1.15 } },
+  varken: { naam: "Varken", dier: { body: [1.0, 0.23], legH: 0.25, legR: 0.06, head: 0.18, snout: 0.1, neck: 0.05, tail: 0.12, ears: "punt", y: 0.48, snoutDisk: true } },
+  olifant: { naam: "Olifant", dier: { body: [2.2, 0.75], legH: 1.25, legR: 0.22, head: 0.5, snout: 0.05, neck: 0.15, tail: 0.6, ears: "groot", trunk: true, tusks: true, y: 2.0 } },
+  kip: { naam: "Kip", vogel: true }
+};
+const POSES_M = ["staan", "lopen", "rennen", "zitten", "zwaaien", "juichen", "liggen", "dansen"];
+const POSES_D = ["staan", "lopen", "rennen", "zitten", "liggen"];
+const DEF_COL = {
+  man: { huid: "#e0ac69", shirt: "#2563eb", broek: "#1e3a5f", haar: "#3b2314", schoen: "#1f2937" },
+  vrouw: { huid: "#f1c27d", shirt: "#db2777", broek: "#6d28d9", haar: "#a16207", schoen: "#7f1d1d" },
+  kind: { huid: "#c68642", shirt: "#16a34a", broek: "#334155", haar: "#111827", schoen: "#f8fafc" },
+  hond: { kleur: "#8b5a2b" }, kat: { kleur: "#9ca3af" }, paard: { kleur: "#7c4a21" }, koe: { kleur: "#f5f5f4" }, varken: { kleur: "#f4a7b9" }, olifant: { kleur: "#8a8f98" }, kip: { kleur: "#fafaf9" }
+};
+const mat = (c, r = 0.65, m = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
+function seg(len, rad, material) { // capsule hanging down from joint origin
+  const g = new THREE.Mesh(new THREE.CapsuleGeometry(rad, Math.max(0.001, len - 2 * rad), 8, 16), material);
+  g.position.y = -len / 2; g.castShadow = g.receiveShadow = true; return g;
+}
+function ball(r, material, sx = 1, sy = 1, sz = 1) { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 16), material); m.scale.set(sx, sy, sz); m.castShadow = m.receiveShadow = true; return m; }
+function joint(parent, x, y, z) { const j = new THREE.Group(); j.position.set(x, y, z); parent.add(j); return j; }
+
+function buildHuman(o) {
+  const spec = FIGS[o.soort], c = Object.assign({}, DEF_COL[o.soort] || DEF_COL.man, o.kleuren || {});
+  const M = { huid: mat(c.huid, 0.55), shirt: mat(c.shirt, 0.8), broek: mat(c.broek, 0.85), haar: mat(c.haar, 0.9), schoen: mat(c.schoen, 0.5), oog: mat("#111", 0.3) };
+  const root = new THREE.Group(), J = {};
+  const body = new THREE.Group(); root.add(body); J.body = body;
+  const hips = joint(body, 0, 0.94, 0); J.hips = hips;
+  const pelvis = ball(0.16, M.broek, 1.05, 0.7, 0.75); hips.add(pelvis);
+  const spine = joint(hips, 0, 0.05, 0); J.spine = spine;
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.155, 0.28, 8, 20), M.shirt); torso.scale.set(1.15, 1, 0.72); torso.position.y = 0.24; torso.castShadow = true; spine.add(torso);
+  if (spec.vrouw) { const skirt = new THREE.Mesh(new THREE.ConeGeometry(0.27, 0.42, 24, 1, true), M.broek); skirt.position.y = -0.12; skirt.castShadow = true; skirt.material.side = THREE.DoubleSide; hips.add(skirt); }
+  const neck = joint(spine, 0, 0.5, 0); neck.add(seg(0.08, 0.045, M.huid));
+  const head = joint(neck, 0, 0.13, 0); J.head = head;
+  head.add(ball(0.115, M.huid, 0.92, 1.08, 1));
+  const hair = ball(0.122, M.haar, 0.96, 0.8, 1.04); hair.position.set(0, 0.035, -0.012); head.add(hair);
+  if (spec.vrouw) { const lh = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.18, 6, 12), M.haar); lh.scale.set(1.15, 1, 0.55); lh.position.set(0, -0.08, -0.07); head.add(lh); }
+  for (const s of [-1, 1]) { const e = ball(0.016, M.oog); e.position.set(s * 0.04, 0.015, 0.1); head.add(e); }
+  const nose = ball(0.018, M.huid, 1, 1.2, 1); nose.position.set(0, -0.015, 0.112); head.add(nose);
+  for (const [side, s] of [["L", 1], ["R", -1]]) {
+    const sh = joint(spine, s * 0.2, 0.43, 0); J["sh" + side] = sh;
+    sh.add(ball(0.06, M.shirt));
+    sh.add(seg(0.3, 0.052, M.shirt));
+    const el = joint(sh, 0, -0.3, 0); J["el" + side] = el;
+    el.add(seg(0.26, 0.044, M.huid));
+    const hand = ball(0.048, M.huid, 0.8, 1.1, 0.7); hand.position.y = -0.29; el.add(hand);
+    const hp = joint(hips, s * 0.095, -0.04, 0); J["hip" + side] = hp;
+    hp.add(seg(0.44, 0.072, M.broek));
+    const kn = joint(hp, 0, -0.44, 0); J["kn" + side] = kn;
+    kn.add(seg(0.42, 0.058, spec.vrouw ? M.huid : M.broek));
+    const ft = joint(kn, 0, -0.43, 0); J["ft" + side] = ft;
+    const shoe = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.12, 6, 12), M.schoen); shoe.rotation.x = Math.PI / 2; shoe.position.set(0, -0.02, 0.05); shoe.castShadow = true; ft.add(shoe);
+  }
+  root.userData.J = J; root.userData.kind = "mens"; root.scale.setScalar(spec.k);
+  return root;
+}
+function poseHuman(root, pose, t, anim) {
+  const J = root.userData.J, S = Math.sin, a = anim ? 1 : 0;
+  const set = (j, x = 0, y = 0, z = 0) => J[j].rotation.set(x, y, z);
+  J.body.position.set(0, 0, 0); J.body.rotation.set(0, 0, 0); J.hips.position.y = 0.94;
+  ["spine", "head", "shL", "shR", "elL", "elR", "hipL", "hipR", "knL", "knR", "ftL", "ftR"].forEach(j => set(j));
+  set("shL", 0, 0, 0.1); set("shR", 0, 0, -0.1);
+  const w = anim ? t * 6 : 1.1;
+  if (pose === "lopen") { const p = anim ? S(w) : 1; set("hipL", -0.45 * p); set("hipR", 0.45 * p); set("knL", 0.25 + (anim ? 0.25 * Math.max(0, -S(w)) : 0)); set("knR", 0.25 + (anim ? 0.25 * Math.max(0, S(w)) : 0.3)); set("shL", 0.4 * p, 0, 0.1); set("shR", -0.4 * p, 0, -0.1); set("elL", -0.25); set("elR", -0.25); J.hips.position.y = 0.92 + (anim ? 0.02 * Math.abs(S(w)) : 0); }
+  if (pose === "rennen") { const p = anim ? S(w * 1.5) : 1; set("spine", 0.22); set("hipL", -0.95 * p); set("hipR", 0.8 * p); set("knL", 0.4 + 0.9 * Math.max(0, -p)); set("knR", 0.4 + 0.9 * Math.max(0, p)); set("shL", 0.9 * p, 0, 0.15); set("shR", -0.9 * p, 0, -0.15); set("elL", -1.5); set("elR", -1.5); J.hips.position.y = 0.9 + (anim ? 0.05 * Math.abs(S(w * 1.5)) : 0); }
+  if (pose === "zitten") { J.hips.position.y = 0.5; set("hipL", -1.55); set("hipR", -1.55); set("knL", 1.55); set("knR", 1.55); set("ftL", 0); set("shL", -0.3, 0, 0.12); set("shR", -0.3, 0, -0.12); set("elL", -0.9); set("elR", -0.9); }
+  if (pose === "zwaaien") { set("shR", 0, 0, -2.7 + (anim ? 0.15 * S(t * 8) : 0)); set("elR", 0, 0, -0.35 + (anim ? 0.45 * S(t * 8) : 0)); set("head", 0, 0, -0.08); }
+  if (pose === "juichen") { const b = anim ? 0.25 * S(t * 7) : 0; set("shL", 0, 0, 2.6 + b); set("shR", 0, 0, -2.6 - b); set("elL", 0, 0, 0.3); set("elR", 0, 0, -0.3); set("head", -0.25); J.hips.position.y = 0.94 + (anim ? 0.08 * Math.max(0, S(t * 7)) : 0); }
+  if (pose === "liggen") { J.body.rotation.x = -Math.PI / 2; J.body.position.set(0, 0.16, -0.94); set("shL", 0, 0, 0.35); set("shR", 0, 0, -0.35); set("hipL", 0, 0, -0.08); set("hipR", 0, 0, 0.08); set("head", 0.15); }
+  if (pose === "dansen") { const p = anim ? t * 4 : 0.8; J.body.rotation.y = anim ? 0.4 * S(p) : 0.3; set("spine", 0, 0, 0.15 * S(p)); set("shL", 0, 0, 2.2 + 0.4 * S(p * 2)); set("shR", 0.5 * S(p), 0, -0.6 - 0.4 * S(p * 2)); set("elL", 0, 0, 0.6); set("elR", -1.2); set("hipL", -0.35 * Math.max(0, S(p))); set("knL", 0.6 * Math.max(0, S(p))); J.hips.position.y = 0.94 - 0.04 * Math.abs(S(p)); }
+}
+
+function buildAnimal(o) {
+  const spec = FIGS[o.soort].dier, c = Object.assign({}, DEF_COL[o.soort], o.kleuren || {});
+  const M = { b: mat(c.kleur, 0.85), d: mat(new THREE.Color(c.kleur).multiplyScalar(0.6), 0.85), oog: mat("#111", 0.3), roze: mat("#f9a8d4", 0.7), ivoor: mat("#f5f5f0", 0.4), zwart: mat("#1f2937", 0.8) };
+  const root = new THREE.Group(), J = {};
+  const body = joint(root, 0, spec.y, 0); J.body = body;
+  const [L, R] = spec.body;
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(R, L - 2 * R, 10, 20), M.b); torso.rotation.x = Math.PI / 2; torso.castShadow = torso.receiveShadow = true; body.add(torso);
+  if (spec.spots) for (let i = 0; i < 6; i++) { const sp = ball(R * 0.45, M.zwart, 1, 0.8, 1.3); const a = (i / 6) * Math.PI * 2; sp.position.set(Math.cos(a) * R * 0.75, Math.sin(a) * R * 0.75, (i % 3 - 1) * L * 0.25); body.add(sp); }
+  // neck & head
+  const neck = joint(body, 0, R * 0.5, L / 2 - R * 0.3); J.neck = neck; neck.rotation.x = spec.neckA || -0.4;
+  if (spec.neck > 0.05) { const nm = new THREE.Mesh(new THREE.CapsuleGeometry(Math.max(R * 0.45, spec.head * 0.6), spec.neck, 8, 16), M.b); nm.position.y = spec.neck / 2; nm.castShadow = true; neck.add(nm); }
+  if (spec.mane) { const mn = new THREE.Mesh(new THREE.BoxGeometry(0.06, spec.neck + 0.2, 0.16), M.zwart); mn.position.set(0, spec.neck / 2 + 0.05, -R * 0.35); neck.add(mn); }
+  const head = joint(neck, 0, spec.neck + spec.head * 0.4, 0); J.head = head; head.rotation.x = -(spec.neckA || -0.4) * 0.85;
+  head.add(ball(spec.head, M.b, 0.9, 0.95, 1));
+  if (spec.snout > 0.04) { const sn = new THREE.Mesh(new THREE.CapsuleGeometry(spec.head * 0.55, spec.snout, 8, 16), spec.snoutDisk ? M.roze : M.b); sn.rotation.x = Math.PI / 2; sn.position.set(0, -spec.head * 0.25, spec.head * 0.55 + spec.snout / 2); sn.castShadow = true; head.add(sn); const nz = ball(spec.head * 0.2, M.zwart); nz.position.set(0, -spec.head * 0.15, spec.head * 0.7 + spec.snout); head.add(nz); }
+  if (spec.snoutDisk) { const dk = new THREE.Mesh(new THREE.CylinderGeometry(spec.head * 0.45, spec.head * 0.45, 0.06, 20), M.roze); dk.rotation.x = Math.PI / 2; dk.position.set(0, -spec.head * 0.15, spec.head * 1.0); head.add(dk); }
+  for (const s of [-1, 1]) {
+    const e = ball(spec.head * 0.13, M.oog); e.position.set(s * spec.head * 0.5, spec.head * 0.2, spec.head * 0.72); head.add(e);
+    if (spec.ears === "punt") { const ear = new THREE.Mesh(new THREE.ConeGeometry(spec.head * 0.3, spec.head * 0.6, 12), M.b); ear.position.set(s * spec.head * 0.5, spec.head * 0.95, 0); head.add(ear); }
+    if (spec.ears === "flap") { const ear = ball(spec.head * 0.35, M.d, 0.5, 1.2, 0.9); ear.position.set(s * spec.head * 0.85, spec.head * 0.3, -spec.head * 0.1); ear.rotation.z = s * 0.4; head.add(ear); }
+    if (spec.ears === "groot") { const ear = ball(spec.head * 0.9, M.d, 0.15, 1.1, 0.95); ear.position.set(s * spec.head * 0.95, 0, -spec.head * 0.25); ear.rotation.y = s * 0.35; head.add(ear); }
+    if (spec.horns) { const h = new THREE.Mesh(new THREE.ConeGeometry(spec.head * 0.12, spec.head * 0.6, 10), M.ivoor); h.position.set(s * spec.head * 0.55, spec.head * 0.8, -spec.head * 0.1); h.rotation.z = -s * 0.7; head.add(h); }
+    if (spec.tusks) { const tk = new THREE.Mesh(new THREE.ConeGeometry(spec.head * 0.09, spec.head * 0.9, 10), M.ivoor); tk.position.set(s * spec.head * 0.35, -spec.head * 0.55, spec.head * 0.65); tk.rotation.x = 2.3; head.add(tk); }
+  }
+  if (spec.trunk) { const tr = joint(head, 0, -spec.head * 0.1, spec.head * 0.85); J.trunk = tr; tr.rotation.x = 0.25; tr.add(seg(spec.head * 1.9, spec.head * 0.22, M.b)); }
+  // legs
+  J.legs = [];
+  for (const [fx, fz, front] of [[-1, 1, 1], [1, 1, 1], [-1, -1, 0], [1, -1, 0]]) {
+    const up = joint(body, fx * R * 0.6, -R * 0.4, fz * (L / 2 - R * 0.7));
+    const h1 = spec.legH * 0.5 + R * 0.4, h2 = spec.legH * 0.5;
+    up.add(seg(h1, spec.legR * 1.25, M.b));
+    const lo = joint(up, 0, -h1, 0); lo.add(seg(h2, spec.legR, M.b));
+    const hoof = ball(spec.legR * 1.15, M.d, 1, 0.6, 1.2); hoof.position.set(0, -h2, spec.legR * 0.3); lo.add(hoof);
+    J.legs.push({ up, lo, front, side: fx, h1, h2 });
+  }
+  const tail = joint(body, 0, R * 0.3, -L / 2 + R * 0.2); J.tail = tail; tail.rotation.x = -2.3;
+  tail.add(seg(spec.tail, Math.max(0.015, R * 0.1), spec.mane ? M.zwart : M.b));
+  if (spec.udder) { const ud = ball(R * 0.35, M.roze, 1, 0.7, 1); ud.position.set(0, -R * 0.9, -L * 0.2); body.add(ud); }
+  root.userData.J = J; root.userData.kind = "dier"; root.userData.spec = spec;
+  return root;
+}
+function poseAnimal(root, pose, t, anim) {
+  const J = root.userData.J, spec = root.userData.spec, S = Math.sin;
+  J.body.position.y = spec.y; J.body.rotation.set(0, 0, 0);
+  J.tail.rotation.set(-2.3, 0, anim ? 0.3 * S(t * 5) : 0);
+  const sp = pose === "rennen" ? 9 : 5, amp = pose === "rennen" ? 0.7 : pose === "lopen" ? 0.35 : 0;
+  for (const L of J.legs) {
+    const ph = (L.front ? 0 : Math.PI) + (L.side > 0 ? Math.PI : 0);
+    const sw = anim ? S(t * sp + ph) : (L.front ? 1 : -1) * (L.side > 0 ? 1 : -1);
+    L.up.rotation.set(amp * sw, 0, 0); L.lo.rotation.set(amp ? Math.max(0, amp * 0.8 * S(t * sp + ph + 1)) * (anim ? 1 : 0) : 0, 0, 0);
+  }
+  if (pose === "zitten") {
+    J.body.rotation.x = -0.55; J.body.position.y = spec.y * 0.72;
+    for (const L of J.legs) { if (L.front) { L.up.rotation.x = 0.55; L.lo.rotation.x = 0; } else { L.up.rotation.x = -1.0; L.lo.rotation.x = 2.0; } }
+  }
+  if (pose === "liggen") {
+    J.body.position.y = spec.body[1] * 1.05;
+    for (const L of J.legs) { if (L.front) { L.up.rotation.x = -1.45; L.lo.rotation.x = 0.1; } else { L.up.rotation.x = 1.4; L.lo.rotation.x = -0.2; } }
+  }
+  if (anim && (pose === "lopen" || pose === "rennen")) J.body.position.y += 0.03 * spec.y * Math.abs(S(t * sp));
+  if (J.head) J.head.rotation.y = anim && pose === "staan" ? 0.3 * S(t * 0.8) : 0;
+  if (J.trunk) J.trunk.rotation.x = 0.25 + (anim ? 0.25 * S(t * 2) : 0);
+}
+function buildBird(o) {
+  const c = Object.assign({}, DEF_COL.kip, o.kleuren || {});
+  const M = { b: mat(c.kleur, 0.9), geel: mat("#f59e0b", 0.6), rood: mat("#dc2626", 0.6), oog: mat("#111", 0.3) };
+  const root = new THREE.Group(), J = {};
+  const body = joint(root, 0, 0.3, 0); J.body = body;
+  body.add(ball(0.15, M.b, 1, 0.95, 1.25));
+  const tail = ball(0.08, M.b, 0.6, 1.2, 0.6); tail.position.set(0, 0.08, -0.17); tail.rotation.x = -0.5; body.add(tail);
+  for (const s of [-1, 1]) { const wg = ball(0.1, M.b, 0.35, 0.8, 1.2); wg.position.set(s * 0.13, 0.01, -0.02); body.add(wg); J["w" + s] = wg; }
+  const head = joint(body, 0, 0.16, 0.12); J.head = head;
+  head.add(ball(0.075, M.b));
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.06, 10), M.geel); beak.rotation.x = Math.PI / 2; beak.position.set(0, 0, 0.09); head.add(beak);
+  const comb = ball(0.04, M.rood, 0.4, 0.9, 1.3); comb.position.set(0, 0.07, 0.01); head.add(comb);
+  const wat = ball(0.02, M.rood, 0.6, 1.4, 0.6); wat.position.set(0, -0.045, 0.06); head.add(wat);
+  for (const s of [-1, 1]) { const e = ball(0.012, M.oog); e.position.set(s * 0.045, 0.02, 0.05); head.add(e); }
+  J.legs = [];
+  for (const s of [-1, 1]) { const lg = joint(body, s * 0.05, -0.1, 0); lg.add(seg(0.2, 0.012, M.geel)); const f = ball(0.03, M.geel, 1.2, 0.3, 1.6); f.position.set(0, -0.2, 0.02); lg.add(f); J.legs.push(lg); }
+  root.userData.J = J; root.userData.kind = "vogel";
+  return root;
+}
+function poseBird(root, pose, t, anim) {
+  const J = root.userData.J, S = Math.sin; J.body.position.y = 0.3; J.body.rotation.set(0, 0, 0);
+  J.head.rotation.set(anim ? 0.3 * Math.max(0, S(t * 6)) : 0, 0, 0);
+  J.legs.forEach((l, i) => l.rotation.set(pose === "lopen" || pose === "rennen" ? (anim ? 0.5 * S(t * 8 + i * Math.PI) : (i ? 0.4 : -0.4)) : 0, 0, 0));
+  if (pose === "zitten" || pose === "liggen") { J.body.position.y = 0.14; J.legs.forEach(l => l.rotation.x = 1.4); }
+  [J["w-1"], J.w1].forEach((w, i) => w.rotation.z = pose === "rennen" && anim ? (i ? -1 : 1) * (0.4 + 0.4 * S(t * 18)) : 0);
+}
+function buildFigure(o) {
+  const f = FIGS[o.soort] || FIGS.man;
+  const g = f.mens ? buildHuman(o) : f.vogel ? buildBird(o) : buildAnimal(o);
+  g.userData.poseFn = f.mens ? poseHuman : f.vogel ? poseBird : poseAnimal;
+  g.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } });
+  return g;
+}
+
+const geoCache = {};
+const num = (v, d) => (typeof v === "number" && isFinite(v)) ? v : d;
+function clean(o, i) {
+  return {
+    id: o.id || "o" + i + "_" + Math.random().toString(36).slice(2, 6),
+    vorm: SHAPES[o.vorm] ? o.vorm : (FIGS[o.vorm] ? "figuur" : "blok"),
+    soort: FIGS[o.soort] ? o.soort : (FIGS[o.vorm] ? o.vorm : undefined),
+    houding: typeof o.houding === "string" ? o.houding : undefined,
+    kleuren: o.kleuren && typeof o.kleuren === "object" ? o.kleuren : undefined,
+    textuur: TEX[o.textuur] ? o.textuur : undefined,
+    x: num(o.x, 0), y: num(o.y, 0.5), z: num(o.z, 0),
+    rx: num(o.rx, 0), ry: num(o.ry, 0), rz: num(o.rz, 0),
+    sx: num(o.sx, 1), sy: num(o.sy, 1), sz: num(o.sz, 1),
+    kleur: /^#[0-9a-f]{6}$/i.test(o.kleur || "") ? o.kleur : "#9ca3af",
+    metaal: Math.min(1, Math.max(0, num(o.metaal, 0.1))), ruw: Math.min(1, Math.max(0, num(o.ruw, 0.6))),
+    gloed: !!o.gloed, groep: o.groep || undefined, gnaam: o.gnaam || undefined,
+    anim: o.anim && typeof o.anim === "object" ? { draai: num(o.anim.draai, 0), zweef: num(o.anim.zweef, 0), baan: num(o.anim.baan, 0), beweeg: !!o.anim.beweeg } : null
+  };
+}
+function build() {
+  group.clear();
+  model.objecten = model.objecten.slice(0, 400).map(clean);
+  for (const o of model.objecten) {
+    if (o.vorm === "figuur" && !o.soort) o.soort = "man";
+    let m;
+    if (o.vorm === "figuur") {
+      const inner = buildFigure(o); m = new THREE.Group(); m.add(inner); m.userData.inner = inner;
+      if (!o.houding) o.houding = "staan";
+      inner.userData.poseFn(inner, o.houding, 0, false);
+    } else {
+      const g = geoCache[o.vorm] || (geoCache[o.vorm] = GEO[o.vorm]());
+      m = new THREE.Mesh(g, makeMaterial(o)); m.castShadow = m.receiveShadow = true;
+    }
+    m.rotation.order = "YXZ";
+    m.userData.o = o; place(m, o, 0);
+    group.add(m);
+  }
+  applyWorld(); renderWorldList();
+  $("objCount").textContent = model.objecten.length + (model.objecten.length === 1 ? " onderdeel" : " onderdelen");
+  $("pname").textContent = model.naam || "Nieuw project";
+  if (sel) { sel = group.children.find(m => m.userData.o.id === sel.userData.o.id) || null; }
+  updSel(); syncCode();
+}
+// ---------- wereld ----------
+const SKY = { donker: ["🌑 Donker", "#0d1117", 0.9, 1.6, 0xffffff], dag: ["☀️ Dag", "#8ec5ff", 1.0, 2.0, 0xfff6e5], avond: ["🌅 Avond", "#f4a261", 0.7, 1.3, 0xffb070], nacht: ["🌙 Nacht", "#0a1230", 0.35, 0.45, 0x9fb4ff], bewolkt: ["☁️ Bewolkt", "#b8c2cc", 1.1, 0.8, 0xffffff] };
+const GRD = { donker: ["⬛ Donker", "#1b2430", null], gras: ["🌱 Gras", "#4f8f3a", "gras"], zand: ["🏖️ Zand", "#d9c08a", "zand"], sneeuw: ["❄️ Sneeuw", "#f3f6fa", null], water: ["🌊 Water", "#2f7fb8", "water"], beton: ["🧱 Beton", "#8d9196", "beton"] };
+const hemi = scene.children.find(c => c.isHemisphereLight);
+function world() { model.wereld = Object.assign({ lucht: "donker", grond: "donker", raster: true, schaduw: true }, model.wereld || {}); return model.wereld; }
+function applyWorld() {
+  const w = world(), s = SKY[w.lucht] || SKY.donker, g = GRD[w.grond] || GRD.donker;
+  scene.background = new THREE.Color(w.lucht === "donker" && /^#[0-9a-f]{6}$/i.test(model.achtergrond || "") ? model.achtergrond : s[1]);
+  scene.fog = w.lucht === "donker" ? null : new THREE.Fog(s[1], 35, 90);
+  hemi.intensity = s[2]; sun.intensity = s[3]; sun.color.setHex(s[4]);
+  if (ground.userData.k !== w.grond) {
+    ground.material.dispose(); ground.userData.k = w.grond;
+    ground.material = g[2] ? makeMaterial({ kleur: g[1], textuur: g[2], sx: 80, sy: 1, sz: 80, ruw: 1, metaal: 0 }) : new THREE.MeshStandardMaterial({ color: g[1], roughness: 1 });
+    if (ground.material.map) { ground.material.map = ground.material.map.clone(); ground.material.map.needsUpdate = true; ground.material.map.repeat.set(20, 20); }
+  }
+  grid.visible = w.raster; sun.castShadow = w.schaduw;
+  $("wSky").innerHTML = Object.entries(SKY).map(([k, v]) => `<button class="chip ${w.lucht === k ? "on" : ""}" type="button" data-s="${k}">${v[0]}</button>`).join("");
+  $("wGround").innerHTML = Object.entries(GRD).map(([k, v]) => `<button class="chip ${w.grond === k ? "on" : ""}" type="button" data-g="${k}">${v[0]}</button>`).join("");
+  $("wGrid").checked = w.raster; $("wShadow").checked = w.schaduw;
+}
+function renderWorldList() {
+  const seen = new Set(), rows = [];
+  model.objecten.forEach(o => {
+    const key = o.groep || o.id; if (seen.has(key)) return; seen.add(key);
+    const n = o.groep ? model.objecten.filter(x => x.groep === o.groep).length : 1;
+    const nm = o.gnaam || (o.vorm === "figuur" ? o.soort : o.vorm) || "onderdeel";
+    rows.push(`<div class="lst" data-id="${o.id}"><span>${String(nm).replace(/[<>&]/g, "")}${n > 1 ? ` <small>(${n} delen)</small>` : ""}</span><button type="button" data-a="sel">Kies</button><button type="button" data-a="del">🗑</button></div>`);
+  });
+  $("wList").className = rows.length ? "" : "hint";
+  $("wList").innerHTML = rows.length ? rows.join("") : "Nog leeg.";
+}
+$("wSky").onclick = e => { const b = e.target.closest("[data-s]"); if (!b) return; snap(); world().lucht = b.dataset.s; applyWorld(); };
+$("wGround").onclick = e => { const b = e.target.closest("[data-g]"); if (!b) return; snap(); world().grond = b.dataset.g; applyWorld(); };
+$("wGrid").onchange = () => { world().raster = $("wGrid").checked; applyWorld(); };
+$("wShadow").onchange = () => { world().schaduw = $("wShadow").checked; applyWorld(); };
+$("wList").onclick = e => {
+  const a = e.target.dataset.a; if (!a) return; const id = e.target.closest(".lst").dataset.id;
+  const o = model.objecten.find(x => String(x.id) === id); if (!o) return;
+  if (a === "sel") { sel = group.children.find(m => m.userData.o === o) || null; updSel(); tab("bewerk"); }
+  if (a === "del") { snap(); model.objecten = model.objecten.filter(x => o.groep ? x.groep !== o.groep : x !== o); sel = null; build(); }
+};
+const D = Math.PI / 180;
+function place(m, o, t) {
+  let x = o.x, y = o.y, z = o.z;
+  const a = o.anim;
+  if (a && a.baan) { const r = Math.hypot(o.x, o.z), ang = Math.atan2(o.z, o.x) + t * a.baan * D; x = Math.cos(ang) * r; z = Math.sin(ang) * r; }
+  if (a && a.zweef) y += Math.sin(t * 2) * a.zweef;
+  m.position.set(x, y, z);
+  m.rotation.set(o.rx * D, (o.ry + (a && a.draai ? t * a.draai : 0)) * D, o.rz * D);
+  if (o.vorm === "figuur") { m.scale.setScalar(Math.max(0.05, o.sx)); m.position.y = o.y; }
+  else m.scale.set(Math.max(0.001, o.sx), Math.max(0.001, o.sy), Math.max(0.001, o.sz));
+}
+function frame() {
+  const b = new THREE.Box3().setFromObject(group);
+  if (b.isEmpty()) return;
+  const c = b.getCenter(new THREE.Vector3()), s = b.getSize(new THREE.Vector3()).length();
+  controls.target.copy(c);
+  camera.position.copy(c).add(new THREE.Vector3(0.75, 0.55, 0.95).normalize().multiplyScalar(Math.max(3, s * 1.25)));
+  camera.near = Math.max(0.01, s / 500); camera.far = s * 50 + 100; camera.updateProjectionMatrix();
+}
+function resize() { const r = view.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width / Math.max(1, r.height); camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(view);
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const t = clock.getElapsedTime();
+  for (const m of group.children) {
+    const o = m.userData.o;
+    if (o.anim) place(m, o, t);
+    if (m.userData.inner && o.anim && o.anim.beweeg) m.userData.inner.userData.poseFn(m.userData.inner, o.houding, t, true);
+    if (o.textuur === "water" && m.material && m.material.map) m.material.map.offset.x = t * 0.02;
+  }
+  if (sel) selBox.update();
+  controls.update(); renderer.render(scene, camera);
+});
+
+// ---------- selection ----------
+const ray = new THREE.Raycaster(); let down = null;
+renderer.domElement.addEventListener("pointerdown", e => { down = { x: e.clientX, y: e.clientY }; });
+renderer.domElement.addEventListener("pointerup", e => {
+  if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+  const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
+  if (gesture && gesture.moved) return;
+  if (placing) {
+    const hit = ray.intersectObjects([...group.children, ground], true)[0];
+    if (hit) dropPrefab(hit.point);
+    return;
+  }
+  const hit = ray.intersectObjects(group.children, true)[0];
+  let ob = hit ? hit.object : null; while (ob && !ob.userData.o) ob = ob.parent;
+  sel = ob || null; updSel();
+  if (sel) tab("bewerk");
+});
+function updSel() {
+  if (sel) { selBox.setFromObject(sel); selBox.visible = true; } else selBox.visible = false;
+  editor();
+}
+
+// ---------- history ----------
+let future = [];
+function histBtns() { $("bUndo").disabled = !history.length; $("bRedo").disabled = !future.length; }
+function snap() { history.push(JSON.stringify(model)); if (history.length > 40) history.shift(); future = []; histBtns(); }
+$("bFit").onclick = () => frame();
+$("bUndo").onclick = () => { if (!history.length) return; future.push(JSON.stringify(model)); model = JSON.parse(history.pop()); build(); histBtns(); status("↶ Ongedaan gemaakt"); };
+$("bRedo").onclick = () => { if (!future.length) return; history.push(JSON.stringify(model)); model = JSON.parse(future.pop()); build(); histBtns(); status("↷ Opnieuw gedaan"); };
+
+// ---------- tabs ----------
+function tab(t) { document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t)); document.querySelectorAll(".pane").forEach(p => p.classList.toggle("on", p.id === "p-" + t)); if (t === "code") syncCode(); }
+$("tabs").onclick = e => { const b = e.target.closest("button"); if (b) tab(b.dataset.t); };
+
+// ---------- shapes ----------
+$("shapes").innerHTML = Object.entries(SHAPES).map(([k, i]) => `<button type="button" data-v="${k}"><span>${i}</span>${k[0].toUpperCase() + k.slice(1)}</button>`).join("");
+const PAL = ["#22d3ee", "#a78bfa", "#f87171", "#fbbf24", "#34d399", "#60a5fa", "#f472b6", "#e5e7eb"];
+$("shapes").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  snap();
+  const o = clean({ vorm: b.dataset.v, x: (Math.random() - 0.5) * 2, z: (Math.random() - 0.5) * 2, y: b.dataset.v === "vlak" ? 0.01 : 0.5, kleur: PAL[model.objecten.length % PAL.length] }, model.objecten.length);
+  model.objecten.push(o); build();
+  sel = group.children.find(m => m.userData.o.id === o.id); updSel(); tab("bewerk");
+};
+
+// ---------- library (prefabs) ----------
+const q = (vorm, x, y, z, sx, sy, sz, kleur, r = {}) => ({ vorm, x, y, z, sx, sy, sz, kleur, ...r });
+const SKIN = "#f1c27d";
+function person(shirt, pants, hair, opt = {}) {
+  const k = opt.k || 1, P = [];
+  const add = (o) => P.push({ ...o, x: o.x * k, y: o.y * k, z: o.z * k, sx: o.sx * k, sy: o.sy * k, sz: o.sz * k });
+  add(q("blok", -0.1, 0.04, 0.03, 0.15, 0.08, 0.27, "#111827")); add(q("blok", 0.1, 0.04, 0.03, 0.15, 0.08, 0.27, "#111827"));
+  if (opt.rok) { add(q("cilinder", -0.1, 0.35, 0, 0.11, 0.6, 0.11, SKIN)); add(q("cilinder", 0.1, 0.35, 0, 0.11, 0.6, 0.11, SKIN)); add(q("kegel", 0, 0.78, 0, 0.62, 0.5, 0.5, pants)); }
+  else { add(q("cilinder", -0.1, 0.47, 0, 0.15, 0.86, 0.15, pants)); add(q("cilinder", 0.1, 0.47, 0, 0.15, 0.86, 0.15, pants)); }
+  add(q("blok", 0, 1.17, 0, 0.44, 0.62, 0.25, shirt));
+  add(q("cilinder", -0.29, 1.15, 0, 0.11, 0.6, 0.11, shirt, { rz: 8 })); add(q("cilinder", 0.29, 1.15, 0, 0.11, 0.6, 0.11, shirt, { rz: -8 }));
+  add(q("bol", -0.32, 0.82, 0, 0.11, 0.11, 0.11, SKIN)); add(q("bol", 0.32, 0.82, 0, 0.11, 0.11, 0.11, SKIN));
+  add(q("cilinder", 0, 1.52, 0, 0.12, 0.1, 0.12, SKIN));
+  add(q("bol", 0, 1.67, 0, 0.27, 0.3, 0.27, SKIN));
+  add(q("bol", 0, 1.74, -0.02, 0.29, 0.2, 0.29, hair));
+  if (opt.lang) add(q("blok", 0, 1.55, -0.12, 0.3, 0.4, 0.08, hair));
+  add(q("bol", -0.06, 1.69, 0.13, 0.04, 0.04, 0.03, "#111")); add(q("bol", 0.06, 1.69, 0.13, 0.04, 0.04, 0.03, "#111"));
+  return P;
+}
+function quad(body, legH, legC, w, l, legD = 0.09) {
+  return [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([a, b]) => q("cilinder", a * w, legH / 2, b * l, legD, legH, legD, legC));
+}
+const LIB = {
+  "Mensen": {
+    "🧍 Man": () => [{ vorm: "figuur", soort: "man", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🧍‍♀️ Vrouw": () => [{ vorm: "figuur", soort: "vrouw", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🧒 Kind": () => [{ vorm: "figuur", soort: "kind", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🚶 Wandelaar": () => [{ vorm: "figuur", soort: "man", houding: "lopen", anim: { beweeg: true }, kleuren: { shirt: "#65a30d", broek: "#44403c" }, x: 0, y: 0, z: 0 }],
+    "🏃 Hardloper": () => [{ vorm: "figuur", soort: "vrouw", houding: "rennen", anim: { beweeg: true }, kleuren: { shirt: "#f97316", broek: "#111827" }, x: 0, y: 0, z: 0 }],
+    "💃 Danser": () => [{ vorm: "figuur", soort: "vrouw", houding: "dansen", anim: { beweeg: true }, kleuren: { shirt: "#e11d48", broek: "#e11d48" }, x: 0, y: 0, z: 0 }],
+    "👋 Zwaaier": () => [{ vorm: "figuur", soort: "kind", houding: "zwaaien", anim: { beweeg: true }, x: 0, y: 0, z: 0 }],
+    "🪑 Zittend": () => [{ vorm: "figuur", soort: "man", houding: "zitten", x: 0, y: 0, z: 0 }, q("blok", 0, 0.24, -0.05, 0.5, 0.06, 0.5, "#9a6a3c", { textuur: "hout" }), ...[[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.15], [0.2, 0.15]].map(([x, z]) => q("blok", x, 0.11, z - 0.05, 0.05, 0.22, 0.05, "#7c4a21")), q("blok", 0, 0.55, -0.28, 0.5, 0.6, 0.05, "#9a6a3c", { textuur: "hout" })]
+  },
+  "Dieren": {
+    "🐕 Hond": () => [{ vorm: "figuur", soort: "hond", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🐈 Kat": () => [{ vorm: "figuur", soort: "kat", houding: "zitten", x: 0, y: 0, z: 0 }],
+    "🐎 Paard": () => [{ vorm: "figuur", soort: "paard", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🐄 Koe": () => [{ vorm: "figuur", soort: "koe", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🐖 Varken": () => [{ vorm: "figuur", soort: "varken", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🐔 Kip": () => [{ vorm: "figuur", soort: "kip", houding: "staan", x: 0, y: 0, z: 0 }],
+    "🐘 Olifant": () => [{ vorm: "figuur", soort: "olifant", houding: "lopen", anim: { beweeg: true }, x: 0, y: 0, z: 0 }]
+  },
+  "Bouwen": {
+    "🧱 Bakstenen muur": () => [q("blok", 0, 1.25, 0, 3, 2.5, 0.25, "#a4472d", { textuur: "baksteen" })],
+    "⬜ Witte muur": () => [q("blok", 0, 1.25, 0, 3, 2.5, 0.2, "#f3efe6", { textuur: "beton" })],
+    "🟫 Parketvloer": () => [q("blok", 0, 0.05, 0, 4, 0.1, 4, "#b07a45", { textuur: "parket" })],
+    "⬛ Tegelvloer": () => [q("blok", 0, 0.05, 0, 4, 0.1, 4, "#e5e7eb", { textuur: "tegels" })],
+    "🔺 Puntdak": () => [q("prisma", 0, 0.75, 0, 4.4, 1.5, 4.4, "#a33a26", { textuur: "dakpannen" })],
+    "🚪 Deur": () => [q("blok", 0, 1.05, 0, 0.95, 2.1, 0.08, "#7c4a21", { textuur: "hout" }), q("bol", 0.34, 1.05, 0.06, 0.07, 0.07, 0.07, "#fbbf24", { metaal: 0.9, ruw: 0.2 })],
+    "🪟 Raam": () => [q("blok", 0, 1.5, 0, 1.1, 1.1, 0.1, "#f8fafc"), q("blok", 0, 1.5, 0.02, 0.95, 0.95, 0.06, "#bfe6ff", { textuur: "glas" }), q("blok", 0, 1.5, 0.06, 0.05, 0.95, 0.04, "#f8fafc"), q("blok", 0, 1.5, 0.06, 0.95, 0.05, 0.04, "#f8fafc")],
+    "🪜 Trap": () => [0, 1, 2, 3, 4, 5].map(i => q("blok", 0, (0.2 * (i + 1)) / 2, i * 0.3, 1.2, 0.2 * (i + 1), 0.3, "#a8a29e", { textuur: "beton" })),
+    "🏛️ Pilaar": () => [q("cilinder", 0, 1.5, 0, 0.5, 2.6, 0.5, "#f1f5f9", { textuur: "marmer" }), q("blok", 0, 0.1, 0, 0.75, 0.2, 0.75, "#f1f5f9", { textuur: "marmer" }), q("blok", 0, 2.9, 0, 0.75, 0.2, 0.75, "#f1f5f9", { textuur: "marmer" })],
+    "🚧 Hek": () => [...[-0.9, -0.3, 0.3, 0.9].map(x => q("blok", x, 0.5, 0, 0.1, 1, 0.1, "#9a6a3c", { textuur: "hout" })), q("blok", 0, 0.35, 0, 2, 0.1, 0.05, "#9a6a3c", { textuur: "hout" }), q("blok", 0, 0.8, 0, 2, 0.1, 0.05, "#9a6a3c", { textuur: "hout" })],
+    "🏠 Huis": () => [q("blok", 0, 0.05, 0, 6.4, 0.1, 5.4, "#b07a45", { textuur: "parket" }), q("blok", 0, 1.5, 2.6, 6.2, 2.8, 0.22, "#a4472d", { textuur: "baksteen" }), q("blok", 0, 1.5, -2.6, 6.2, 2.8, 0.22, "#a4472d", { textuur: "baksteen" }), q("blok", -3, 1.5, 0, 0.22, 2.8, 5.2, "#a4472d", { textuur: "baksteen" }), q("blok", 3, 1.5, 0, 0.22, 2.8, 5.2, "#a4472d", { textuur: "baksteen" }), q("prisma", 0, 3.75, 0, 7.0, 1.9, 6.4, "#a33a26", { textuur: "dakpannen", ry: 90 }), q("blok", 0, 1.05, 2.73, 1, 2.1, 0.06, "#7c4a21", { textuur: "hout" }), q("blok", -1.9, 1.75, 2.73, 1.2, 1.0, 0.05, "#bfe6ff", { textuur: "glas" }), q("blok", 1.9, 1.75, 2.73, 1.2, 1.0, 0.05, "#bfe6ff", { textuur: "glas" }), q("blok", 1.6, 4.1, -1.2, 0.6, 1.6, 0.6, "#a4472d", { textuur: "baksteen" })]
+  },
+  "Natuur": {
+    "🌳 Boom": () => [q("cilinder", 0, 1, 0, 0.3, 2, 0.3, "#78350f"), q("bol", 0, 2.6, 0, 2, 1.8, 2, "#16a34a"), q("bol", 0.5, 2.3, 0.3, 1.2, 1.1, 1.2, "#15803d"), q("bol", -0.4, 2.9, -0.2, 1.1, 1, 1.1, "#22c55e")],
+    "🌲 Den": () => [q("cilinder", 0, 0.5, 0, 0.25, 1, 0.25, "#78350f"), q("kegel", 0, 1.5, 0, 1.8, 1.4, 1.8, "#14532d"), q("kegel", 0, 2.3, 0, 1.4, 1.2, 1.4, "#166534"), q("kegel", 0, 3.0, 0, 0.9, 1.0, 0.9, "#15803d")],
+    "🌿 Struik": () => [q("bol", 0, 0.35, 0, 0.9, 0.7, 0.9, "#15803d"), q("bol", 0.35, 0.3, 0.2, 0.6, 0.5, 0.6, "#16a34a"), q("bol", -0.3, 0.3, -0.15, 0.6, 0.5, 0.6, "#22c55e")],
+    "🪨 Rots": () => [q("bol", 0, 0.35, 0, 1.2, 0.7, 1, "#78716c", { ruw: 1 }), q("bol", 0.45, 0.2, 0.3, 0.6, 0.4, 0.5, "#57534e", { ruw: 1 })],
+    "🟩 Grasveld": () => [q("blok", 0, 0.02, 0, 12, 0.04, 12, "#4d9a3a", { textuur: "gras" })],
+    "🏖️ Zandbak": () => [q("blok", 0, 0.05, 0, 3, 0.1, 3, "#e6c98f", { textuur: "zand" }), ...[[0, 1.55, 3.2, 0.2], [0, -1.55, 3.2, 0.2], [1.55, 0, 0.2, 3.2], [-1.55, 0, 0.2, 3.2]].map(([x, z, sx, sz]) => q("blok", x, 0.12, z, sx, 0.24, sz, "#9a6a3c", { textuur: "hout" }))],
+    "🏊 Zwembad": () => [q("blok", 0, 0.06, 0, 4, 0.12, 6, "#2f7fd1", { textuur: "water" }), ...[[0, 3.15, 4.6, 0.3], [0, -3.15, 4.6, 0.3], [2.15, 0, 0.3, 6.6], [-2.15, 0, 0.3, 6.6]].map(([x, z, sx, sz]) => q("blok", x, 0.1, z, sx, 0.2, sz, "#e5e7eb", { textuur: "tegels" }))],
+    "🌷 Bloem": () => [q("cilinder", 0, 0.25, 0, 0.03, 0.5, 0.03, "#16a34a"), q("bol", 0, 0.52, 0, 0.16, 0.12, 0.16, "#ef4444"), q("bol", 0, 0.55, 0, 0.07, 0.07, 0.07, "#facc15")]
+  },
+  "Voertuigen": {
+    "🚗 Auto": () => [q("blok", 0, 0.55, 0, 1.8, 0.5, 4, "#dc2626", { metaal: 0.6, ruw: 0.3 }), q("blok", 0, 1.0, -0.2, 1.6, 0.5, 2, "#dc2626", { metaal: 0.6, ruw: 0.3 }), q("blok", 0, 1.0, 0.82, 1.5, 0.42, 0.05, "#7dd3fc", { metaal: 0.6, ruw: 0.05, rx: -20 }), ...[[-0.9, 1.3], [0.9, 1.3], [-0.9, -1.3], [0.9, -1.3]].map(([x, z]) => q("cilinder", x, 0.35, z, 0.7, 0.25, 0.7, "#111827", { rz: 90 })), q("bol", -0.6, 0.6, 2.0, 0.2, 0.15, 0.05, "#fef08a", { gloed: true }), q("bol", 0.6, 0.6, 2.0, 0.2, 0.15, 0.05, "#fef08a", { gloed: true })],
+    "⛵ Boot": () => [q("blok", 0, 0.35, 0, 1.4, 0.5, 3.5, "#f8fafc"), q("piramide", 0, 0.35, 2.1, 1.0, 0.5, 1.0, "#f8fafc", { rx: 90 }), q("cilinder", 0, 2.0, 0.2, 0.08, 3, 0.08, "#78350f"), q("blok", 0, 2.1, -0.4, 0.03, 2.4, 1.3, "#fef3c7")]
+  }
+};
+
+let placing = null, placeRot = 0, cat = "Mensen";
+function renderLib() {
+  $("libItems").classList.toggle("hidden", cat === "Vormen"); $("shapes").classList.toggle("hidden", cat !== "Vormen");
+  $("cats").innerHTML = [...Object.keys(LIB), "Vormen"].map(c => `<button class="chip ${c === cat ? "on" : ""}" type="button" data-c="${c}">${c}</button>`).join("");
+  if (cat === "Vormen") return;
+  $("libItems").innerHTML = Object.keys(LIB[cat]).map(k => { const [ic, ...nm] = k.split(" "); return `<button type="button" data-k="${k}" class="${placing === k ? "on" : ""}" style="${placing === k ? "border-color:var(--acc);background:#0e3a44" : ""}"><span>${ic}</span>${nm.join(" ")}</button>`; }).join("");
+}
+$("cats").onclick = e => { const b = e.target.closest("button"); if (b) { cat = b.dataset.c; if (cat === "Vormen" && placing) $("pDone").onclick(); renderLib(); } };
+$("libItems").onclick = e => { const b = e.target.closest("button"); if (!b) return; placing = b.dataset.k; renderLib(); $("placeBar").classList.remove("hidden"); status(`👆 Tik nu in dit beeld waar ${b.dataset.k} moet komen (op de grond of bovenop iets)`); };
+$("pRot").onclick = () => { placeRot = (placeRot + 90) % 360; status(`↻ Draaiing ${placeRot}° · tik om te plaatsen`); };
+$("pDone").onclick = () => { placing = null; renderLib(); $("placeBar").classList.add("hidden"); status("Klaar met plaatsen. Tik op een onderdeel om het te bewerken."); };
+function dropPrefab(pt) {
+  let x = pt.x, z = pt.z, y = Math.max(0, pt.y);
+  if ($("snapOn").checked) { x = Math.round(x * 2) / 2; z = Math.round(z * 2) / 2; if (y < 0.05) y = 0; }
+  const parts = LIB[cat][placing]();
+  const gid = "g" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  const a = placeRot * D, c = Math.cos(a), s2 = Math.sin(a);
+  snap();
+  let first = false;
+  if (model.naam === "Welkom") { model.objecten = []; model.naam = "Mijn bouwwerk"; first = true; }
+  parts.forEach((p, i) => {
+    const lx = p.x || 0, lz = p.z || 0;
+    model.objecten.push(clean({ ...p, x: x + lx * c + lz * s2, z: z - lx * s2 + lz * c, y: y + (p.y || 0), ry: (p.ry || 0) + placeRot, groep: parts.length > 1 ? gid : undefined, gnaam: placing.split(" ").slice(1).join(" ") }, model.objecten.length + i));
+  });
+  build(); if (first) frame();
+  if ($("multiOn").checked) { status(`✅ ${placing} geplaatst · tik nog eens of druk op Klaar`); return; }
+  const newId = model.objecten[model.objecten.length - 1].id, nm = placing;
+  placing = null; renderLib(); $("placeBar").classList.add("hidden");
+  sel = group.children.find(m => m.userData.o.id === newId) || null; updSel(); tab("bewerk");
+  status(`✅ ${nm} staat erin · sleep met je vinger om te verschuiven, of kies ↻ Draai / ⤢ Maat`);
+}
+renderLib();
+
+// group helpers
+function members(o) { return o.groep ? model.objecten.filter(x => x.groep === o.groep) : [o]; }
+function gCenter(list) { let x = 0, z = 0, y = Infinity; for (const m of list) { x += m.x; z += m.z; y = Math.min(y, m.y - m.sy / 2); } return { x: x / list.length, z: z / list.length, y }; }
+function gMove(o, dx, dy, dz) { snap(); for (const m of members(o)) { m.x += dx; m.y += dy; m.z += dz; } build(); }
+function gRot(o, deg) {
+  snap(); const L = members(o), c0 = gCenter(L), a = deg * D, c = Math.cos(a), s2 = Math.sin(a);
+  for (const m of L) { const lx = m.x - c0.x, lz = m.z - c0.z; m.x = c0.x + lx * c + lz * s2; m.z = c0.z - lx * s2 + lz * c; m.ry = ((m.ry + deg + 540) % 360) - 180; }
+  build();
+}
+function gScale(o, f) {
+  snap(); const L = members(o), c0 = gCenter(L);
+  for (const m of L) { m.x = c0.x + (m.x - c0.x) * f; m.z = c0.z + (m.z - c0.z) * f; m.y = c0.y + (m.y - c0.y) * f; m.sx *= f; m.sy *= f; m.sz *= f; }
+  build();
+}
+function gColor(o, col) { snap(); for (const m of members(o)) m.kleur = col; build(); }
+
+// ---------- editor ----------
+function editor() {
+  const box = $("editBox");
+  $("gbar").classList.toggle("hidden", !sel);
+  if (!sel) { box.className = "hint"; box.innerHTML = "Tik eerst op iets in het 3D-beeld. Daarna kun je het met je vinger schuiven, draaien en groter maken."; return; }
+  const o = sel.userData.o; box.className = "";
+  const ctl = (k, lab, min, max, step) => `<div class="ctl"><span>${lab}</span><input type="range" data-k="${k}" min="${min}" max="${max}" step="${step}" value="${o[k]}"><output>${(+o[k]).toFixed(step < 1 ? 2 : 0)}</output></div>`;
+  const grpHtml = o.groep ? `<div style="border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:8px">
+    <b>👥 Groep: ${(o.gnaam || "groep").replace(/[<>&]/g, "")}</b> <span class="hint">(${members(o).length} onderdelen)</span>
+    <div class="row"><label class="hint" style="margin:0;flex:1"><input type="checkbox" id="gOn" ${groupOn ? "checked" : ""}> Vinger beweegt de hele groep</label></div>
+    <div class="row"><button class="btn" type="button" data-g="dup">⧉ Kopie groep</button><button class="btn" type="button" data-g="del" style="color:var(--red)">🗑 Groep weg</button></div></div>` : "";
+  let html = grpHtml;
+  if (o.vorm === "figuur") {
+    const f = FIGS[o.soort] || FIGS.man, poses = f.mens ? POSES_M : POSES_D;
+    const cols = Object.assign({}, DEF_COL[o.soort], o.kleuren || {});
+    const cl = { huid: "Huid", shirt: "Shirt", broek: f.vrouw ? "Rok" : "Broek", haar: "Haar", schoen: "Schoenen", kleur: "Kleur" };
+    html += `<div class="row" style="margin:0 0 6px;align-items:center"><b style="flex:1">🧍 ${f.naam}</b></div>
+      <div class="hint" style="margin-top:0">Houding</div>
+      <div class="chips" id="poses">${poses.map(p => `<button class="chip ${o.houding === p ? "on" : ""}" type="button" data-p="${p}">${p}</button>`).join("")}</div>
+      <div class="row"><label class="hint" style="margin:0;flex:1"><input type="checkbox" id="fMove" ${o.anim && o.anim.beweeg ? "checked" : ""}> ▶ Beweeg (lopen, rennen, zwaaien, dansen echt laten bewegen)</label></div>
+      <div class="chips">${Object.keys(cols).map(k => `<label class="chip" style="display:flex;gap:6px;align-items:center">${cl[k] || k}<input type="color" data-c="${k}" value="${cols[k]}" style="width:30px;height:24px"></label>`).join("")}</div>
+      ${ctl("sx", "Grootte", 0.2, 4, 0.05)}${ctl("ry", "Draai", -180, 180, 1)}`;
+  } else {
+    html += `<div class="row" style="margin:0 0 6px;align-items:center"><b style="flex:1">${SHAPES[o.vorm]} ${o.vorm}</b><input type="color" data-k="kleur" value="${o.kleur}"></div>
+      <div class="hint" style="margin-top:0">Materiaal / textuur</div>
+      <div class="chips" id="texs">${Object.entries(TEX).map(([k, v]) => `<button class="chip ${(o.textuur || "geen") === k ? "on" : ""}" type="button" data-t="${k}">${v.naam}</button>`).join("")}</div>
+      ${ctl("sx", "Breedte", 0.05, 30, 0.05)}${ctl("sy", "Hoogte-maat", 0.02, 30, 0.05)}${ctl("sz", "Diepte", 0.05, 30, 0.05)}
+      ${ctl("y", "Hoogte", -5, 30, 0.05)}${ctl("rx", "Kantel X", -180, 180, 1)}${ctl("ry", "Draai Y", -180, 180, 1)}${ctl("rz", "Kantel Z", -180, 180, 1)}
+      ${ctl("metaal", "Metaal", 0, 1, 0.05)}${ctl("ruw", "Ruwheid", 0, 1, 0.05)}
+      <div class="ctl"><span>Draaien</span><input type="range" data-a="draai" min="-180" max="180" step="5" value="${o.anim ? o.anim.draai : 0}"><output>${o.anim ? o.anim.draai : 0}</output></div>
+      <div class="ctl"><span>Zweven</span><input type="range" data-a="zweef" min="0" max="2" step="0.05" value="${o.anim ? o.anim.zweef : 0}"><output>${o.anim ? o.anim.zweef : 0}</output></div>`;
+  }
+  html += `<div class="row"><button class="btn" type="button" id="eDup">⧉ Dupliceer</button>${o.vorm !== "figuur" ? `<button class="btn" type="button" id="eGlow">${o.gloed ? "💡 Gloed uit" : "💡 Gloed aan"}</button>` : ""}<button class="btn" type="button" id="eDel" style="color:var(--red)">🗑 Weg</button></div>`;
+  box.innerHTML = html;
+  let snapped = false;
+  box.oninput = e => {
+    const el = e.target; if (!snapped) { snap(); snapped = true; }
+    if (el.dataset.c) { o.kleuren = Object.assign({}, o.kleuren || {}, { [el.dataset.c]: el.value }); return; }
+    if (el.dataset.k === "kleur") { o.kleur = el.value; if (sel.material) { sel.material.color.set(el.value); if (o.gloed) sel.material.emissive.set(el.value); } }
+    else if (el.dataset.k) { o[el.dataset.k] = +el.value; if (sel.material && el.dataset.k === "metaal") sel.material.metalness = o.metaal; if (sel.material && el.dataset.k === "ruw") sel.material.roughness = o.ruw; }
+    else if (el.dataset.a) { o.anim = o.anim || { draai: 0, zweef: 0, baan: 0 }; o.anim[el.dataset.a] = +el.value; }
+    const out = el.nextElementSibling; if (out && out.tagName === "OUTPUT") out.textContent = (+el.value).toFixed(el.step < 1 ? 2 : 0);
+    place(sel, o, clock.getElapsedTime()); selBox.update();
+  };
+  box.onchange = e => { snapped = false; if (e.target.dataset.c || e.target.id === "fMove" || ["sx", "sy", "sz"].includes(e.target.dataset.k)) build(); else syncCode(); if (e.target.id === "gOn") groupOn = e.target.checked; };
+  box.onclick = e => {
+    const p = e.target.closest("[data-p]"); if (p) { snap(); o.houding = p.dataset.p; build(); return; }
+    const tx = e.target.closest("[data-t]"); if (tx) { snap(); o.textuur = tx.dataset.t === "geen" ? undefined : tx.dataset.t; if (TEX[tx.dataset.t].k) o.kleur = TEX[tx.dataset.t].k; build(); return; }
+    const g = e.target.closest("[data-g]"); if (g) {
+      if (g.dataset.g === "dup") { snap(); const gid = "g" + Date.now().toString(36); const L = members(o).map((m, i) => clean({ ...m, id: null, groep: gid, x: m.x + 1.5, z: m.z + 1.5 }, model.objecten.length + i)); model.objecten.push(...L); build(); sel = group.children.find(m => m.userData.o.id === L[0].id) || null; updSel(); }
+      if (g.dataset.g === "del") { snap(); const gid = o.groep; model.objecten = model.objecten.filter(x => x.groep !== gid); sel = null; build(); }
+    }
+  };
+  const fm = $("fMove"); if (fm) fm.onchange = () => { snap(); o.anim = Object.assign({ draai: 0, zweef: 0, baan: 0 }, o.anim || {}, { beweeg: fm.checked }); build(); };
+  $("eDup").onclick = () => { snap(); const c = clean({ ...o, id: null, groep: undefined, x: o.x + 0.8, z: o.z + 0.8 }, model.objecten.length); model.objecten.push(c); build(); sel = group.children.find(m => m.userData.o.id === c.id); updSel(); };
+  if ($("eGlow")) $("eGlow").onclick = () => { snap(); o.gloed = !o.gloed; build(); };
+  $("eDel").onclick = () => { snap(); model.objecten = model.objecten.filter(x => x !== o); sel = null; build(); };
+}
+
+// ---------- finger gestures ----------
+let gmode = "schuif", groupOn = true, gesture = null;
+const gptr = new Map();
+const gTargets = o => (o.groep && groupOn) ? members(o) : [o];
+const meshOf = o => group.children.find(m => m.userData.o === o);
+function planeHit(cx, cy, h) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
+  const p = new THREE.Vector3(); return ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -h), p) ? p : null;
+}
+function applyLive(list) { const t = clock.getElapsedTime(); for (const o of list) { const m = meshOf(o); if (m) place(m, o, t); } if (sel) selBox.update(); }
+function rotList(list, deg) {
+  const c0 = gCenter(list), a = deg * D, c = Math.cos(a), s2 = Math.sin(a);
+  for (const m of list) { const lx = m.x - c0.x, lz = m.z - c0.z; m.x = c0.x + lx * c + lz * s2; m.z = c0.z - lx * s2 + lz * c; m.ry = m.ry + deg; }
+}
+function scaleList(list, f) {
+  const c0 = gCenter(list);
+  for (const m of list) {
+    m.x = c0.x + (m.x - c0.x) * f; m.z = c0.z + (m.z - c0.z) * f;
+    if (m.vorm === "figuur") { m.sx *= f; m.y = c0.y + (m.y - c0.y) * f; }
+    else { const bottom = c0.y + (m.y - m.sy / 2 - c0.y) * f; m.sx *= f; m.sy *= f; m.sz *= f; m.y = bottom + m.sy / 2; }
+  }
+}
+const el = renderer.domElement;
+el.addEventListener("pointerdown", e => {
+  gptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!sel || gmode === "cam" || placing) return;
+  controls.enabled = false;
+  if (gptr.size === 1) {
+    const o = sel.userData.o;
+    gesture = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, h: o.vorm === "figuur" ? o.y : o.y - o.sy / 2, prev: null };
+    gesture.prev = planeHit(e.clientX, e.clientY, gesture.h);
+  } else if (gptr.size === 2) {
+    const [a, b] = [...gptr.values()]; gesture = gesture || {}; gesture.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x) }; gesture.moved = true;
+  }
+});
+el.addEventListener("pointermove", e => {
+  if (!gptr.has(e.pointerId)) return; gptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!gesture || !sel) return;
+  const o = sel.userData.o, list = gTargets(o);
+  if (gptr.size >= 2 && gesture.pinch) {
+    if (!gesture.snapped) { snap(); gesture.snapped = true; }
+    const [a, b] = [...gptr.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
+    scaleList(list, Math.max(0.5, Math.min(2, d / gesture.pinch.d)));
+    rotList(list, -(ang - gesture.pinch.ang) / D);
+    gesture.pinch = { d, ang }; applyLive(list); return;
+  }
+  const dx = e.clientX - gesture.lx, dy = e.clientY - gesture.ly;
+  if (!gesture.moved && Math.hypot(e.clientX - gesture.x, e.clientY - gesture.y) < 6) return;
+  if (!gesture.moved) { gesture.moved = true; snap(); }
+  gesture.lx = e.clientX; gesture.ly = e.clientY;
+  const dist = camera.position.distanceTo(controls.target);
+  if (gmode === "schuif") { const p = planeHit(e.clientX, e.clientY, gesture.h); if (p && gesture.prev) { const mx = p.x - gesture.prev.x, mz = p.z - gesture.prev.z; for (const m of list) { m.x += mx; m.z += mz; } } gesture.prev = p; }
+  if (gmode === "hoogte") { const k = -dy * dist * 0.0022; for (const m of list) m.y += k; }
+  if (gmode === "draai") rotList(list, dx * 0.6);
+  if (gmode === "maat") scaleList(list, Math.exp(-dy * 0.006));
+  applyLive(list);
+});
+const gEnd = e => {
+  gptr.delete(e.pointerId);
+  if (gptr.size === 0) {
+    controls.enabled = true;
+    if (gesture && gesture.moved && sel) {
+      const o = sel.userData.o;
+      if (gmode === "schuif" && $("snapOn") && $("snapOn").checked) for (const m of gTargets(o)) { m.x = Math.round(m.x * 4) / 4; m.z = Math.round(m.z * 4) / 4; }
+      const keep = o.id; build(); sel = group.children.find(m => m.userData.o.id === keep) || null; updSel();
+      setTimeout(() => { gesture = null; }, 0);
+    } else gesture = null;
+  }
+};
+el.addEventListener("pointerup", gEnd); el.addEventListener("pointercancel", gEnd);
+$("gbar").onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.m === "uit") { sel = null; updSel(); return; }
+  gmode = b.dataset.m; [...$("gbar").children].forEach(x => x.classList.toggle("on", x === b));
+  status({ schuif: "✋ Sleep met je vinger om het te verschuiven", hoogte: "↕ Veeg omhoog of omlaag voor de hoogte", draai: "↻ Veeg naar links of rechts om te draaien", maat: "⤢ Veeg omhoog = groter, omlaag = kleiner", cam: "🎥 Draai de camera met je vinger" }[gmode] + " · twee vingers = knijpen en draaien");
+};
+
+// ---------- code ----------
+function syncCode() { if ($("p-code").classList.contains("on") && document.activeElement !== $("code")) $("code").value = JSON.stringify(model, null, 1); }
+$("bApply").onclick = () => {
+  try { const m = JSON.parse($("code").value); if (!m || !Array.isArray(m.objecten)) throw new Error("'objecten' moet een lijst zijn"); snap(); model = m; sel = null; build(); frame(); $("codeErr").textContent = ""; status("Code toegepast."); }
+  catch (e) { $("codeErr").textContent = "Fout in code: " + e.message; }
+};
+$("bCopy").onclick = async () => { try { await navigator.clipboard.writeText($("code").value); $("bCopy").textContent = "Gekopieerd!"; } catch (e) { $("bCopy").textContent = "Lukt niet"; } setTimeout(() => $("bCopy").textContent = "Kopieer", 1500); };
+
+// ---------- AI ----------
+function status(t) { $("status").textContent = t; }
+const SCHEMA = `Geef ALLEEN geldige JSON, geen uitleg, in dit formaat:
+{"naam": "korte Nederlandse naam", "achtergrond": "#hex", "objecten": [
+ {"vorm": "blok|bol|cilinder|kegel|piramide|torus|capsule|vlak", "x":0,"y":0,"z":0, "rx":0,"ry":0,"rz":0, "sx":1,"sy":1,"sz":1, "kleur":"#hex", "metaal":0.1, "ruw":0.6, "gloed":false, "anim":{"draai":0,"zweef":0,"baan":0}}
+]}
+Regels: y is omhoog, de grond is y=0, eenheid = meter. Positie = MIDDELPUNT van het onderdeel; een blok van hoogte sy=2 op de grond heeft dus y=1.
+Maten: blok sx=breedte sy=hoogte sz=diepte; bol/cilinder/kegel/piramide: sx en sz = diameter, sy = hoogte; torus sx/sz = diameter van de ring, sy = dikte-schaal; capsule sy = hoogte; vlak = dunne plaat (sy negeren).
+Extra vorm "prisma" = driehoekig puntdak (nok loopt langs z). Optioneel "textuur": hout|parket|baksteen|steen|beton|tegels|marmer|gras|zand|water|metaal|stof|dakpannen|glas — gebruik texturen voor realistische muren, vloeren, daken, gras en water.
+Mensen en dieren: gebruik {"vorm":"figuur","soort":"man|vrouw|kind|hond|kat|paard|koe|varken|kip|olifant","houding":"staan|lopen|rennen|zitten|zwaaien|juichen|liggen|dansen","x":0,"y":0,"z":0,"ry":0,"sx":1,"kleuren":{"huid":"#hex","shirt":"#hex","broek":"#hex","haar":"#hex"},"anim":{"beweeg":true}} — y = hoogte van de voeten (0 = op de grond), sx = schaal (1 = normaal formaat), dieren gebruiken "kleuren":{"kleur":"#hex"}. Dieren kennen alleen staan|lopen|rennen|zitten|liggen. Bouw mensen en dieren NOOIT uit losse blokken, gebruik altijd figuur.
+Hoeken rx/ry/rz in graden. anim (optioneel): draai = graden per seconde om eigen as, zweef = op-en-neer in meter, baan = graden per seconde rond het midden (x,z) voor bijv. planeten.
+Bouw herkenbare, gedetailleerde modellen uit 15 tot 150 onderdelen, met mooie kleuren en realistische verhoudingen. Laat onderdelen netjes aansluiten. Gebruik gloed:true voor lampen, vuur, ramen 's nachts, zon.`;
+async function ai(mode) {
+  const p = $("prompt").value.trim();
+  $("aiErr").textContent = "";
+  if (!p) { $("aiErr").textContent = "Typ eerst wat je wilt bouwen of veranderen."; $("prompt").focus(); return; }
+  if (!sample) { $("aiErr").textContent = "AI is hier niet beschikbaar: open de app via claude.ai."; return; }
+  if (busy) return; busy = true; $("bNew").disabled = $("bEdit").disabled = true;
+  const prompt = mode === "new"
+    ? `Je bent een 3D-modelbouwer. Bouw: "${p}".\n${SCHEMA}`
+    : `Je bent een 3D-modelbouwer. Hier is het huidige model:\n${JSON.stringify(model)}\n\nPas het aan volgens deze opdracht: "${p}". Behoud alles wat niet hoeft te veranderen.\n${SCHEMA}`;
+  status(mode === "new" ? "✨ AI is aan het bouwen…" : "🪄 AI past je model aan…");
+  try {
+    const r = await sample(prompt, { modelTier: "default", cache: false, onText: ({ text }) => { const n = (text.match(/"vorm"/g) || []).length; if (n) status(`✨ AI bouwt… ${n} onderdelen`); } });
+    let txt = r.text.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
+    const m = JSON.parse(txt.slice(a, b + 1));
+    if (!Array.isArray(m.objecten) || !m.objecten.length) throw new Error("leeg");
+    snap(); model = m; sel = null; build(); if (mode === "new") frame();
+    status(`✅ ${model.naam || "Klaar"}: ${model.objecten.length} onderdelen. Tik op een onderdeel om het te bewerken.`);
+    if (mode === "new") projId = null;
+  } catch (e) {
+    $("aiErr").textContent = e && e.code === "rate_limited" ? "Even rustig aan, probeer het zo nog eens." : "Dat lukte niet, probeer het nog eens (of iets simpeler).";
+    status("Er ging iets mis.");
+  } finally { busy = false; $("bNew").disabled = $("bEdit").disabled = false; }
+}
+$("bNew").onclick = () => ai("new");
+$("bEdit").onclick = () => ai("edit");
+$("ideas").onclick = e => { const b = e.target.closest("button"); if (b) { $("prompt").value = b.textContent; } };
+
+// ---------- STL ----------
+$("bStl").onclick = async () => {
+  if (!model.objecten.length) { status("Er is nog niets om te exporteren."); return; }
+  const dl = await getDl();
+  const clone = new THREE.Group();
+  for (const m of group.children) { const c = m.clone(); place(c, m.userData.o, 0); clone.add(c); }
+  clone.rotation.x = Math.PI / 2; clone.updateMatrixWorld(true);
+  const stl = new STLExporter().parse(clone, { binary: false });
+  const name = (model.naam || "model").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") || "model";
+  if (!dl) { status("Downloaden kan hier niet. Open de app via claude.ai."); return; }
+  try { await dl.save({ filename: name + "-3d.zip", data: new Blob([zip(name + ".stl", new TextEncoder().encode(stl))], { type: "application/zip" }) }); status("📦 ZIP met STL-bestand klaar. Pak hem uit en open de STL in je 3D-printprogramma."); } catch (e) { status("Download geannuleerd."); }
+};
+// minimale zip (zonder compressie)
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function zip(fname, data) {
+  let c = 0xFFFFFFFF; for (let i = 0; i < data.length; i++) c = CRC[(c ^ data[i]) & 255] ^ (c >>> 8); c = (c ^ 0xFFFFFFFF) >>> 0;
+  const fn = new TextEncoder().encode(fname), L = new Uint8Array(30 + fn.length), C = new Uint8Array(46 + fn.length), E = new Uint8Array(22);
+  const lv = new DataView(L.buffer), cv = new DataView(C.buffer), ev = new DataView(E.buffer);
+  lv.setUint32(0, 0x04034b50, true); lv.setUint16(4, 20, true); lv.setUint32(14, c, true); lv.setUint32(18, data.length, true); lv.setUint32(22, data.length, true); lv.setUint16(26, fn.length, true); L.set(fn, 30);
+  cv.setUint32(0, 0x02014b50, true); cv.setUint16(4, 20, true); cv.setUint16(6, 20, true); cv.setUint32(16, c, true); cv.setUint32(20, data.length, true); cv.setUint32(24, data.length, true); cv.setUint16(28, fn.length, true); C.set(fn, 46);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, 1, true); ev.setUint16(10, 1, true); ev.setUint32(12, C.length, true); ev.setUint32(16, L.length + data.length, true);
+  const out = new Uint8Array(L.length + data.length + C.length + E.length); out.set(L, 0); out.set(data, L.length); out.set(C, L.length + data.length); out.set(E, L.length + data.length + C.length); return out;
+}
+window.__zip = zip;
+const fileName = () => (model.naam || "model").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "-") || "model";
+const browserDl = { save: async ({ filename, data }) => { const blob = data instanceof Blob ? data : new Blob([data], { type: "application/octet-stream" }); const u = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); } };
+async function getDl() { return window.claude ? await claude.use("downloads").catch(() => browserDl) : browserDl; }
+async function shot() {
+  const dl = await getDl(); if (!dl) { status("Downloaden kan hier niet. Open de app via claude.ai."); return; }
+  selBox.visible = false; grid.visible = false; renderer.render(scene, camera);
+  const blob = await new Promise(r => renderer.domElement.toBlob(r, "image/png"));
+  updSel(); applyWorld();
+  try { await dl.save({ filename: fileName() + ".png", data: blob }); status("📸 Foto opgeslagen."); } catch (e) { status("Foto geannuleerd."); }
+}
+$("bShot").onclick = shot;
+const closeMenu = () => $("menu").classList.add("hidden");
+$("bMenu").onclick = () => $("menu").classList.remove("hidden");
+$("menu").onclick = e => { if (e.target.id === "menu" || e.target.id === "mClose") closeMenu(); else if (e.target.closest(".mi")) closeMenu(); };
+$("bShot2").onclick = shot;
+$("mNew").onclick = () => { snap(); model = { naam: "Nieuw project", achtergrond: "#0d1117", objecten: [] }; projId = null; sel = null; build(); chooser(false); $("cKeep").checked = true; };
+$("mCode").onclick = () => { tab("code"); };
+$("mJson").onclick = async () => {
+  const dl = await getDl(); if (!dl) { status("Downloaden kan hier niet. Open de app via claude.ai."); return; }
+  try { await dl.save({ filename: fileName() + ".json", data: JSON.stringify(model, null, 1) }); status("📄 Projectbestand gedownload."); } catch (e) { status("Download geannuleerd."); }
+};
+$("mHelp").onclick = () => {
+  $("ov").classList.remove("hidden");
+  $("ovCard").innerHTML = `<h2>❔ Hoe werkt het?</h2><div class="hint" style="font-size:13.5px;line-height:1.5">
+  <b>➕ Toevoegen</b> – kies een huis, mens, dier of vorm en tik in het beeld waar het moet komen.<br>
+  <b>Aanpassen</b> – tik op iets. Onderin kies je ✋ Schuif, ↕ Hoogte, ↻ Draai of ⤢ Maat en veeg met je vinger. Met twee vingers knijp je om te vergroten.<br>
+  <b>🎛️ Bewerk</b> – kleuren, texturen, houding van mensen en dieren, kopiëren en weggooien.<br>
+  <b>🌍 Wereld</b> – dag of nacht, gras of zand, en een lijst van alles wat er staat.<br>
+  <b>↶ ↷</b> – ongedaan maken en opnieuw. <b>⌖</b> – alles in beeld. <b>📸</b> – foto.<br>
+  <b>☰ Menu</b> – opslaan, je projecten, 3D-printbestand.</div>
+  <button class="btn pri" type="button" id="hClose" style="width:100%;margin-top:12px">Snap ik</button>`;
+  $("hClose").onclick = () => $("ov").classList.add("hidden");
+};
+
+// ---------- projects ----------
+const col = () => db.collection("data/users/" + uid);
+$("bSave").onclick = async () => {
+  if (!db || !uid) { status("Opslaan kan alleen als je de app via claude.ai opent."); return; }
+  if (!model.objecten.length) { status("Er is nog niets om op te slaan."); return; }
+  projId = projId || "p" + Date.now().toString(36);
+  try { await col().doc(projId).set({ naam: model.naam || "Project", n: model.objecten.length, at: new Date().toISOString(), json: JSON.stringify(model) }); status("💾 Opgeslagen: " + (model.naam || "Project")); }
+  catch (e) { status(e && e.code === "quota_exceeded" ? "Opslag vol: gooi eerst oude projecten weg." : "Opslaan mislukt."); }
+};
+$("bProj").onclick = async () => {
+  $("ov").classList.remove("hidden");
+  const card = $("ovCard");
+  card.innerHTML = `<h2>📁 Mijn projecten</h2><div id="plist" class="hint">Laden…</div><div class="row"><button class="btn pri" id="pNew" type="button">＋ Nieuw leeg project</button><button class="btn" id="pClose" type="button">Sluiten</button></div>`;
+  $("pClose").onclick = () => $("ov").classList.add("hidden");
+  $("pNew").onclick = () => { snap(); model = { naam: "Nieuw project", achtergrond: "#0d1117", objecten: [] }; projId = null; sel = null; build(); $("ov").classList.add("hidden"); status("Leeg project. Voeg vormen toe of vraag het de AI."); };
+  if (!db || !uid) { $("plist").textContent = "Projecten bewaren werkt alleen via claude.ai."; return; }
+  try {
+    const q = await col().get();
+    const docs = q.docs.filter(d => d.id.startsWith("p")).map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    $("plist").className = "";
+    $("plist").innerHTML = docs.length ? docs.map(d => `<div class="proj" data-id="${d.id}"><span>${(d.naam || "Project").replace(/[<>&]/g, "")}<br><small>${d.n} onderdelen · ${new Date(d.at).toLocaleDateString("nl-NL")}</small></span><button type="button" data-a="open">Open</button><button type="button" data-a="del">🗑</button></div>`).join("") : `<div class="hint">Nog geen projecten opgeslagen.</div>`;
+    $("plist").onclick = async e => {
+      const a = e.target.dataset.a; if (!a) return; const id = e.target.closest(".proj").dataset.id; const d = docs.find(x => x.id === id);
+      if (a === "open") { snap(); model = JSON.parse(d.json); projId = id; sel = null; build(); frame(); $("ov").classList.add("hidden"); status("📂 " + model.naam); }
+      if (a === "del") { if (e.target.dataset.sure) { await col().doc(id).delete(); e.target.closest(".proj").remove(); } else { e.target.dataset.sure = 1; e.target.textContent = "Zeker?"; } }
+    };
+  } catch (e) { $("plist").textContent = "Projecten laden mislukt."; }
+};
+
+// ---------- bouw-keuze ----------
+function chooser(first) {
+  $("ov").classList.remove("hidden");
+  $("ovCard").innerHTML = `<h2>🏗️ Wat wil je bouwen?</h2>
+    <button class="choice ai" type="button" id="cAi"><b>✨ Met AI</b><span>Typ wat je wilt, bijvoorbeeld "een kasteel met een draak", en de AI bouwt het voor je.</span></button>
+    <button class="choice" type="button" id="cSelf"><b>🧱 Zelf bouwen</b><span>Kies huizen, mensen, dieren, bomen en auto's en zet ze zelf neer waar jij wilt.</span></button>
+    <div class="row"><label class="hint" style="margin:0;flex:1"><input type="checkbox" id="cKeep" ${first ? "" : "checked"}> Huidig bouwwerk houden</label></div>
+    <button class="btn" type="button" id="cClose" style="width:100%;margin-top:10px">Sluiten</button>`;
+  const fresh = () => { if (!$("cKeep").checked) { snap(); model = { naam: "Mijn bouwwerk", achtergrond: "#0d1117", objecten: [] }; projId = null; sel = null; build(); } };
+  $("cAi").onclick = () => { fresh(); $("ov").classList.add("hidden"); tab("ai"); $("prompt").focus(); status("✨ Typ hieronder wat je wilt bouwen en druk op Maak nieuw."); };
+  $("cSelf").onclick = () => { fresh(); $("ov").classList.add("hidden"); tab("bieb"); cat = "Bouwen"; renderLib(); status("👇 Stap 1: kies hieronder iets (bijv. Huis). Stap 2: tik in dit beeld waar het moet staan."); };
+  $("cClose").onclick = () => $("ov").classList.add("hidden");
+}
+$("bBuild").onclick = () => chooser(false);
+
+// ---------- start ----------
+model = { naam: "Welkom", achtergrond: "#0d1117", objecten: [
+  { vorm: "blok", x: 0, y: 0.5, z: 0, sx: 1.6, sy: 1, sz: 1.6, kleur: "#22d3ee", metaal: 0.3, ruw: 0.4 },
+  { vorm: "bol", x: 0, y: 1.6, z: 0, sx: 1.2, sy: 1.2, sz: 1.2, kleur: "#a78bfa", metaal: 0.2, ruw: 0.3, anim: { draai: 0, zweef: 0.15, baan: 0 } },
+  { vorm: "torus", x: 0, y: 1.6, z: 0, rx: 90, sx: 2.2, sy: 2.2, sz: 2.2, kleur: "#fbbf24", metaal: 0.8, ruw: 0.2, anim: { draai: 60, zweef: 0.15, baan: 0 } }
+] };
+build(); resize(); frame();
+chooser(true);
+(async () => {
+  try { sample = await claude.use("sample"); } catch (e) { sample = null; }
+  try { db = await claude.use("db"); const u = await claude.use("user"); uid = u ? await u.id() : null; } catch (e) { db = null; }
+  if (!db || !uid) {
+    // zonder Claude: projecten op dit toestel bewaren
+    const K = "dbProjecten", rd = () => { try { return JSON.parse(localStorage.getItem(K) || "{}"); } catch (e) { return {}; } }, wr = o => localStorage.setItem(K, JSON.stringify(o));
+    db = { collection: () => ({ doc: id => ({ set: async v => { const o = rd(); o[id] = v; wr(o); }, delete: async () => { const o = rd(); delete o[id]; wr(o); } }), get: async () => ({ docs: Object.entries(rd()).map(([id, v]) => ({ id, data: () => v })) }) }) };
+    uid = "lokaal";
+  }
+  if (!sample) { const b = $("bNew"); if (b) { $("aiErr").innerHTML = 'AI werkt alleen in de Claude-versie. Hier kun je wel zelf bouwen via ➕ Erbij.'; } }
+})();
 </script>
 </body>
 </html>

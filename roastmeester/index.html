@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Roastmeester</title>
-<meta name="apple-mobile-web-app-title" content="Roastmeester">
-<meta name="application-name" content="Roastmeester">
+<title>Roastmaster</title>
+<meta name="apple-mobile-web-app-title" content="Roastmaster">
+<meta name="application-name" content="Roastmaster">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -26,9 +26,9 @@
 <body>
 <main>
   <img src="icon-180.png" alt="">
-  <h1>Roastmeester</h1>
+  <h1>Roastmaster</h1>
   <p id="msg">Weerwoord en roasts. Niemand is veilig.</p>
-  <a class="go" id="go" href="https://claude.ai/artifact/6WuRMp32yKeMoNycLgHsPu">Open Roastmeester</a>
+  <a class="go" id="go" href="https://claude.ai/artifact/6WuRMp32yKeMoNycLgHsPu">Open Roastmaster</a>
   <ol id="uitleg">
     <li>Tik onderin Safari op de deelknop.</li>
     <li>Kies "Zet op beginscherm".</li>
@@ -39,7 +39,7 @@
   // Opgestart vanaf het beginscherm (?open=1): meteen door naar de app.
   var APP="https://claude.ai/artifact/6WuRMp32yKeMoNycLgHsPu";
   if(/[?&]open=1/.test(location.search)){
-    document.getElementById("msg").textContent="Roastmeester wordt geopend...";
+    document.getElementById("msg").textContent="Roastmaster wordt geopend...";
     document.getElementById("uitleg").style.display="none";
     location.replace(APP);
   }else{

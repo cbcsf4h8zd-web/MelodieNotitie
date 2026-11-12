@@ -1,6 +1,6 @@
 {
-  "name": "Roastmeester",
-  "short_name": "Roastmeester",
+  "name": "Roastmaster",
+  "short_name": "Roastmaster",
   "start_url": "./?open=1",
   "scope": "./",
   "display": "browser",
