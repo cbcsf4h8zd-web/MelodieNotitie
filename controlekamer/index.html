@@ -1,51 +1,275 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Controlekamer</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Controlekamer">
 <meta name="application-name" content="Controlekamer">
-<meta name="theme-color" content="#1f3a5f">
-<link rel="apple-touch-icon" href="icon-180.png">
-<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-180.png?v=3">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+
+
 <style>
-  :root{--bg:#1f3a5f;--ink:#F4F1E6;--muted:#c9d6e6;--gold:#f5a524}
-  html,body{height:100%;margin:0}
-  body{background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px 16px;box-sizing:border-box}
-  main{max-width:360px;text-align:center}
-  img{width:132px;height:132px;border-radius:30px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  h1{font-size:1.7rem;margin:18px 0 6px}
-  p{color:var(--muted);margin:0 0 18px}
-  a.go{display:block;background:var(--gold);color:#1d1d1b;text-decoration:none;font-weight:700;border-radius:14px;padding:14px}
-  ol{text-align:left;color:var(--muted);padding-left:20px;margin:22px 0 0}
-  ol li{margin:6px 0}
+:root{
+  --bg:#f4f2ee;--card:#fff;--ink:#1d1d1b;--muted:#6b6862;--line:#e3dfd8;
+  --accent:#1f3a5f;--green:#2e7d4f;--orange:#c77a12;--red:#b3261e;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#161615;--card:#22211f;--ink:#f1efe9;--muted:#a19d95;--line:#33312d;--accent:#8fb3e0;--green:#5cbf86;--orange:#e9a23b;--red:#ef6a60;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{padding:20px 16px 8px;max-width:720px;margin:0 auto}
+h1{margin:0;font-size:24px;letter-spacing:-.02em}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:52px;height:52px;flex:none;border-radius:12px}
+.sub{color:var(--muted);font-size:14px;margin-top:2px}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 16px;max-width:720px;margin:0 auto;display:flex;gap:8px}
+nav button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:15px;font-weight:600}
+nav button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+@media (prefers-color-scheme:dark){nav button.on{color:#111}}
+main{max-width:720px;margin:0 auto;padding:8px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center}
+.grow{flex:1;min-width:0}
+input,textarea,select{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+textarea{min-height:64px;resize:vertical}
+.btn{padding:10px 14px;border-radius:10px;border:0;background:var(--accent);color:#fff;font-weight:600;font-size:15px}
+@media (prefers-color-scheme:dark){.btn{color:#111}}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px}
+.chip{white-space:nowrap;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:14px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.idea-title{font-weight:650;font-size:16px}
+.idea-desc{color:var(--muted);font-size:14px;margin-top:4px;white-space:pre-wrap}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.tag{font-size:12px;padding:3px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.status{font-size:13px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:auto}
+.del{background:none;border:0;color:var(--muted);font-size:13px;padding:4px 6px;margin-left:auto}
+.summary{display:flex;gap:8px;margin-bottom:10px}
+.sum{flex:1;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 4px}
+.sum b{display:block;font-size:24px}
+.sum span{font-size:13px;color:var(--muted)}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.g{background:var(--green)}.o{background:var(--orange)}.r{background:var(--red)}
+.app-name{font-weight:650}
+.app-name a{color:inherit;text-decoration:none}
+.points{margin:8px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+.points li{margin-bottom:4px}
+.note{font-size:13px;color:var(--muted);margin:4px 2px 12px}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+.hidden{display:none}
+.banner{font-size:13px;color:var(--orange);margin:0 2px 10px}
+.edit{background:none;border:0;color:var(--accent);font-size:13px;padding:4px 6px}
 </style>
 </head>
 <body>
+<header class="brand">
+  <svg class="logo" viewBox="80 40 96 96" role="img" aria-label="Controlekamer-logo: schild met radar">
+    <rect x="80" y="40" width="96" height="96" rx="22" fill="#1f3a5f"/>
+    <path d="M128 56 L153 65 V87 C153 105 142 115 128 121 C114 115 103 105 103 87 V65 Z" fill="#fff"/>
+    <circle cx="128" cy="89" r="16" fill="none" stroke="#1f3a5f" stroke-opacity=".45" stroke-width="2.5"/>
+    <circle cx="128" cy="89" r="9" fill="none" stroke="#1f3a5f" stroke-width="2.5"/>
+    <circle cx="128" cy="89" r="3" fill="#1f3a5f"/>
+    <line x1="128" y1="89" x2="139" y2="78" stroke="#1f3a5f" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="140" cy="77" r="4.5" fill="#f5a524"/>
+  </svg>
+  <div>
+    <h1>Controlekamer</h1>
+    <div class="sub">Je ideeën en de gezondheid van al je apps</div>
+  </div>
+</header>
+<nav>
+  <button id="tabIdeas" class="on">Ideeën</button>
+  <button id="tabCheck">Controle</button>
+</nav>
 <main>
-  <img src="icon-180.png" alt="">
-  <h1>Controlekamer</h1>
-  <p id="msg">Je ideeën en de gezondheid van al je apps.</p>
-  <a class="go" id="go" href="https://claude.ai/artifact/11Ee75p46HvgU8HBMRxspa">Open Controlekamer</a>
-  <ol id="uitleg">
-    <li>Tik onderin Safari op de deelknop.</li>
-    <li>Kies "Zet op beginscherm".</li>
-    <li>Tik op "Voeg toe".</li>
-  </ol>
+  <section id="ideas">
+    <div id="ideasBanner" class="banner hidden"></div>
+    <form id="addForm" class="card">
+      <input id="fTitle" placeholder="Nieuw idee…" maxlength="120" autocomplete="off">
+      <div id="moreFields" class="hidden" style="margin-top:8px">
+        <textarea id="fDesc" placeholder="Korte omschrijving (optioneel)"></textarea>
+        <div class="row" style="margin-top:8px">
+          <select id="fCat" class="grow">
+            <option>Aequitas</option><option>Privé</option><option>Kids</option><option>Overig</option>
+          </select>
+          <button class="btn" type="submit">Opslaan</button>
+        </div>
+      </div>
+    </form>
+    <div class="filters" id="filters"></div>
+    <div id="ideaList"><div class="empty">Laden…</div></div>
+    <div class="card" id="moveBox" style="margin-top:14px">
+      <div id="moveTxt" class="note" style="margin:0 0 8px"></div>
+      <div class="row"><button class="btn grow" type="button" id="bMove"></button></div>
+      <textarea id="moveIn" class="hidden" placeholder="Plak hier de tekst" style="margin-top:8px"></textarea>
+    </div>
+  </section>
+
+  <section id="check" class="hidden">
+    <div id="checkBanner" class="banner hidden"></div>
+    <div class="summary">
+      <div class="sum"><b id="nG">–</b><span>Groen</span></div>
+      <div class="sum"><b id="nO">–</b><span>Oranje</span></div>
+      <div class="sum"><b id="nR">–</b><span>Rood</span></div>
+    </div>
+    <div class="note" id="scanDate">Nog geen scan.</div>
+    <div id="appList"></div>
+  </section>
 </main>
+
 <script>
-  // Opgestart vanaf het beginscherm (?open=1): meteen door naar de app.
-  var APP="https://claude.ai/artifact/11Ee75p46HvgU8HBMRxspa";
-  if(/[?&]open=1/.test(location.search)){
-    document.getElementById("msg").textContent="Controlekamer wordt geopend...";
-    document.getElementById("uitleg").style.display="none";
-    location.replace(APP);
-  }else{
-    // Zo bewaart "Zet op beginscherm" het adres mét ?open=1.
-    try{history.replaceState(null,"",location.pathname+"?open=1")}catch(e){}
+const STATUSES=["Idee","Bezig","Klaar","Geparkeerd"];
+const CATS=["Alle","Aequitas","Privé","Kids","Overig"];
+let db=null, ideas=[], filter="Alle", editId=null;
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function show(el,msg){el.textContent=msg;el.classList.toggle("hidden",!msg)}
+
+// Tabs
+const tI=document.getElementById("tabIdeas"),tC=document.getElementById("tabCheck");
+function setTab(t){
+  const isI=t!=="controle";
+  tI.classList.toggle("on",isI);tC.classList.toggle("on",!isI);
+  document.getElementById("ideas").classList.toggle("hidden",!isI);
+  document.getElementById("check").classList.toggle("hidden",isI);
+}
+tI.onclick=()=>{location.hash="ideeen";setTab("ideeen")};
+tC.onclick=()=>{location.hash="controle";setTab("controle")};
+setTab(location.hash.slice(1));
+addEventListener("hashchange",()=>setTab(location.hash.slice(1)));
+
+// Filters
+const fWrap=document.getElementById("filters");
+function renderFilters(){
+  fWrap.innerHTML=CATS.map(c=>`<button class="chip ${c===filter?"on":""}" data-c="${c}">${c}</button>`).join("");
+}
+fWrap.onclick=e=>{const c=e.target.dataset.c;if(c){filter=c;renderFilters();renderIdeas()}};
+renderFilters();
+
+// Add form
+const fTitle=document.getElementById("fTitle"),more=document.getElementById("moreFields");
+fTitle.addEventListener("focus",()=>more.classList.remove("hidden"));
+document.getElementById("addForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const titel=fTitle.value.trim();if(!titel)return;
+  if(!db){show(document.getElementById("ideasBanner"),"Opslaan lukt nu niet: de opslag is niet bereikbaar.");return}
+  const data={titel,omschrijving:document.getElementById("fDesc").value.trim(),categorie:document.getElementById("fCat").value,status:"Idee",datum:new Date().toISOString()};
+  try{
+    if(editId){await db.doc("ideas/"+editId).update({titel:data.titel,omschrijving:data.omschrijving,categorie:data.categorie});editId=null}
+    else await db.collection("ideas").add(data);
+    fTitle.value="";document.getElementById("fDesc").value="";more.classList.add("hidden");
+    document.querySelector("#addForm .btn").textContent="Opslaan";
+  }catch(err){show(document.getElementById("ideasBanner"),"Opslaan mislukt ("+(err.code||"fout")+").")}
+});
+
+// Ideas list
+const list=document.getElementById("ideaList");
+function renderIdeas(){
+  const order={Bezig:0,Idee:1,Geparkeerd:2,Klaar:3};
+  const rows=ideas.filter(i=>filter==="Alle"||i.categorie===filter)
+    .sort((a,b)=>(order[a.status]??9)-(order[b.status]??9)||String(b.datum).localeCompare(String(a.datum)));
+  if(!rows.length){list.innerHTML=`<div class="empty">Nog geen ideeën${filter!=="Alle"?" in "+esc(filter):""}.</div>`;return}
+  list.innerHTML=rows.map(i=>`
+    <div class="card" data-id="${esc(i.id)}">
+      <div class="idea-title">${esc(i.titel)}</div>
+      ${i.omschrijving?`<div class="idea-desc">${esc(i.omschrijving)}</div>`:""}
+      <div class="meta">
+        <span class="tag">${esc(i.categorie||"Overig")}</span>
+        <select class="status" data-act="status">${STATUSES.map(s=>`<option ${s===i.status?"selected":""}>${s}</option>`).join("")}</select>
+        <button class="edit" data-act="edit">Bewerk</button>
+        <button class="del" data-act="del">Verwijder</button>
+      </div>
+    </div>`).join("");
+}
+list.addEventListener("change",async e=>{
+  if(e.target.dataset.act!=="status")return;
+  const id=e.target.closest(".card").dataset.id;
+  try{await db.doc("ideas/"+id).update({status:e.target.value})}catch(err){show(document.getElementById("ideasBanner"),"Status wijzigen mislukt.")}
+});
+const pendingDel=new Set();
+list.addEventListener("click",async e=>{
+  const act=e.target.dataset.act;if(!act||act==="status")return;
+  const card=e.target.closest(".card"),id=card.dataset.id,i=ideas.find(x=>x.id===id);
+  if(act==="edit"&&i){
+    editId=id;fTitle.value=i.titel;document.getElementById("fDesc").value=i.omschrijving||"";
+    document.getElementById("fCat").value=i.categorie||"Overig";more.classList.remove("hidden");
+    document.querySelector("#addForm .btn").textContent="Bijwerken";scrollTo({top:0,behavior:"smooth"});fTitle.focus();
   }
+  if(act==="del"){
+    if(!pendingDel.has(id)){pendingDel.add(id);e.target.textContent="Zeker? Tik nog eens";setTimeout(()=>{pendingDel.delete(id);if(e.target.isConnected)e.target.textContent="Verwijder"},3000);return}
+    try{await db.doc("ideas/"+id).delete()}catch(err){show(document.getElementById("ideasBanner"),"Verwijderen mislukt.")}
+  }
+});
+
+// Scan
+function renderScan(d){
+  const apps=(d&&d.apps)||[];
+  const c={groen:0,oranje:0,rood:0};apps.forEach(a=>c[a.status]=(c[a.status]||0)+1);
+  document.getElementById("nG").textContent=c.groen;document.getElementById("nO").textContent=c.oranje;document.getElementById("nR").textContent=c.rood;
+  document.getElementById("scanDate").textContent=d&&d.datum?`Laatste scan: ${new Date(d.datum).toLocaleString("nl-NL",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})}${d.samenvatting?" — "+d.samenvatting:""}`:"Nog geen scan.";
+  const rank={rood:0,oranje:1,groen:2};
+  const cls={groen:"g",oranje:"o",rood:"r"};
+  document.getElementById("appList").innerHTML=apps.slice().sort((a,b)=>(rank[a.status]??3)-(rank[b.status]??3)||a.naam.localeCompare(b.naam)).map(a=>`
+    <div class="card">
+      <div class="row"><span class="dot ${cls[a.status]||"g"}"></span>
+        <div class="app-name grow">${a.url&&/^https:\/\/claude\.ai\//.test(a.url)?`<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.naam)} ↗</a>`:esc(a.naam)}</div>
+        ${a.groep?`<span class="tag">${esc(a.groep)}</span>`:""}
+      </div>
+      ${(a.punten&&a.punten.length)?`<ul class="points">${a.punten.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:""}
+    </div>`).join("")||`<div class="empty">Nog geen scanresultaten.</div>`;
+}
+
+// Zonder Claude: ideeën op dit toestel bewaren
+const CLAUDE_URL="https://claude.ai/artifact/11Ee75p46HvgU8HBMRxspa";
+function localDb(){
+  const K="ckIdeas",rd=()=>{try{return JSON.parse(localStorage.getItem(K)||"{}")}catch(e){return{}}},ls=[];
+  const emit=()=>{const o=rd();const snap={metadata:{fromCache:false},docs:Object.entries(o).map(([id,v])=>({id,data:()=>v}))};ls.forEach(f=>f(snap))};
+  const wr=o=>{localStorage.setItem(K,JSON.stringify(o));emit()};
+  return{local:true,
+    collection:()=>({add:async v=>{const o=rd();o["i"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)]=v;wr(o)},onSnapshot:f=>{ls.push(f);setTimeout(emit,0)}}),
+    doc:p=>{const id=p.split("/")[1];return{update:async v=>{const o=rd();if(o[id]){Object.assign(o[id],v);wr(o)}},delete:async()=>{const o=rd();delete o[id];wr(o)},
+      onSnapshot:f=>{if(p.startsWith("scan/"))setTimeout(()=>f({exists:false}),0)}}}};
+}
+const bMove=document.getElementById("bMove"),moveIn=document.getElementById("moveIn");
+function setupMove(){
+  if(db.local){
+    document.getElementById("moveTxt").innerHTML=`Je ideeën worden op deze telefoon bewaard. Ideeën uit de Claude-versie overzetten? Kopieer ze daar onderaan met 📤, en plak ze hier.`;
+    bMove.textContent="📥 Ideeën plakken";
+    bMove.onclick=async()=>{
+      if(moveIn.classList.contains("hidden")){moveIn.classList.remove("hidden");moveIn.focus();bMove.textContent="✅ Toevoegen";return}
+      let arr;try{arr=JSON.parse(moveIn.value.trim())}catch(e){show(document.getElementById("ideasBanner"),"Dat is geen geldige ideeënlijst. Kopieer hem opnieuw in de Claude-versie.");return}
+      if(!Array.isArray(arr)){show(document.getElementById("ideasBanner"),"Dat is geen geldige ideeënlijst.");return}
+      const have=new Set(ideas.map(i=>i.titel+"|"+i.datum));let n=0;
+      for(const x of arr){if(!x||!x.titel||have.has(x.titel+"|"+x.datum))continue;await db.collection("ideas").add({titel:String(x.titel).slice(0,120),omschrijving:String(x.omschrijving||""),categorie:x.categorie||"Overig",status:x.status||"Idee",datum:x.datum||new Date().toISOString()});n++}
+      moveIn.value="";moveIn.classList.add("hidden");bMove.textContent="📥 Ideeën plakken";show(document.getElementById("ideasBanner"),`${n} idee${n===1?"":"ën"} toegevoegd.`);
+    };
+    const cb=document.getElementById("checkBanner");cb.innerHTML=`De controle van je apps zie je alleen in de Claude-versie, omdat Claude daarvoor in je account moet kijken. <a href="${CLAUDE_URL}" target="_blank" rel="noopener" style="color:inherit;font-weight:700">Open de Claude-versie ↗</a>`;cb.classList.remove("hidden");
+  }else{
+    document.getElementById("moveTxt").textContent="Ideeën meenemen naar de versie zonder inloggen? Kopieer ze hier en plak ze daar.";
+    bMove.textContent="📤 Kopieer al mijn ideeën";
+    bMove.onclick=async()=>{const data=JSON.stringify(ideas.map(({id,...r})=>r));try{await navigator.clipboard.writeText(data);bMove.textContent="✅ Gekopieerd! Plak in de andere versie"}catch(e){moveIn.value=data;moveIn.classList.remove("hidden");moveIn.select();bMove.textContent="Kopieer de tekst hieronder"}setTimeout(()=>bMove.textContent="📤 Kopieer al mijn ideeën",4000)};
+  }
+}
+
+// DB
+(async()=>{
+  const timer=setTimeout(()=>{if(!ideas.length)list.innerHTML=`<div class="empty">De opslag is nog niet bereikbaar.</div>`},10000);
+  try{db=window.claude?await claude.use("db"):null}catch(e){db=null}
+  if(!db)db=localDb();
+  setupMove();
+  db.collection("ideas").onSnapshot(s=>{
+    if(!s.metadata.fromCache)clearTimeout(timer);
+    ideas=s.docs.map(d=>({id:d.id,...d.data()}));renderIdeas();
+  },err=>{clearTimeout(timer);list.innerHTML=`<div class="empty">Ideeën laden mislukt.</div>`});
+  db.doc("scan/laatste").onSnapshot(s=>renderScan(s.exists?s.data():null),()=>show(document.getElementById("checkBanner"),"Scan laden mislukt."));
+})();
 </script>
 </body>
 </html>
