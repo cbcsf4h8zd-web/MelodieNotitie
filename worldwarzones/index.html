@@ -96,6 +96,22 @@ html,body{margin:0;height:100%;background:#0b1a2c;color:var(--ink);font:14px/1.3
 #lb i{width:8px;height:8px;border-radius:2px;flex:none}
 #lb span{flex:1;overflow:hidden;text-overflow:ellipsis}
 #acts{display:flex;gap:6px;margin-bottom:6px}
+#sel{background:rgba(12,22,38,.97);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+#sel .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+#sel .dot{width:14px;height:14px;border-radius:4px;border:2px solid #000;flex:none}
+#sel .nmx{font-weight:800;font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sel .rel{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:#1d2b40;color:var(--muted);white-space:nowrap}
+#sel .info{font-size:12px;color:var(--muted);margin:-4px 0 8px}
+#sel .btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#sel button{min-height:46px;border-radius:11px;border:1px solid var(--line);background:#16263c;color:var(--ink);font:inherit;font-size:14px;font-weight:800}
+#sel button.atk{background:#b91c1c;border-color:#ef4444;color:#fff}
+#sel button.ally{background:#1d4ed8;border-color:#60a5fa;color:#fff}
+#sel button.no{background:transparent}
+#sel button:disabled{opacity:.4}
+#threat{position:fixed;left:8px;right:8px;top:calc(150px + env(safe-area-inset-top));z-index:6;background:#7f1d1d;border:2px solid #ef4444;border-radius:12px;padding:9px 12px;color:#fff;font-weight:800;font-size:13.5px;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+#threat span{flex:1}
+#toasts.up{bottom:calc(270px + env(safe-area-inset-bottom))!important}
+#threat b{background:#fff;color:#7f1d1d;border-radius:8px;padding:5px 9px;font-size:12.5px;white-space:nowrap}
 #acts button{flex:1;min-height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-size:12.5px;font-weight:700}
 #acts button:disabled{opacity:.4}
 .maps{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -120,8 +136,10 @@ html,body{margin:0;height:100%;background:#0b1a2c;color:var(--ink);font:14px/1.3
 <div id="banner" class="hidden"></div>
 <div id="lb" class="hidden" role="button" aria-label="Ranglijst openen"></div>
 <div id="toasts"></div>
+<div id="threat" class="hidden" role="button"></div>
 <div id="bottom" class="hidden">
   <div style="flex:1">
+    <div id="sel" class="hidden"></div>
     <div id="acts"><button type="button" id="bArrow">🏹 Pijl</button><button type="button" id="bRetreat">↩️ Terug</button><button type="button" id="bReinf">➕ Versterking</button><button type="button" id="bMe" style="flex:0 0 44px" aria-label="Naar mijn land">📍</button></div>
     <div id="ratioLbl2">⚔️ TROEPEN PER AANVAL</div>
     <div id="ratio">
@@ -247,7 +265,7 @@ const TF = (() => {
       const lst = s.L[o], p = s.P[t], last = lst.pop();
       if (last !== t) { lst[p] = last; s.P[last] = p; }
       const n = s.nations[o]; n.tiles--;
-      if (n.tiles <= 0 && n.alive) { n.alive = false; s.ev.push({ type: "dead", id: o }); s.ships = s.ships.filter(x => x.o !== o); }
+      if (n.tiles <= 0 && n.alive) { n.alive = false; n.killedBy = id; s.ev.push({ type: "dead", id: o, by: id }); s.ships = s.ships.filter(x => x.o !== o); }
     }
     if (s.pc && w.prov[t] >= 0) { const p = w.prov[t] * 128; if (o) s.pc.set(p + o, (s.pc.get(p + o) || 1) - 1); if (id) s.pc.set(p + id, (s.pc.get(p + id) || 0) + 1); }
     s.owner[t] = id; s.fallout[t] = 0; s.P[t] = -1;
@@ -490,6 +508,7 @@ const TF = (() => {
     const speed = (countB(s, by, "haven") ? 28 : 18) * w.L * (FX(n).navy ? 1.5 : 1);
     s.boats.push({ id: s.seq++, by, troops, path: p.path, land: p.land, pos: 0, speed });
     n.lastBoat = s.t;
+    s.ev.push({ type: "boatgo", by, o: s.owner[p.land], land: p.land, troops });
     return { ok: true, troops };
   }
   const boatTile = b => b.path[Math.min(b.path.length - 1, Math.floor(b.pos))];
@@ -936,6 +955,10 @@ function render() {
     ctx.font = fs + "px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     for (const b of s.blds) { const x = sx(b.t), y = sy(b.t); if (x < -20 || y < -20 || x > VW + 20 || y > VH + 20) continue; ctx.fillText(TF.BUILD[b.type].icon, x, y); }
   }
+  // selectie en dreigende landingen
+  const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 180);
+  if (selT >= 0) { ctx.strokeStyle = "#ffd23f"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx(selT), sy(selT), 12 + pulse * 5, 0, 7); ctx.stroke(); }
+  for (const b of s.boats) { if (b.sunk || b.by === 1 || s.owner[b.land] !== 1) continue; ctx.strokeStyle = `rgba(239,68,68,${0.5 + pulse * 0.5})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(sx(b.land), sy(b.land), 14 + pulse * 6, 0, 7); ctx.stroke(); ctx.fillStyle = "#ef4444"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("⚠️", sx(b.land), sy(b.land)); }
   // boats
   ctx.font = Math.max(12, Math.min(22, ts * 3.5)) + "px sans-serif";
   for (const b of s.boats) {
@@ -1071,11 +1094,46 @@ function tap(cx, cy) {
   const t = toTile(cx, cy); if (t < 0) return;
   if (spawning) { if (!w.land[t]) { toast("Kies een plek op het land"); return; } beginGame(t); return; }
   if (!s || s.over || paused) return;
-  if (!w.land[t]) return;
+  if (!w.land[t]) { hideSel(); return; }
   const o = s.owner[t];
-  if (o === 1) { openSheet(t); return; }
-  doAttack(t, false);
+  if (o === 1) { hideSel(); openSheet(t); return; }
+  showSel(t);
 }
+// ---------- selectie-kaartje: eerst kiezen, dan pas aanvallen ----------
+let selT = -1;
+function hideSel() { selT = -1; $("sel").classList.add("hidden"); $("toasts").classList.remove("up"); }
+function showSel(t) {
+  selT = t; const o = s.owner[t], me = s.nations[1], E = x => String(x).replace(/[<>&]/g, "");
+  const n = o ? s.nations[o] : null, al = o && TF.allied(s, 1, o);
+  const f = n ? TF.facOf(s, n.fac) : null, myF = TF.facOf(s, me.fac);
+  const rel = !o ? "Niemandsland" : al ? "🤝 Bondgenoot" : n.immuneUntil > s.t ? "🛡 Beschermd" : s.attacks.some(a => a.by === o && a.tgt === 1) ? "⚔️ Valt jou aan" : "Neutraal";
+  const send = Math.floor(me.troops * ratio);
+  let allyBtn = "";
+  if (o && !al) {
+    if (myF && !n.fac) allyBtn = `<button type="button" class="ally" data-a="inv">🤝 Vraag in ${E(myF.naam)}</button>`;
+    else if (!me.fac && n.fac) allyBtn = `<button type="button" class="ally" data-a="join">🤝 Lid van ${E(f.naam)}</button>`;
+    else allyBtn = `<button type="button" class="ally" data-a="pact">🤝 Vraag alliantie</button>`;
+  }
+  $("sel").innerHTML = `<div class="hd"><div class="dot" style="background:${o ? colCss(o) : "#6b7f5a"}"></div><div class="nmx">${o ? E(nm(o)) : "Niemandsland"}</div><div class="rel">${rel}</div></div>
+    <div class="info">${o ? `🪖 ${fmt(n.troops)} troepen · ${(TF.share(w, s, o) * 100).toFixed(1)}% van de kaart${f ? " · " + E(f.naam) : ""}` : E(w.names[w.ctry[t]] || "") + " · leeg land, makkelijk te veroveren"}</div>
+    <div class="btns">
+      ${al ? `<button type="button" disabled>🤝 Bondgenoot</button>` : `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · ${fmt(send)}</button>`}
+      ${allyBtn || ""}
+      <button type="button" class="no" data-a="no">✖️ Niet aanvallen</button>
+      ${o ? `<button type="button" data-a="more">⋯ Meer</button>` : ""}
+    </div>`;
+  $("sel").classList.remove("hidden"); $("toasts").classList.add("up"); dirty = true;
+}
+function colCss(o) { const c = colOf(o); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+$("sel").addEventListener("click", e => {
+  const a = e.target.closest("[data-a]"); if (!a || selT < 0 || !s) return; const t = selT, o = s.owner[t];
+  if (a.dataset.a === "atk") { hideSel(); doAttack(t, false); }
+  else if (a.dataset.a === "no") hideSel();
+  else if (a.dataset.a === "more") { hideSel(); openSheet(t); }
+  else if (a.dataset.a === "pact") { const ok = TF.askAlly(s, 1, o); toast(ok ? `🤝 ${nm(o)} is nu je bondgenoot!` : `❌ ${nm(o)} wil geen alliantie`); ok ? hideSel() : showSel(t); }
+  else if (a.dataset.a === "inv") { const r = TF.invite(s, 1, o); toast(r.ok ? `🤝 ${nm(o)} doet mee met je alliantie!` : `❌ ${nm(o)}: ${r.err}`); r.ok ? hideSel() : showSel(t); }
+  else if (a.dataset.a === "join") { const fid = s.nations[o].fac, fn = TF.facOf(s, fid); const r = TF.askJoin(s, 1, fid); toast(r.ok ? `🤝 Je zit nu in ${fn.naam}!` : `❌ ${fn.naam}: ${r.err}`); r.ok ? hideSel() : showSel(t); }
+});
 function arrowAttack(t) {
   if (!w.land[t]) { toast("🏹 Laat de pijl op land eindigen"); return; }
   const o = s.owner[t];
@@ -1086,6 +1144,7 @@ function arrowAttack(t) {
   else if (r.err === "geen grens") doAttack(t, true);
   else toast(r.err === "beschermd" ? `${nm(o)} is nog beschermd` : r.err === "te weinig troepen" ? "Te weinig troepen" : "Kan niet aanvallen");
 }
+$("ratio").addEventListener("click", () => setTimeout(() => { if (selT >= 0 && s && s.owner[selT] !== 1) showSel(selT); }, 0));
 function doAttack(t, forceBoat) {
   const o = s.owner[t];
   if (o && TF.allied(s, 1, o)) { toast(`${nm(o)} is je bondgenoot`); return; }
@@ -1176,6 +1235,9 @@ function hud() {
   if (!top.includes(me) && me.alive) top.push(me);
   $("lb").innerHTML = top.map(n => `<div><i style="background:${TF.COLORS[n.id % TF.COLORS.length]}"></i><span>${n.id === 1 ? "<b>Jij</b>" : n.name.replace(/[<>&]/g, "")}</span>${(TF.share(w, s, n.id) * 100).toFixed(1)}%</div>`).join("");
   $("tr").textContent = fmt(me.troops); $("cap").textContent = fmt(cap); $("trBar").style.width = Math.min(100, me.troops / cap * 100) + "%";
+  const inc = s.boats.filter(b => !b.sunk && b.by !== 1 && s.owner[b.land] === 1), th = $("threat");
+  if (inc.length) { const tot = inc.reduce((a, b) => a + b.troops, 0), who = [...new Set(inc.map(b => nm(b.by)))].slice(0, 2).join(" & "); th.innerHTML = `⛵ <span>${inc.length > 1 ? inc.length + " transporten" : "Transport"} van ${who} met ${fmt(tot)} troepen op weg naar je kust!</span><b>📍 Bekijk</b>`; th.classList.remove("hidden"); th._t = inc[0].land; }
+  else th.classList.add("hidden");
   const fl = $("focusLine"), fo = me.focus;
   if (fo && fo.cur) { const F = TF.FOCUS[fo.cur]; fl.className = ""; fl.textContent = `🎯 ${F.icon} ${F.naam} · ${Math.ceil(fo.left)}s`; }
   else if (fo && Object.keys(TF.FOCUS).some(k => TF.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Kies een nieuwe focus! (tik 🎯)"; }
@@ -1191,7 +1253,8 @@ function hud() {
 }
 function onEvents(ev) {
   for (const e of ev) {
-    if (e.type === "dead") { }
+    if (e.type === "dead") { if (e.id === 1) toast(`☠️ Je bent geëlimineerd door ${nm(e.by)}`); }
+    else if (e.type === "boatgo" && e.o === 1 && e.by !== 1) toast(`⚠️ ${nm(e.by)} stuurt een transport met ${fmt(e.troops)} troepen naar je kust!`);
     else if (e.type === "landing" && e.by === 1) toast(`⛵ Je troepen zijn geland${e.o ? " bij " + nm(e.o) : ""}!`);
     else if (e.type === "landing" && e.o === 1) toast(`⚠️ ${nm(e.by)} landt op jouw kust!`);
     else if (e.type === "bombout" && e.o === 1) toast(`🚨 ${nm(e.by)} vuurt een ${TF.BOMBS[e.kind].naam.toLowerCase()} op jou af!`);
@@ -1260,11 +1323,12 @@ function beginGame(t) {
   save();
 }
 function end() {
+  hideSel(); $("threat").classList.add("hidden");
   save(); closeSheet();
   const won = s.over === "won";
   $("ovCard").innerHTML = won
     ? `<h2>🌍 Overwinning!</h2><p>Je beheerst ${(TF.share(w, s, 1) * 100).toFixed(1)}% van de wereld na ${Math.floor(s.t / 60)} minuten, op ${TF.DIFF[diff] ? TF.DIFF[diff].naam : diff} tegen ${nBots} landen.</p><p>${diff === "relaxed" ? "Klaar voor Standaard?" : diff === "standaard" ? "Durf je Brutaal?" : "Respect. Dit is het zwaarste niveau."}</p><button class="big red" id="oNew" type="button">Nieuw spel</button>`
-    : `<h2>💀 ${s.nations[1].alive ? "Verloren" : "Je natie is gevallen"}</h2><p>${s.winner && s.winner !== 1 ? nm(s.winner) + " heeft 80% van de wereld." : "Je laatste vakje is veroverd."} Je hield het ${Math.floor(s.t / 60)} minuten vol.</p><p>Tip: bouw vroeg een 🏙️ stad en een 🛡️ verdedigingspost aan je grens.</p><button class="big red" id="oNew" type="button">Revanche</button>`;
+    : `<h2>${s.nations[1].alive ? "💀 Verloren" : "☠️ JE BENT GEËLIMINEERD"}</h2><p>${!s.nations[1].alive ? `${s.nations[1].killedBy ? nm(s.nations[1].killedBy) + " heeft je laatste stukje land veroverd." : "Je laatste stukje land is veroverd."}` : s.winner && s.winner !== 1 ? nm(s.winner) + " heeft 80% van de wereld." : ""} Je hield het ${s.t < 60 ? Math.round(s.t) + " seconden" : Math.floor(s.t / 60) + " minuten"} vol.</p><p>Tip: bouw vroeg een 🏙️ stad en een 🛡️ verdedigingspost aan je grens.</p><button class="big red" id="oNew" type="button">Revanche</button>`;
   $("ov").classList.remove("hidden"); $("oNew").onclick = menu;
 }
 function ranking() {
@@ -1306,6 +1370,8 @@ function pauseMenu() {
   $("pQ").onclick = () => { if ($("pQ").dataset.sure) { const old = s; s = null; save0(); menu(); } else { $("pQ").dataset.sure = 1; $("pQ").textContent = "Zeker? Je spel wordt gewist"; } };
 }
 $("bMenu").onclick = pauseMenu;
+window.__wwz = () => ({ s, w, toTile, TF });
+$("threat").onclick = () => { const t = $("threat")._t; if (t >= 0) { focus(t, Math.max(scale, 4 / w.L)); dirty = true; } };
 $("bArrow").onclick = () => { arrowMode = !arrowMode; $("bArrow").classList.toggle("on", arrowMode); toast(arrowMode ? "🏹 Pijl-modus: sleep van jouw land naar je doel. Je leger rukt in die richting op." : "🏹 Pijl-modus uit, slepen = kaart verschuiven"); };
 const FROWS = [["", "industrie", ""], ["leger", "", "marine"], ["demo", "fasc", "comm"], ["demo2", "fasc2", "comm2"], ["demo3", "fasc3", "comm3"], ["", "atoom", ""]];
 function focusPanel() {
