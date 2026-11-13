@@ -173,9 +173,9 @@ const TF = (() => {
   };
   const SHIP = { naam: "Oorlogsschip", icon: "🚢", base: 250 * K, max: 750 * K };
   const DIFF = {
-    relaxed: { naam: "Relaxed", grow: 0.85, th: 0.55, prot: 90, gang: false, rush: 0.35, start: 2500 },
-    standaard: { naam: "Standaard", grow: 1.15, th: 0.4, prot: 60, gang: true, rush: 0.5, start: 3000 },
-    brutaal: { naam: "Brutaal", grow: 1.8, th: 0.2, prot: 60, gang: true, rush: 0.7, start: 5000 }
+    relaxed: { naam: "Relaxed", grow: 0.85, th: 0.55, prot: 90, gang: false, rush: 0.35, start: 2500, fx: 0.4, ftime: 2.2, fac: 0.3, flip: 0.9 },
+    standaard: { naam: "Standaard", grow: 1.15, th: 0.4, prot: 60, gang: true, rush: 0.5, start: 3000, fx: 0.7, ftime: 1.4, fac: 0.7, flip: 0.65 },
+    brutaal: { naam: "Brutaal", grow: 1.8, th: 0.2, prot: 60, gang: true, rush: 0.7, start: 5000, fx: 1, ftime: 1, fac: 1, flip: 0.35 }
   };
   const WIN = 0.8;
   const FOCUS = {
@@ -196,7 +196,8 @@ const TF = (() => {
   const IDEO = { demo: { naam: "Geallieerden", icon: "🔵", kleur: "#3b82f6" }, fasc: { naam: "Asmogendheden", icon: "⚫", kleur: "#6b7280" }, comm: { naam: "Komintern", icon: "🔴", kleur: "#dc2626" } };
   function calcFx(n) {
     const f = { gold: 1, grow: 1, cap: 1, atk: 1, def: 1, speed: 1, nuke: 1, navy: 0 };
-    for (const k of (n.focus ? n.focus.done : [])) { const F = FOCUS[k]; if (!F) continue; for (const e in F.fx) f[e] += F.fx[e]; }
+    const sc = n.fxs || 1;
+    for (const k of (n.focus ? n.focus.done : [])) { const F = FOCUS[k]; if (!F) continue; for (const e in F.fx) f[e] += e === "navy" ? F.fx[e] : F.fx[e] * sc; }
     n.fx = f; return f;
   }
   const FX = n => n.fx || calcFx(n);
@@ -207,7 +208,7 @@ const TF = (() => {
     if (F.excl && F.excl.some(r => fo.done.includes(r) || fo.cur === r)) return false;
     return true;
   }
-  function startFocus(s, id, k) { const n = s.nations[id]; if (!focusOk(n, k)) return false; n.focus.cur = k; n.focus.left = FOCUS[k].tijd; return true; }
+  function startFocus(s, id, k) { const n = s.nations[id]; if (!focusOk(n, k)) return false; n.focus.cur = k; n.focus.left = FOCUS[k].tijd * (n.bot ? (DIFF[s.diff] || DIFF.standaard).ftime : 1); return true; }
 
   function makeWorld(G) {
     const W = G.W, H = G.H, N = W * H, wrap = !!G.wrap;
@@ -306,7 +307,7 @@ const TF = (() => {
   }
   function addNation(w, s, tile, name, bot) {
     const id = s.nations.length;
-    const n = { id, name, bot, troops: bot ? DIFF[s.diff].start : 2500, gold: 0, tiles: 0, alive: true, allies: [], traitorUntil: -1, immuneUntil: bot ? 30 : 0, think: Math.random(), cx: tile % w.W, cy: (tile / w.W) | 0, lastBoat: -99, lastNuke: -999, reinf: 0, fac: 0, ideo: null, focus: { done: [], cur: null, left: 0 } };
+    const n = { id, name, bot, troops: bot ? DIFF[s.diff].start : 2500, gold: 0, tiles: 0, alive: true, allies: [], traitorUntil: -1, immuneUntil: bot ? 30 : 0, think: Math.random(), cx: tile % w.W, cy: (tile / w.W) | 0, lastBoat: -99, lastNuke: -999, reinf: 0, fac: 0, ideo: null, focus: { done: [], cur: null, left: 0 }, fxs: bot ? DIFF[s.diff].fx : 1 };
     s.nations.push(n); s.L.push([]);
     const x0 = tile % w.W, y0 = (tile / w.W) | 0, R = Math.max(3, Math.round(5 * w.L));
     for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
@@ -456,7 +457,7 @@ const TF = (() => {
     const tmp = new Int32Array(4), T = a.tgt ? s.nations[a.tgt] : null; let n0 = 0;
     for (let k = w.provStart[p]; k < w.provStart[p + 1]; k++) {
       const t = w.provList[k]; if (s.owner[t] !== a.tgt) continue;
-      const c = tileCost(w, s, t, a.by) * (a.tgt ? 0.35 : 0.6); if (a.troops < c) break;
+      const c = tileCost(w, s, t, a.by) * (DIFF[s.diff] || DIFF.standaard).flip; if (a.troops < c) break;
       a.troops -= c; if (T) T.troops = Math.max(0, T.troops - density(s, a.tgt) * 0.25);
       setOwner(w, s, t, a.by); n0++;
       const m = w.nb(t, tmp); for (let q = 0; q < m; q++) { const j = tmp[q]; if (w.land[j] && s.owner[j] === a.tgt && w.prov[j] !== p) a.cand.push(j); }
@@ -700,7 +701,7 @@ const TF = (() => {
       const opts = Object.keys(FOCUS).filter(k => focusOk(n, k));
       if (opts.length) { if (!n.pref) n.pref = ["demo", "fasc", "comm"][(Math.random() * 3) | 0]; const pick = opts.find(k => k.startsWith(n.pref)) || opts.find(k => !FOCUS[k].ideo) || opts[(Math.random() * opts.length) | 0]; startFocus(s, id, pick); }
     }
-    if (n.ideo && !n.fac && Math.random() < 0.04) {
+    if (n.ideo && !n.fac && Math.random() < 0.04 * D.fac) {
       const same = s.factions.filter(f => f.ideo === n.ideo && members(s, f.id).length < facMax(s));
       if (same.length) { const f = same[(Math.random() * same.length) | 0]; if (facAccept(s, f.id, id)) joinFac(s, id, f.id); }
       else if (!s.factions.some(f => f.ideo === n.ideo) && n.tiles > 300 * A) createFaction(s, id, IDEO[n.ideo].naam);
@@ -816,7 +817,7 @@ const TF = (() => {
     const o = JSON.parse(str); o.owner = unrle(o.owner, w.N); o.fallout = unrle(o.fallout, w.N);
     for (const a of o.attacks) o.nations[a.by].troops += a.troops;
     o.attacks = []; o.ships = o.ships || []; o.factions = o.factions || [];
-    for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.fac = n.fac || 0; n.ideo = n.ideo || null; calcFx(n); }
+    for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.fac = n.fac || 0; n.ideo = n.ideo || null; n.fxs = n.bot ? (DIFF[o.diff] || DIFF.standaard).fx : 1; calcFx(n); }
     ensureLists(w, o); indexBlds(o);
     return o;
   }
