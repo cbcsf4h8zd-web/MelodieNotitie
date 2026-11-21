@@ -30,11 +30,25 @@ button{font:inherit;color:inherit}
 #me .bar i{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#a3e635);border-radius:4px}
 #me .row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);font-weight:600}
 #me .row b{color:var(--ink)}
+#focusLine{font-size:11.5px;margin-top:4px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#focusLine.pick{color:var(--gold)}
+#bFocus.glow{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,181,49,.5)}
+.ftree{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.fn{min-height:70px;border-radius:12px;border:1px solid var(--line);background:#15243a;font-size:11.5px;font-weight:800;padding:6px 4px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.fn i{font-style:normal;font-size:20px}
+.fn small{font-weight:600;color:var(--muted);font-size:10px;margin-top:3px}
+.fn.done{background:#14532d;border-color:#22c55e}
+.fn.cur{background:#3b2a07;border-color:var(--gold)}
+.fn.ok{border-color:#60a5fa;box-shadow:inset 0 0 0 1px #60a5fa}
+.fn.lock{opacity:.4}
+.fn.x{opacity:.22;text-decoration:line-through}
+.fn.e{visibility:hidden}
+.frow{grid-column:1/-1;font-size:10.5px;color:var(--muted);font-weight:800;letter-spacing:.06em;margin-top:8px}
 #tr{display:flex;flex-direction:column;gap:6px;pointer-events:auto;margin-top:30px}
 #tr div{display:flex;gap:6px}
 .tb{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-size:19px;display:flex;align-items:center;justify-content:center}
 /* banners */
-#peace,#alert{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));white-space:nowrap;z-index:5;border-radius:12px;padding:8px 12px;font-weight:800;font-size:13px;max-width:calc(100% - 20px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.45)}
+#peace,#alert{position:fixed;left:8px;top:calc(118px + env(safe-area-inset-top));max-width:calc(100% - 128px)!important;white-space:normal;font-size:12px!important;z-index:5;border-radius:12px;padding:8px 12px;font-weight:800;font-size:13px;max-width:calc(100% - 20px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.45)}
 #peace{background:#12314f;border:1px solid #3b82f6}
 #alert{background:#7f1d1d;border:2px solid var(--red);display:flex;gap:8px;align-items:center;pointer-events:auto;white-space:normal}
 #alert b{background:#fff;color:#7f1d1d;border-radius:8px;padding:4px 8px;font-size:12px;white-space:nowrap}
@@ -106,10 +120,12 @@ button{font:inherit;color:inherit}
     <div class="nm"><span class="flag" id="myFlag"></span><span id="myName"></span></div>
     <div class="bar"><i id="poolBar"></i></div>
     <div class="row"><span>🪖 Reserve <b id="pool">0</b></span><span>🗺️ <b id="share">0%</b> / <span id="goal">60%</span></span><span id="clock">0:00</span></div>
+    <div id="focusLine"></div>
   </div>
   <div id="tr">
     <div><button class="tb" id="bPause" type="button" aria-label="Pauze">⏸</button><button class="tb" id="bMenu" type="button" aria-label="Menu">☰</button></div>
     <div><button class="tb" id="bFac" type="button" aria-label="Allianties">🤝</button><button class="tb" id="bRank" type="button" aria-label="Ranglijst">🏆</button></div>
+    <div><button class="tb" id="bFocus" type="button" aria-label="Focusboom" style="width:94px;font-size:14px;font-weight:800">🎯 Focus</button></div>
   </div>
 </div>
 <div id="peace" class="hidden"></div>
@@ -134,14 +150,45 @@ const WZ = (() => {
   "use strict";
   const WIN = 0.5;
   const DIFF = {
-    relaxed: { naam: "Relaxed", prod: 0.75, aggr: 0.55, think: 1.6, meBonus: 1.3, focusMe: 0.6, meProd: 1.5, coalMe: 0.15 },
-    standaard: { naam: "Standaard", prod: 0.85, aggr: 0.85, think: 1.15, meBonus: 1.1, focusMe: 0.8, meProd: 1.35, coalMe: 0.45 },
-    brutaal: { naam: "Brutaal", prod: 1.35, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
+    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, prod: 0.75, aggr: 0.55, think: 1.6, meBonus: 1.3, focusMe: 0.6, meProd: 1.5, coalMe: 0.15 },
+    standaard: { naam: "Standaard", capMe: 2.2, protect: 150, ftime: 1.4, fxs: 0.7, prod: 0.85, aggr: 0.85, think: 1.15, meBonus: 1.1, focusMe: 0.8, meProd: 1.35, coalMe: 0.45 },
+    brutaal: { naam: "Brutaal", capMe: 1.4, protect: 75, ftime: 1, fxs: 1, prod: 1.35, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
   };
   const K = 0.07;               // gevechtskracht per seconde
   const PEACE = 25;             // seconden voorbereiding
   const MIN_ARMY = 60;
-  const TUNE = { mil: 3000, cap: 2600, rate: 8, speed: 0.6, milHit: 0.8, botSpend: 0.4, pk: 2.6, pe: 0.6, core: 0.4, giant: 16, coal: 5 };
+  const TUNE = { mil: 3000, cap: 2600, rate: 8, speed: 0.6, milHit: 0.8, botSpend: 0.4, pk: 2.6, pe: 0.6, core: 0.4, giant: 16, coal: 5, neutral: 420, spawnArmy: 2200 };
+
+  // ---------- focusboom (evolutieboom) ----------
+  const FOCUS = {
+    industrie: { naam: "Industrialisatie", icon: "🏭", tijd: 40, req: [], fx: { rate: 0.25 }, info: "+25% reserve-groei" },
+    leger: { naam: "Herbewapening", icon: "🪖", tijd: 45, req: ["industrie"], fx: { cap: 0.25 }, info: "+25% maximale reserve" },
+    vloot: { naam: "Vlootbouw", icon: "⚓", tijd: 40, req: ["industrie"], fx: { sea: 0.5 }, info: "schepen 50% sneller, landingen sterker" },
+    wegen: { naam: "Spoorwegen", icon: "🚂", tijd: 50, req: ["vloot"], fx: { speed: 0.3 }, info: "legers 30% sneller" },
+    demo: { naam: "Democratie", icon: "🔵", tijd: 50, req: ["leger"], excl: ["fasc", "comm"], ideo: "demo", fx: { def: 0.25 }, info: "verdediging +25%, makkelijker bondgenoten" },
+    fasc: { naam: "Fascisme", icon: "⚫", tijd: 50, req: ["leger"], excl: ["demo", "comm"], ideo: "fasc", fx: { atk: 0.2 }, info: "aanvallen 20% sterker" },
+    comm: { naam: "Communisme", icon: "🔴", tijd: 50, req: ["leger"], excl: ["demo", "fasc"], ideo: "comm", fx: { rate: 0.3 }, info: "+30% reserve-groei" },
+    demo2: { naam: "Arsenaal der democratie", icon: "🏦", tijd: 60, req: ["demo"], fx: { rate: 0.3, cap: 0.2 }, info: "+30% groei, +20% reserve" },
+    fasc2: { naam: "Blitzkrieg", icon: "⚡", tijd: 60, req: ["fasc"], fx: { speed: 0.4, atk: 0.1 }, info: "legers 40% sneller, +10% aanval" },
+    comm2: { naam: "Rode Leger", icon: "☭", tijd: 60, req: ["comm"], fx: { cap: 0.4 }, info: "+40% maximale reserve" },
+    demo3: { naam: "Vrije wereld", icon: "🗽", tijd: 75, req: ["demo2"], fx: { def: 0.2, atk: 0.1 }, info: "+20% verdediging, +10% aanval" },
+    fasc3: { naam: "Totale oorlog", icon: "🔥", tijd: 75, req: ["fasc2"], fx: { atk: 0.2, rate: 0.15 }, info: "+20% aanval, +15% groei" },
+    comm3: { naam: "Vijfjarenplan", icon: "🏗️", tijd: 75, req: ["comm2"], fx: { rate: 0.3, def: 0.1 }, info: "+30% groei, +10% verdediging" }
+  };
+  const IDEO = { demo: { naam: "Geallieerden", icon: "🔵" }, fasc: { naam: "Asmogendheden", icon: "⚫" }, comm: { naam: "Komintern", icon: "🔴" } };
+  function calcFx(n) {
+    const f = { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 }, sc = n.bot ? (n.fxs || 1) : 1;
+    for (const k of (n.focus ? n.focus.done : [])) { const F = FOCUS[k]; if (F) for (const e in F.fx) f[e] += F.fx[e] * sc; }
+    n.fx = f; return f;
+  }
+  const FX = n => (n && (n.fx || calcFx(n))) || { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 };
+  function focusOk(n, k) {
+    const F = FOCUS[k], fo = n && n.focus; if (!F || !fo || fo.cur || fo.done.includes(k)) return false;
+    if (!F.req.every(r => fo.done.includes(r))) return false;
+    if (F.excl && F.excl.some(r => fo.done.includes(r))) return false;
+    return true;
+  }
+  function startFocus(s, id, k) { const n = s.nations[id]; if (!focusOk(n, k)) return false; n.focus.cur = k; n.focus.left = FOCUS[k].tijd * (n.bot ? DIFF[s.diff].ftime : 1); return true; }
 
   // ---------- bekende landkleuren (HOI/RoFront-achtig) ----------
   const KNOWN = {
@@ -156,6 +203,7 @@ const WZ = (() => {
     "Servië": "#9a5a6a", "Kroatië": "#5a6a9a", "Groenland": "#c7d6de", "Pakistan": "#3a7a4a", "Afghanistan": "#9a8a5a", "Irak": "#9a6a4a",
     "Syrië": "#a87c5a", "Thailand": "#6a4ac9", "Vietnam": "#c9a83a", "Peru": "#c94a4a", "Chili": "#a83a5a", "Colombia": "#d6c23a", "Venezuela": "#8a3a3a"
   };
+  const ME_COL = [0, 214, 255];
   function hsl(h, s, l) { const a = s * Math.min(l, 1 - l), f = n => { const k = (n + h / 30) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); }; return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)]; }
   const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
   function colorFor(name, i) { if (KNOWN[name]) return hex(KNOWN[name]); let x = 0; for (const c of name) x = (x * 31 + c.charCodeAt(0)) >>> 0; return hsl((x % 360 + i * 47) % 360, 0.55 + (x % 7) * 0.04, 0.42 + ((x >> 4) % 5) * 0.05); }
@@ -256,16 +304,64 @@ const WZ = (() => {
   const pdist = (w, a, b) => { let dx = Math.abs(w.cx[a] - w.cx[b]); if (w.wrap) dx = Math.min(dx, w.W - dx); return Math.hypot(dx, w.cy[a] - w.cy[b]); };
 
   // ---------- nieuw spel ----------
+  const newNation = (s, id, name, i, cap, extra) => Object.assign({ id, name, col: colorFor(name, i), bot: true, alive: true, pool: 0, capital: cap, tiles: 0, provs: 0, val: 0, allies: [], fac: 0, target: 0, mode: "", nextT: 0, think: Math.random() * 2, traitorUntil: -1, killedBy: 0, made: 0, ideo: null, focus: { done: [], cur: null, left: 0 }, fxs: s.diff ? DIFF[s.diff].fxs : 1 }, extra || {});
   function newGame(w, opts) {
+    return opts.mode === "spawn" ? newSpawnGame(w, opts) : newCountryGame(w, opts);
+  }
+  // RoFront-stijl: lege kaart, iedereen kiest een startplek en breidt uit in niemandsland
+  function newSpawnGame(w, opts) {
     const diff = DIFF[opts.diff] ? opts.diff : "standaard";
-    const s = { v: 2, t: 0, diff, map: opts.map, size: opts.size, owner: new Int16Array(w.P), mil: new Float32Array(w.P), nations: [null], armies: [], factions: [], seq: 1, over: null, winner: 0, ev: [], me: 0, peaceUntil: PEACE, think: 0 };
+    const s = { v: 2, mode: "spawn", t: 0, diff, map: opts.map, size: opts.size, owner: new Int16Array(w.P), mil: new Float32Array(w.P), nations: [null], armies: [], factions: [], seq: 1, over: null, winner: 0, ev: [], me: 0, peaceUntil: PEACE + 35, think: 0 };
+    s.core = new Array(w.P).fill(0);
+    for (let p = 0; p < w.P; p++) s.mil[p] = milMax(w, s, p);
+    const bots = Math.max(1, Math.min(opts.bots || 20, 80));
+    const cand = []; for (let p = 0; p < w.P; p++) if (w.size[p] >= w.PS * 0.45 && w.adj[p].length) cand.push(p);
+    const minD = Math.sqrt(w.PS) * Math.max(2.2, 7 - bots / 10);
+    const used = new Map();
+    for (let k = 0, tries = 0; k < bots && tries < 4000; tries++) {
+      const p = cand[(Math.random() * cand.length) | 0];
+      if (s.owner[p]) continue;
+      if (s.nations.some(n => n && pdist(w, n.capital, p) < minD) && tries < 3000) continue;
+      const base = w.names[w.pCtry[p]] || "Land", c = (used.get(base) || 0) + 1; used.set(base, c);
+      const id = s.nations.length;
+      s.nations.push(newNation(s, id, c > 1 ? base + " " + ["", "", "II", "III", "IV", "V", "VI"][Math.min(c, 6)] : base, id, p));
+      spawnAt(w, s, id, p); k++;
+    }
+    return s;
+  }
+  function spawnAt(w, s, id, p) {
+    const n = s.nations[id];
+    s.owner[p] = id; s.core[p] = id; n.capital = p;
+    recountOne(w, s, id);
+    s.mil[p] = milMax(w, s, p);
+    n.pool = 2500; addArmy(s, id, p, TUNE.spawnArmy);
+    n.goal = Math.min(0.95, Math.max(0.7, 0.3));
+  }
+  // Speler kiest een startplek op niemandsland
+  function spawnPlayer(w, s, p, name) {
+    if (!(p >= 0 && p < w.P)) return { err: "geen geldige plek" };
+    if (s.owner[p]) return { err: "daar zit al iemand" };
+    if (!w.adj[p].length && !w.seaAdj[p].length) return { err: "te klein eiland" };
+    for (const n of s.nations) if (n && pdist(w, n.capital, p) < Math.sqrt(w.PS) * 1.6) return { err: "te dicht bij " + n.name };
+    const id = s.nations.length;
+    s.nations.push(newNation(s, id, name || (w.names[w.pCtry[p]] || "Jouw rijk"), id, p, { col: ME_COL.slice() }));
+    // computerlanden die op jouw kleur lijken krijgen een andere kleur
+    for (const n of s.nations) if (n && n.id !== id && Math.abs(n.col[0] - ME_COL[0]) + Math.abs(n.col[1] - ME_COL[1]) + Math.abs(n.col[2] - ME_COL[2]) < 170) n.col = hsl((n.id * 67) % 360 < 160 ? (n.id * 67) % 360 : ((n.id * 67) % 160) + 280 > 359 ? 20 : ((n.id * 67) % 160) + 280, 0.6, 0.45);
+    spawnAt(w, s, id, p);
+    choose(w, s, id);
+    s.nations[id].goal = WIN; s.nations[id].immuneUntil = s.t + DIFF[s.diff].protect;
+    return { ok: true, id };
+  }
+  function newCountryGame(w, opts) {
+    const diff = DIFF[opts.diff] ? opts.diff : "standaard";
+    const s = { v: 2, mode: "landen", t: 0, diff, map: opts.map, size: opts.size, owner: new Int16Array(w.P), mil: new Float32Array(w.P), nations: [null], armies: [], factions: [], seq: 1, over: null, winner: 0, ev: [], me: 0, peaceUntil: PEACE, think: 0 };
     const byC = new Map();
     for (let p = 0; p < w.P; p++) { const c = w.pCtry[p]; if (!byC.has(c)) byC.set(c, []); byC.get(c).push(p); }
     let i = 0;
     for (const [c, ps] of byC) {
       const id = s.nations.length, name = w.names[c] || "Land " + id;
       const cap = ps.reduce((a, b) => w.size[b] > w.size[a] ? b : a, ps[0]);
-      s.nations.push({ id, name, c, col: colorFor(name, i++), bot: true, alive: true, pool: 0, capital: cap, tiles: 0, provs: 0, allies: [], fac: 0, target: 0, nextT: 0, think: Math.random() * 2, traitorUntil: -1, killedBy: 0, made: 0 });
+      s.nations.push(newNation(s, id, name, i++, cap, { c }));
       for (const p of ps) { s.owner[p] = id; }
     }
     s.core = Array.from(s.owner);
@@ -295,8 +391,8 @@ const WZ = (() => {
   const pval = n => TUNE.pk * Math.pow(Math.max(0, n.val), TUNE.pe);
   const provVal = (w, s, p, id) => w.val[p] * (s.nations[id] && s.nations[id].capital === p ? 2 : 1) * (!s.core || s.core[p] === id ? 1 : TUNE.core);
   function recountOne(w, s, id) { const n = s.nations[id]; n.tiles = 0; n.provs = 0; n.val = 0; for (let p = 0; p < w.P; p++) if (s.owner[p] === id) { n.tiles += w.size[p]; n.provs++; n.val += provVal(w, s, p, id); } }
-  const poolCap = (w, s, id) => 1500 + pval(s.nations[id]) * TUNE.cap;
-  const milMax = (w, s, p) => { const n = s.nations[s.owner[p]]; return w.val[p] * TUNE.mil * (n && n.capital === p ? 2.2 : 1) * (n ? 1 + 0.8 / Math.max(1, n.provs) : 1); };
+  const poolCap = (w, s, id) => (1500 + pval(s.nations[id]) * TUNE.cap) * FX(s.nations[id]).cap;
+  const milMax = (w, s, p) => { if (!s.owner[p]) return w.val[p] * TUNE.neutral; const n = s.nations[s.owner[p]]; return w.val[p] * TUNE.mil * (n && n.capital === p ? 2.2 * (n.id === s.me ? DIFF[s.diff].capMe : 1) : 1) * (n ? 1 + 0.8 / Math.max(1, n.provs) : 1); };
   const border = (w, s, p) => { let b = 0; for (const q of w.adj[p]) if (s.owner[q] !== s.owner[p]) b++; return b; };
 
   // ---------- relaties ----------
@@ -322,6 +418,8 @@ const WZ = (() => {
     if (B.target === from) p -= 0.5;
     if (s.diff === "brutaal" && from === s.me) p -= 0.15;
     if (s.diff === "relaxed" && from === s.me) p += 0.15;
+    if (A.ideo && A.ideo === B.ideo) p += 0.25; else if (A.ideo && B.ideo) p -= 0.2;
+    if (FX(A).def > 1.2 || FX(B).def > 1.2) p += 0.1;
     return Math.max(0, Math.min(0.92, p));
   }
   // Eén knop "alliantie vragen": wordt lid, nodigt uit, of richt samen een alliantie op.
@@ -432,19 +530,18 @@ const WZ = (() => {
     // productie
     for (const n of s.nations) {
       if (!n || !n.alive) continue;
-      const cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd);
+      const f = FX(n), cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd) * f.rate;
       n.pool = Math.min(cap, n.pool + rate * dt);
+      if (n.focus && n.focus.cur) { n.focus.left -= dt; if (n.focus.left <= 0) { const k = n.focus.cur; n.focus.done.push(k); n.focus.cur = null; if (FOCUS[k].ideo) n.ideo = FOCUS[k].ideo; calcFx(n); s.ev.push({ type: "focus", id: n.id, k }); } }
     }
-    // militie herstelt
-    for (let p = 0; p < w.P; p++) { const m = milMax(w, s, p); if (s.mil[p] < m) s.mil[p] = Math.min(m, s.mil[p] + m * 0.03 * dt); }
     // beweging + gevechten
     const att = new Map(); // provincie -> aanvallende legers
     for (const a of s.armies) {
       if (!a.path.length) { a.fight = 0; continue; }
       const step = a.path[0], qv = step.q, len = Math.max(1, step.sea ? (w.seaAdj[a.p].find(e => e.q === qv) || { d: pdist(w, a.p, qv) }).d + 4 : pdist(w, a.p, qv));
-      const speed = (step.sea ? 10 : 8) * w.L * TUNE.speed;
-      const hostileQ = hostile(s, a.o, s.owner[qv]);
-      if (hostileQ && s.t < s.peaceUntil) { a.prog = Math.min(a.prog, 0.45); continue; }
+      const fA = FX(s.nations[a.o]), speed = (step.sea ? 10 * fA.sea : 8) * w.L * TUNE.speed * fA.speed;
+      const ownQ = s.owner[qv], hostileQ = ownQ === 0 || hostile(s, a.o, ownQ);
+      if (hostileQ && ownQ !== 0 && (s.t < s.peaceUntil || s.t < (s.nations[ownQ].immuneUntil || 0))) { a.prog = Math.min(a.prog, 0.45); continue; }
       a.sea = step.sea && a.prog < 0.95;
       if (hostileQ) {
         a.prog = Math.min(0.5, a.prog + speed * dt / len);
@@ -455,6 +552,8 @@ const WZ = (() => {
       }
     }
     for (const [q, list] of att) battle(w, s, q, list, dt);
+    // verdediging herstelt, maar niet tijdens een aanval
+    for (let p = 0; p < w.P; p++) { if (att.has(p)) continue; const m = milMax(w, s, p); if (s.mil[p] < m) s.mil[p] = Math.min(m, s.mil[p] + m * 0.03 * dt); }
     s.armies = s.armies.filter(a => a.n >= 20);
     // computerlanden
     s.think -= dt;
@@ -477,11 +576,12 @@ const WZ = (() => {
     const o = s.owner[q];
     const defs = s.armies.filter(a => a.p === q && a.prog < 0.5 && (a.o === o || allied(s, a.o, o)) && a.n > 0);
     const A = attackers.reduce((x, a) => x + a.n, 0); if (A <= 0) return;
-    const seaPen = attackers.every(a => a.path[0] && a.path[0].sea) ? 0.7 : 1;
+    const fa = FX(s.nations[attackers[0].o]), fd = FX(s.nations[o]);
+    const seaPen = (attackers.every(a => a.path[0] && a.path[0].sea) ? 0.7 * Math.min(1.3, fa.sea) : 1) * fa.atk;
     const capBonus = s.nations[o] && s.nations[o].capital === q ? 1.25 : 1;
     if (defs.length) {
       const Dn = defs.reduce((x, a) => x + a.n, 0);
-      const toDef = A * K * seaPen * dt * (0.85 + Math.random() * 0.3), toAtt = Dn * K * 1.2 * capBonus * dt * (0.85 + Math.random() * 0.3);
+      const toDef = A * K * seaPen * dt * (0.85 + Math.random() * 0.3), toAtt = Dn * K * 1.2 * capBonus * fd.def * dt * (0.85 + Math.random() * 0.3);
       for (const d of defs) d.n -= toDef * d.n / Dn;
       for (const a of attackers) a.n -= toAtt * a.n / A;
       if (!s.battles) s.battles = {};
@@ -490,7 +590,7 @@ const WZ = (() => {
     } else {
       const m = s.mil[q];
       s.mil[q] = m - A * K * 1.6 * seaPen * dt;
-      for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * dt * a.n / A;
+      for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt * a.n / A;
       if (s.mil[q] <= 0) capture(w, s, q, attackers);
     }
   }
@@ -499,6 +599,7 @@ const WZ = (() => {
     const O = s.nations[o], B = s.nations[by];
     s.owner[q] = by; s.mil[q] = milMax(w, s, q) * 0.35;
     if (O) { O.tiles -= w.size[q]; O.provs--; O.val -= provVal(w, s, q, o); }
+    if (!o && s.core) s.core[q] = by;
     s.owner[q] = by; B.tiles += w.size[q]; B.provs++; B.val += provVal(w, s, q, by); s.owner[q] = by;
     for (const a of attackers) if (a.o === by || allied(s, a.o, by)) { a.fight = 0; if (a.o === by) { a.prog = 0.5; } else { a.path = []; a.prog = 0; } }
     // vreemde legers die nog in deze provincie stonden worden teruggeduwd
@@ -526,12 +627,33 @@ const WZ = (() => {
   function bot(w, s, n) {
     const id = n.id, D = DIFF[s.diff], peace = s.t < s.peaceUntil;
     const mine = s.armies.filter(a => a.o === id);
+    if (n.focus && !n.focus.cur) {
+      const opts = Object.keys(FOCUS).filter(k => focusOk(n, k));
+      if (opts.length) { if (!n.pref) n.pref = ["demo", "fasc", "comm"][(Math.random() * 3) | 0]; startFocus(s, id, opts.find(k => k.startsWith(n.pref)) || opts.find(k => !FOCUS[k].ideo) || opts[(Math.random() * opts.length) | 0]); }
+    }
+    if (n.ideo && !n.fac && Math.random() < 0.05 * D.aggr) {
+      const same = s.factions.find(f => f.ideo === n.ideo && members(s, f.id).length < 6);
+      if (same) joinFac(s, id, same.id); else if (!s.factions.some(f => f.ideo === n.ideo) && n.tiles > w.landN * 0.02) { const f = makeFac(s, id, IDEO[n.ideo].naam); f.ideo = n.ideo; }
+    }
+    // niemandsland in de buurt? eerst uitbreiden
+    const free = []; for (let p = 0; p < w.P; p++) if (s.owner[p] === 0 && w.adj[p].some(q => s.owner[q] === id)) free.push(p);
+    if (free.length && (!n.target || Math.random() < 0.6)) {
+      const maxE = Math.max(1, Math.min(6, Math.round(n.provs / 4) + 1));
+      if (n.pool > poolCap(w, s, id) * 0.25 && mine.length < maxE) { const g = free[(Math.random() * free.length) | 0]; const r = attackWithPool(w, s, id, g, 0.5); if (r.ok) mine.push(r.a); }
+      for (const a of mine) {
+        if (a.path.length) continue;
+        let best = -1, bv = Infinity; for (const q of w.adj[a.p]) if (s.owner[q] === 0) { const v = s.mil[q] + Math.random() * 200; if (v < bv) { bv = v; best = q; } }
+        if (best < 0) { let bd = Infinity; for (const q of free) { const d = pdist(w, a.p, q); if (d < bd) { bd = d; best = q; } } }
+        if (best >= 0) order(w, s, a, best);
+      }
+      if (!n.target) return;
+    }
     // doel kiezen
     if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target))) {
       n.nextT = s.t + 25 + Math.random() * 25;
       const nbs = neighbours(w, s, id); let best = 0, bs = 0; const myP = power(s, id);
       for (const [o, cnt] of nbs) {
-        if (allied(s, id, o)) continue;
+        if (allied(s, id, o) || s.t < (s.nations[o].immuneUntil || 0)) continue;
         // help bondgenoten: wie een bondgenoot aanvalt is extra interessant
         const ally = s.armies.some(a => a.o === o && a.fight && allied(s, id, a.fight)) ? 1.6 : 1;
         const pr = power(s, o) + 1;
@@ -573,16 +695,16 @@ const WZ = (() => {
     // allianties
     if (Math.random() < 0.02 * D.aggr && !n.fac) {
       const nbs = [...neighbours(w, s, id).keys()].filter(o => o !== n.target && s.nations[o].bot);
-      if (nbs.length) { const o = nbs[(Math.random() * nbs.length) | 0]; const B = s.nations[o]; if (B.fac && members(s, B.fac).length < 6 && Math.random() < 0.5) joinFac(s, id, B.fac); else if (!B.fac && n.tiles > w.landN * 0.03 && Math.random() < 0.3) { const f = makeFac(s, id, ["Geallieerden", "Asmogendheden", "Komintern", "Oostblok", "Noordpact", "Zuidelijke Bond"][s.factions.length % 6]); joinFac(s, o, f.id); } }
+      if (nbs.length) { const o = nbs[(Math.random() * nbs.length) | 0]; const B = s.nations[o]; if (B.fac && members(s, B.fac).length < 6 && Math.random() < 0.5) joinFac(s, id, B.fac); else if (!B.fac && n.tiles > w.landN * 0.03 && Math.random() < 0.3) { const f = makeFac(s, id, ["Noordpact", "Zuidelijke Bond", "Oostblok", "Westunie", "Kustliga", "Bergverbond"][s.factions.length % 6]); joinFac(s, o, f.id); } }
     }
   }
 
   // ---------- opslaan ----------
-  function serialize(s) { return JSON.stringify(Object.assign({}, s, { owner: Array.from(s.owner), mil: Array.from(s.mil, x => Math.round(x)), ev: [] })); }
-  function deserialize(w, str) { const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; recount(w, o); return o; }
+  function serialize(s) { return JSON.stringify(Object.assign({}, s, { owner: Array.from(s.owner), mil: Array.from(s.mil, x => Math.round(x)), ev: [], nations: s.nations.map(n => n && Object.assign({}, n, { fx: undefined })) })); }
+  function deserialize(w, str) { const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -599,12 +721,12 @@ let scale = 1, ox = 0, oy = 0;
 let speed = 1, paused = false, frac = 0.5, mode = "cmd";
 let sel = null, card = null, picking = false, dirty = new Set(), fullPaint = false;
 let db = null, uid = null;
-let settings = { map: "europa", size: "normaal", diff: "standaard" };
+let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20" };
 try { Object.assign(settings, JSON.parse(localStorage.getItem("wwz2set") || "{}")); } catch (e) { }
 const MAPS = [["europa", "🇪🇺 Europa"], ["wereld", "🌍 Wereld"], ["azie", "🌏 Azië"], ["afrika", "🌍 Afrika"], ["noordamerika", "🌎 Noord-Amerika"], ["zuidamerika", "🌎 Zuid-Amerika"], ["oceanie", "🏝️ Oceanië"]];
 const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(Math.max(0, Math.round(n)));
 const E = x => String(x).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
-const nm = id => id === s.me ? "Jij" : (s.nations[id] ? s.nations[id].name : "?");
+const nm = id => !id ? "Niemandsland" : id === s.me ? "Jij" : (s.nations[id] ? s.nations[id].name : "?");
 const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
 const col = id => s.nations[id] ? s.nations[id].col : [90, 100, 90];
 
@@ -645,7 +767,12 @@ const SEA = [16, 30, 52], SHALLOW = [28, 52, 82], DEEP = [11, 21, 38];
 function paintTile(i, tmp) {
   const p = i * 4;
   if (!w.land[i]) { const m = w.nb(i, tmp); let near = false; for (let k = 0; k < m; k++) if (w.land[tmp[k]]) { near = true; break; } if (near) { px[p] = SHALLOW[0]; px[p + 1] = SHALLOW[1]; px[p + 2] = SHALLOW[2]; px[p + 3] = 255; return; } const f = vnoise((i % W) / 40, ((i / W) | 0) / 40); px[p] = DEEP[0] + (SEA[0] - DEEP[0]) * f; px[p + 1] = DEEP[1] + (SEA[1] - DEEP[1]) * f; px[p + 2] = DEEP[2] + (SEA[2] - DEEP[2]) * f; px[p + 3] = 255; return; }
-  const pr = w.prov[i], o = s ? s.owner[pr] : 0, c = o ? col(o) : [120, 130, 120];
+  const pr = w.prov[i], o = s ? s.owner[pr] : 0;
+  if (!o && s && s.mode === "spawn") {
+    const f = w.cEdge[i] ? 0.62 : w.pEdge[i] ? 0.86 : 1;
+    px[p] = T[i * 4] * f; px[p + 1] = T[i * 4 + 1] * f; px[p + 2] = T[i * 4 + 2] * f; px[p + 3] = 255; return;
+  }
+  const c = o ? col(o) : [120, 130, 120];
   const a = T[i * 4 + 3];
   let r = c[0] * (1 - a) + T[i * 4] * a, g = c[1] * (1 - a) + T[i * 4 + 1] * a, b = c[2] * (1 - a) + T[i * 4 + 2] * a;
   // grenzen: tussen eigenaren dik zwart, tussen provincies dun
@@ -809,7 +936,7 @@ cv.addEventListener("pointerup", endPtr); cv.addEventListener("pointercancel", e
 cv.addEventListener("wheel", e => { e.preventDefault(); const f = Math.exp(-e.deltaY * 0.0015), ns = Math.max(minScale(), Math.min(40, scale * f)); ox = e.clientX - (e.clientX - ox) * ns / scale; oy = e.clientY - (e.clientY - oy) * ns / scale; scale = ns; clampView(); }, { passive: false });
 
 function tap(cx, cy) {
-  if (picking) { const p = provAt(cx, cy); if (p >= 0) pickCard(s.owner[p], p); return; }
+  if (picking) { const p = provAt(cx, cy); if (p >= 0) { if (s.mode === "spawn") spawnCard(p); else pickCard(s.owner[p], p); } return; }
   if (!s || s.over) return;
   const a = hitArmy(cx, cy, false);
   if (a && a.o === s.me) { if (sel === a) { sel = null; hideCard(); } else { sel = a; armyCard(a); } return; }
@@ -821,7 +948,7 @@ function tap(cx, cy) {
 function orderTo(a, p) {
   if (!s.armies.includes(a)) return;
   const r = WZ.order(w, s, a, p);
-  if (r.ok) { const o = s.owner[p]; toast(WZ.hostile(s, s.me, o) ? `⚔️ ${fmt(a.n)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🚶 Leger onderweg${r.sea ? " over zee ⛵" : ""}`); sel = null; hideCard(); }
+  if (r.ok) { const o = s.owner[p]; toast(!o ? `🌱 Leger breidt uit${r.sea ? " over zee ⛵" : ""}` : WZ.hostile(s, s.me, o) ? `⚔️ ${fmt(a.n)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🚶 Leger onderweg${r.sea ? " over zee ⛵" : ""}`); sel = null; hideCard(); }
   else toast(r.err === "geen route" ? "❌ Daar kan dit leger niet komen" : r.err === "is er al" ? "Dit leger staat daar al" : "❌ " + r.err);
 }
 function doFront(pts) {
@@ -848,11 +975,19 @@ function provCard(p) {
       <div class="btns"><button type="button" class="go" data-a="new">➕ Nieuw leger · ${fmt(amount)}</button><button type="button" data-a="x">✖️ Sluiten</button></div>`, { p });
     return;
   }
+  if (!o) {
+    const nearest0 = nearestArmy(p);
+    showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:#8a9a6a"></span><div class="ttl">🌱 Niemandsland${regionName(p) ? " · " + E(regionName(p)) : ""}</div><div class="rel">Vrij land</div></div>
+      <div class="info">🛡️ Lokale verdediging ${fmt(mil)} · ${amount > mil * 1.3 ? "✅ je reserve is sterk genoeg" : "⚠️ te weinig reserve: kies 100% onderin, of stuur een leger"}</div>
+      <div class="btns"><button type="button" class="atk" data-a="atk" ${amount < WZ.MIN_ARMY ? "disabled" : ""}>⚔️ Uitbreiden · ${fmt(amount)}</button>${nearest0 ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest0.n)}</button>` : `<button type="button" data-a="x">✖️ Sluiten</button>`}
+      ${nearest0 ? `<button type="button" class="wide" data-a="x">✖️ Sluiten</button>` : ""}</div>`, { p });
+    return;
+  }
   const al = WZ.allied(s, s.me, o), f = n && n.fac ? WZ.facOf(s, n.fac) : null;
   const atkMe = s.armies.some(a => a.o === o && a.fight === s.me);
   const nearest = nearestArmy(p);
   showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${al ? "🤝 Bondgenoot" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
-    <div class="info">🛡️ Verdediging ${fmt(mil)}${defs ? ` + 🪖 ${fmt(defs)} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}</div>
+    <div class="info">🛡️ Verdediging ${fmt(mil)}${defs ? ` + 🪖 ${fmt(defs)} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${!al && amount < (mil + defs) ? " · ⚠️ je aanval is waarschijnlijk te zwak" : ""}</div>
     <div class="btns">${al ? `<button type="button" disabled>🤝 Bondgenoot</button><button type="button" data-a="betray">🗡️ Verraad</button>` :
       `<button type="button" class="atk" data-a="atk" ${amount < WZ.MIN_ARMY ? "disabled" : ""}>⚔️ Aanvallen · ${fmt(amount)}</button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
       ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
@@ -867,6 +1002,16 @@ function armyCard(a) {
     <button type="button" class="go" data-a="reinf" ${canReinf ? "" : "disabled"}>➕ Versterken · ${fmt(s.nations[s.me].pool * frac)}</button><button type="button" data-a="x">✖️ Sluiten</button></div>
     <div class="hint">👉 Tik nu op een provincie, of sleep het leger erheen.</div>`, { army: a, p: a.p });
 }
+function spawnCard(p) {
+  const o = s.owner[p], reg = regionName(p) || "dit gebied";
+  if (o) { showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">${E(s.nations[o].name)}</div><div class="rel">Bezet</div></div><div class="info">Hier begint al een tegenstander. Kies een plek in het niemandsland (de gekleurde aarde zonder vlag).</div>`, { p }); return; }
+  let near = Infinity, who = ""; for (const n of s.nations) if (n) { const d = WZ.pdist(w, n.capital, p); if (d < near) { near = d; who = n.name; } }
+  const free = w.adj[p].filter(q => !s.owner[q]).length, prov = Math.sqrt(w.PS);
+  const tip = near < prov * 1.6 ? "❌ Te dicht bij " + E(who) : near < prov * 3.5 ? "⚠️ " + E(who) + " is vlakbij" : "✅ Rustige plek";
+  showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:#2f7cf6"></span><div class="ttl">🌱 ${E(reg)}</div><div class="rel">Niemandsland</div></div>
+    <div class="info">${tip} · ${free} vrije buurprovincie${free === 1 ? "" : "s"} om in uit te breiden</div>
+    <div class="btns"><button type="button" class="go wide" data-a="spawn">▶ Begin hier</button></div>`, { spawn: p, p });
+}
 function pickCard(o, p) {
   const n = s.nations[o];
   showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">${E(n.name)}</div><div class="rel">${n.provs} provincie${n.provs === 1 ? "" : "s"}</div></div>
@@ -877,6 +1022,7 @@ $("card").addEventListener("click", e => {
   const b = e.target.closest("[data-a]"); if (!b || !card) return; const act = b.dataset.a, c = card;
   if (act === "x") { sel = null; hideCard(); return; }
   if (act === "play") { startAs(c.pick); return; }
+  if (act === "spawn") { const r = WZ.spawnPlayer(w, s, c.spawn, regionName(c.spawn)); if (!r.ok) { toast("❌ " + r.err); return; } startAs(r.id, true); return; }
   const me = s.nations[s.me];
   if (c.army) {
     const a = c.army; if (!s.armies.includes(a)) { hideCard(); return; }
@@ -887,7 +1033,7 @@ $("card").addEventListener("click", e => {
   }
   const p = c.p, o = s.owner[p];
   if (act === "new") { const r = WZ.createArmy(w, s, s.me, p, me.pool * frac); if (r.ok) { toast(`🪖 Nieuw leger van ${fmt(r.a.n)}`); sel = r.a; armyCard(r.a); } else toast("❌ " + r.err); }
-  if (act === "atk") { const r = WZ.attackWithPool(w, s, s.me, p, frac); if (r.ok) { toast(`⚔️ ${fmt(r.troops)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}`); hideCard(); } else toast("❌ " + (r.err === "geen route" ? "daar kun je niet komen" : r.err)); }
+  if (act === "atk") { const r = WZ.attackWithPool(w, s, s.me, p, frac); if (r.ok) { toast(o ? `⚔️ ${fmt(r.troops)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🌱 ${fmt(r.troops)} troepen breiden uit${r.sea ? " over zee ⛵" : ""}`); hideCard(); } else toast("❌ " + (r.err === "geen route" ? "daar kun je niet komen" : r.err)); }
   if (act === "send") { const a = nearestArmy(p); if (a) orderTo(a, p); }
   if (act === "ally") { const r = WZ.askAlliance(s, s.me, o); if (r.ok) { toast(r.kind === "join" ? `🤝 Je zit nu in ${r.f.naam}!` : r.kind === "invite" ? `🤝 ${nm(o)} doet mee met ${r.f.naam}!` : `🤝 ${nm(o)} en jij vormen nu ${r.f.naam}!`); provCard(p); } else toast(`❌ ${nm(o)}: ${r.err}`); }
   if (act === "betray") { if (b.dataset.sure) { WZ.betray(s, s.me, o); toast(`🗡️ Je verraadt ${nm(o)}!`); provCard(p); } else { b.dataset.sure = 1; b.textContent = "Zeker?"; } }
@@ -906,7 +1052,13 @@ function hud() {
   $("pool").textContent = fmt(me.pool); $("poolBar").style.width = Math.min(100, me.pool / cap * 100) + "%";
   $("share").textContent = (WZ.share(w, s, s.me) * 100).toFixed(1) + "%"; $("goal").textContent = Math.round(me.goal * 100) + "%";
   const t = Math.floor(s.t); $("clock").textContent = "⏱ " + Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
-  const pz = $("peace"); if (s.t < s.peaceUntil) { pz.textContent = `🕊️ Voorbereiding · ${Math.ceil(s.peaceUntil - s.t)}s · zet je legers klaar`; pz.classList.remove("hidden"); } else pz.classList.add("hidden");
+  const fo = me.focus, fl = $("focusLine");
+  if (fo && fo.cur) { const F = WZ.FOCUS[fo.cur]; fl.className = ""; fl.textContent = `🎯 ${F.icon} ${F.naam} · nog ${Math.ceil(fo.left)}s`; $("bFocus").classList.remove("glow"); }
+  else if (fo && Object.keys(WZ.FOCUS).some(k => WZ.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Kies een nieuwe focus (knop 🎯 Focus)"; $("bFocus").classList.add("glow"); }
+  else { fl.className = ""; fl.textContent = me.ideo ? `${WZ.IDEO[me.ideo].icon} ${WZ.IDEO[me.ideo].naam}` : ""; $("bFocus").classList.remove("glow"); }
+  const pz = $("peace");
+  if (me.immuneUntil && s.t < me.immuneUntil && s.t >= s.peaceUntil) { pz.textContent = `🛡️ Startbescherming · nog ${Math.ceil(me.immuneUntil - s.t)}s niemand kan je aanvallen`; pz.classList.remove("hidden"); }
+  else if (s.t < s.peaceUntil) { pz.textContent = `🕊️ Voorbereiding · ${Math.ceil(s.peaceUntil - s.t)}s · zet je legers klaar`; pz.classList.remove("hidden"); } else pz.classList.add("hidden");
   // dreiging: vijandelijke legers die mij aanvallen (zee apart)
   const inc = s.armies.filter(a => a.o !== s.me && a.path.length && s.owner[a.path[0].q] === s.me && WZ.hostile(s, a.o, s.me));
   const al = $("alert");
@@ -926,6 +1078,7 @@ function onEvents(evs) {
     else if (e.type === "join" && e.id !== s.me && s.nations[s.me].fac && e.fac === s.nations[s.me].fac) toast(`🤝 ${nm(e.id)} sluit zich aan bij je alliantie`);
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
+    else if (e.type === "focus" && e.id === s.me) { const F = WZ.FOCUS[e.k]; toast(`🎯 Focus klaar: ${F.icon} ${F.naam} (${F.info})`); }
   }
 }
 
@@ -947,7 +1100,7 @@ function loop(ts) {
 }
 
 // ---------- menu's ----------
-function ov(html) { $("ovc").innerHTML = html; $("ov").classList.remove("hidden"); }
+function ov(html) { $("ovc").onclick = null; $("ovc").innerHTML = html; $("ov").classList.remove("hidden"); }
 function closeOv() { $("ov").classList.add("hidden"); }
 const opts = (id, list, cur) => `<div class="opts" id="${id}">${list.map(([v, l]) => `<button type="button" data-v="${v}" class="${v === cur ? "on" : ""}">${l}</button>`).join("")}</div>`;
 function bindOpts(id, fn) { $(id).onclick = e => { const b = e.target.closest("button"); if (!b) return; $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); fn(b.dataset.v); }; }
@@ -957,18 +1110,24 @@ function menu(resumeData) {
   ov(`<div class="logo"><svg width="44" height="44" viewBox="0 0 64 64"><defs><radialGradient id="lg" cx="40%" cy="35%"><stop offset="0" stop-color="#6fb1ff"/><stop offset="1" stop-color="#123a6b"/></radialGradient></defs><circle cx="32" cy="32" r="28" fill="url(#lg)" stroke="#000" stroke-width="3"/><path d="M14 26c6-6 12-2 16-6s10 2 12 8-6 6-4 12-8 8-12 4-10-2-12-8z" fill="#3fae4a" stroke="#000" stroke-width="2"/><path d="M44 14l6 6-4 2 6 6" stroke="#f5b531" stroke-width="3" fill="none"/></svg><b>World<span>War</span>Zones</b></div>
     <p>Kies een land, bouw legers en verover provincie na provincie.</p>
     ${resumeData ? `<button class="big red" id="mRes" type="button">▶ Verder met je spel als ${E(resumeData.naam || "")}</button><div class="lab">Of begin opnieuw</div>` : ""}
+    <div class="lab">Spelvorm</div>${opts("oMode", [["spawn", "🌱 Startplek kiezen (RoFront)"], ["landen", "🗺️ Echte landen (HOI)"]], settings.mode)}
+    <div id="botsBox" class="${settings.mode === "spawn" ? "" : "hidden"}"><div class="lab">Tegenstanders</div>${opts("oBots", [["10", "10"], ["20", "20"], ["40", "40"], ["70", "70"]], settings.bots)}</div>
     <div class="lab">Kaart</div>${opts("oMap", MAPS, settings.map)}
     <div class="lab">Grootte</div>${opts("oSize", [["normaal", "Normaal · ~320 provincies"], ["groot", "Groot · ~560 provincies"]], settings.size)}
     <div class="lab">Moeilijkheid</div>${opts("oDiff", [["relaxed", "😌 Relaxed"], ["standaard", "⚔️ Standaard"], ["brutaal", "💀 Brutaal"]], settings.diff)}
-    <button class="big ${resumeData ? "" : "red"}" id="mGo" type="button">🌍 Kies je land</button>
+    <button class="big ${resumeData ? "" : "red"}" id="mGo" type="button">${settings.mode === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"}</button>
     <button class="big" id="mHelp" type="button" style="min-height:44px;font-size:14px">❔ Hoe speel je?</button>`);
+  bindOpts("oMode", v => { settings.mode = v; keepSet(); $("botsBox").classList.toggle("hidden", v !== "spawn"); $("mGo").textContent = v === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"; });
+  bindOpts("oBots", v => { settings.bots = v; keepSet(); });
   bindOpts("oMap", v => { settings.map = v; keepSet(); }); bindOpts("oSize", v => { settings.size = v; keepSet(); }); bindOpts("oDiff", v => { settings.diff = v; keepSet(); });
   $("mGo").onclick = () => { clearSave(); startPick(); };
   $("mHelp").onclick = () => help(() => menu(resumeData));
   if (resumeData) $("mRes").onclick = () => resume(resumeData);
 }
 const HELP = `<div class="help">
-  <div class="st"><i>🎯</i><div><b>Doel:</b> verover genoeg van de kaart (meestal 60%). Je doel staat bovenin.</div></div>
+  <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
+  <div class="st"><i>🏁</i><div><b>Doel:</b> verover genoeg van de kaart. Je doel staat bovenin.</div></div>
+  <div class="st"><i>🎯</i><div><b>Focusboom:</b> tik op <b>🎯 Focus</b> en kies doelen voor blijvende bonussen. Na Herbewapening kies je Democratie, Fascisme of Communisme.</div></div>
   <div class="st"><i>🪖</i><div><b>Legers</b> zijn de fiches op de kaart met een getal: het aantal soldaten. Je <b>reserve</b> groeit vanzelf. Hoe meer provincies, hoe sneller.</div></div>
   <div class="st"><i>1️⃣</i><div><b>Leger verplaatsen:</b> tik op je leger en daarna op een provincie. Of sleep het leger er met je vinger heen.</div></div>
   <div class="st"><i>2️⃣</i><div><b>Snel aanvallen:</b> tik op een vijandelijke provincie en kies <b>⚔️ Aanvallen</b>. Er vertrekt een nieuw leger met het percentage dat je onderin kiest (25, 50 of 100% van je reserve).</div></div>
@@ -980,18 +1139,20 @@ const HELP = `<div class="help">
 function help(back) { ov(`<h2>❔ Hoe speel je?</h2>${HELP}<button class="big red" id="hB" type="button">Snap ik</button>`); $("hB").onclick = back; }
 async function startPick() {
   closeOv(); await loadMap(settings.map + "-" + settings.size);
-  s = WZ.newGame(w, { diff: settings.diff, map: mapId, size: settings.size }); s.me = 0;
+  s = WZ.newGame(w, { mode: settings.mode, bots: +settings.bots, diff: settings.diff, map: mapId, size: settings.size }); s.me = 0;
+  $("pickHint").textContent = s.mode === "spawn" ? "🌱 Tik op een plek in niemandsland om te beginnen" : "👆 Tik op het land waarmee je wilt spelen";
   fullPaint = true; paintAll(); labelT = -9;
   picking = true; $("pickHint").classList.remove("hidden"); $("hud").classList.add("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.add("hidden"); $("pctLbl").classList.add("hidden");
   scale = minScale(); if (w.wrap) { ox = VW / 2 - W * 0.53 * scale; } clampView();
 }
-function startAs(id) {
+function startAs(id, spawned) {
   picking = false; $("pickHint").classList.add("hidden"); $("bar").classList.remove("hidden"); $("pctLbl").classList.remove("hidden");
-  WZ.choose(w, s, id); hideCard();
+  if (!spawned) WZ.choose(w, s, id); hideCard();
   $("myName").textContent = s.nations[id].name; $("myFlag").style.background = css(col(id));
   $("hud").classList.remove("hidden"); speed = 1; paused = false; $("bPause").textContent = "⏸";
   focusProv(s.nations[id].capital, Math.max(minScale() * 2.2, 3 / w.L)); paintAll(); save();
-  toast(`★ Je speelt als ${s.nations[id].name}. Tik op je leger om te beginnen!`);
+  toast(spawned ? `🌱 Je begint in ${s.nations[id].name}. Breid uit in het niemandsland!` : `★ Je speelt als ${s.nations[id].name}. Tik op je leger om te beginnen!`);
+  if (spawned) focusProv(s.nations[id].capital, Math.max(minScale() * 3, 5 / w.L));
 }
 function pauseMenu() {
   if (!s || s.over) return; paused = true; $("bPause").textContent = "▶";
@@ -1036,7 +1197,20 @@ function end() {
   $("eN").onclick = () => menu(null);
 }
 $("bPause").onclick = () => { if (!s || s.over) return; paused = !paused; $("bPause").textContent = paused ? "▶" : "⏸"; toast(paused ? "⏸ Gepauzeerd" : "▶ Verder"); };
-$("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel;
+$("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel;
+const FROWS = [["", "industrie", ""], ["leger", "", "vloot"], ["demo", "fasc", "comm"], ["demo2", "fasc2", "comm2"], ["demo3", "fasc3", "comm3"], ["", "wegen", ""]];
+function focusPanel() {
+  if (!s || s.over || picking) return; paused = true; $("bPause").textContent = "▶";
+  const me = s.nations[s.me], fo = me.focus;
+  const node = k => { if (!k) return `<div class="fn e"></div>`; const F = WZ.FOCUS[k];
+    const st = fo.done.includes(k) ? "done" : fo.cur === k ? "cur" : WZ.focusOk(me, k) ? "ok" : (F.excl && F.excl.some(x => fo.done.includes(x) || fo.cur === x)) ? "x" : "lock";
+    return `<button type="button" class="fn ${st}" data-k="${k}"><i>${F.icon}</i>${E(F.naam)}<small>${st === "cur" ? "⏳ nog " + Math.ceil(fo.left) + "s" : st === "done" ? "✓ klaar" : E(F.info)}</small></button>`; };
+  ov(`<h2>🎯 Focusboom</h2><p>Kies één doel tegelijk; elk doel geeft een blijvende bonus. Na <b>Herbewapening</b> kies je een ideologie. Die keuze is definitief en bepaalt bij welke alliantie je hoort: ${WZ.IDEO.demo.icon} Geallieerden, ${WZ.IDEO.fasc.icon} Asmogendheden of ${WZ.IDEO.comm.icon} Komintern.</p>
+    <div class="ftree">${FROWS.map((r, i) => (i === 2 ? `<div class="frow">IDEOLOGIE · KIES ER ÉÉN</div>` : i === 5 ? `<div class="frow">NA VLOOTBOUW</div>` : "") + r.map(node).join("")).join("")}</div>
+    <button class="big red" id="fB" type="button">Verder spelen</button>`);
+  $("ovc").onclick = e => { const b = e.target.closest(".fn.ok"); if (!b) return; if (WZ.startFocus(s, s.me, b.dataset.k)) { toast(`🎯 Focus gestart: ${WZ.FOCUS[b.dataset.k].naam}`); focusPanel(); } };
+  $("fB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
+}
 
 // ---------- kaart laden ----------
 const mapCache = {};
