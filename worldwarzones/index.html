@@ -4,15 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>WorldWarZones</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="WorldWarZones">
-<meta name="application-name" content="WorldWarZones">
-<meta name="theme-color" content="#050505">
-<link rel="apple-touch-icon" href="icon-180.png?v=3">
-<link rel="manifest" href="manifest.webmanifest">
-
 <link rel="icon" type="image/png" href="data:image/png;base64,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">
 <style>
 :root{--ink:#eef2f7;--muted:#9aa8ba;--panel:rgba(10,16,26,.92);--line:#2a3a52;--gold:#f5b531;--red:#e5484d;--blue:#3b82f6;--green:#22c55e}
@@ -77,8 +68,24 @@ button{font:inherit;color:inherit}
 .seg button{border:0;background:transparent;border-radius:10px;padding:0 10px;min-height:42px;font-weight:800;font-size:13.5px;color:var(--muted);white-space:nowrap}
 .seg button.on{background:#24364f;color:var(--ink)}
 #mode button.on[data-m="front"]{background:var(--gold);color:#1b1206}
-#pct{flex:1;justify-content:space-between}
-#pct button{flex:1;padding:0 4px}
+#pct{flex:1;min-width:0;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:3px 12px}
+#pct input{flex:1;min-width:0;width:40px}
+#pct span{flex:none}
+#pct b{font-size:13.5px;min-width:40px;text-align:right}
+input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:4px;background:#24364f;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--gold);border:3px solid #1b1206}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--gold);border:3px solid #1b1206}
+.trp{background:#132033;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:8px}
+.trp .tl{display:flex;justify-content:space-between;font-size:13px;font-weight:800;margin-bottom:6px}
+.trp .tl span{color:var(--muted);font-weight:700}
+.trp input{width:100%}
+.trp .qk{display:flex;gap:5px;margin-top:7px}
+.trp .qk button{flex:1;min-height:32px;border-radius:9px;border:1px solid var(--line);background:#1c2a3f;color:var(--ink);font-weight:800;font-size:12.5px}
+.fimg{width:22px;height:15px;border:1.5px solid #000;border-radius:2px;flex:none;object-fit:cover}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.fgrid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 3px;border-radius:11px;border:1px solid var(--line);background:#132033;color:var(--ink);font-size:11px;font-weight:700}
+.fgrid button.on{border-color:var(--gold);background:#2b2410}
+.fgrid img{width:54px;height:36px;border:1.5px solid #000;border-radius:3px;object-fit:cover}
 #pctLbl{font-size:10.5px;color:#cfd8e6;font-weight:800;letter-spacing:.05em;margin:0 0 4px 0;display:inline-block;background:rgba(10,16,26,.85);border-radius:6px;padding:2px 7px}
 /* overlay */
 #ov{position:fixed;inset:0;z-index:10;background:rgba(3,7,13,.78);display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
@@ -110,6 +117,14 @@ button{font:inherit;color:inherit}
 #pickHint{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top));z-index:5;background:var(--gold);color:#1b1206;font-weight:900;border-radius:12px;padding:10px 14px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.5);text-align:center}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:#07101d;font-weight:800;color:var(--muted)}
 </style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="WorldWarZones">
+<meta name="application-name" content="WorldWarZones">
+<meta name="theme-color" content="#050505">
+<link rel="apple-touch-icon" href="icon-180.png?v=3">
+<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -135,10 +150,10 @@ button{font:inherit;color:inherit}
 
 <div id="bottom" class="hidden">
   <div id="card" class="hidden"></div>
-  <div id="pctLbl">RESERVE VOOR NIEUWE LEGERS</div>
+  <div id="pctLbl">TROEPEN UIT JE RESERVE PER AANVAL</div>
   <div id="bar">
     <div class="seg" id="mode"><button type="button" data-m="cmd" class="on">👆 Bevel</button><button type="button" data-m="front">✏️ Front</button></div>
-    <div class="seg" id="pct"><button type="button" data-v="0.25">25%</button><button type="button" data-v="0.5" class="on">50%</button><button type="button" data-v="1">100%</button></div>
+    <div id="pct"><span>🪖</span><input type="range" id="pctR" min="5" max="100" step="5" value="50" aria-label="Deel van je reserve"><b id="pctV">50%</b></div>
   </div>
 </div>
 
@@ -493,6 +508,7 @@ const WZ = (() => {
     if (!r.ok) { n.pool += amount; s.armies = s.armies.filter(x => x !== a); return r; }
     return { ok: true, a, troops: amount, sea: r.sea };
   }
+  function splitOff(s, a, n) { n = Math.floor(n); if (n < MIN_ARMY || a.n - n < 1) return null; const b = addArmy(s, a.o, a.p, n); a.n -= n; return b; }
   function split(s, a) { if (a.n < MIN_ARMY * 2) return null; const b = addArmy(s, a.o, a.p, a.n / 2); a.n /= 2; return b; }
   // Front tekenen: de getekende provincies worden verdeeld over je legers (en reserve)
   function front(w, s, id, provs, frac) {
@@ -704,7 +720,7 @@ const WZ = (() => {
   function deserialize(w, str) { const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -718,10 +734,10 @@ let VW = 0, VH = 0, DPR = 1;
 let w = null, s = null, mapId = "", W = 0, H = 0, N = 0;
 let off = null, octx = null, img = null, px = null;
 let scale = 1, ox = 0, oy = 0;
-let speed = 1, paused = false, frac = 0.5, mode = "cmd";
+let speed = 1, paused = false, frac = 0.5, armyFrac = 1, mode = "cmd";
 let sel = null, card = null, picking = false, dirty = new Set(), fullPaint = false;
 let db = null, uid = null;
-let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20" };
+let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: true };
 try { Object.assign(settings, JSON.parse(localStorage.getItem("wwz2set") || "{}")); } catch (e) { }
 const MAPS = [["europa", "🇪🇺 Europa"], ["wereld", "🌍 Wereld"], ["azie", "🌏 Azië"], ["afrika", "🌍 Afrika"], ["noordamerika", "🌎 Noord-Amerika"], ["zuidamerika", "🌎 Zuid-Amerika"], ["oceanie", "🏝️ Oceanië"]];
 const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(Math.max(0, Math.round(n)));
@@ -730,6 +746,117 @@ const nm = id => !id ? "Niemandsland" : id === s.me ? "Jij" : (s.nations[id] ? s
 const css = c => `rgb(${c[0]},${c[1]},${c[2]})`;
 const col = id => s.nations[id] ? s.nations[id].col : [90, 100, 90];
 
+// ---------- vlaggen ----------
+const FL = {
+  "Nederland": ["h", ["#AE1C28", "#fff", "#21468B"]], "België": ["v", ["#000", "#FDDA24", "#EF3340"]], "Duitsland": ["h", ["#000", "#DD0000", "#FFCE00"]],
+  "Frankrijk": ["v", ["#0055A4", "#fff", "#EF4135"]], "Italië": ["v", ["#009246", "#fff", "#CE2B37"]], "Spanje": ["h", ["#AA151B", "#F1BF00", "#AA151B"], [1, 2, 1]],
+  "Portugal": ["v", ["#006600", "#FF0000"], [2, 3]], "Ierland": ["v", ["#169B62", "#fff", "#FF883E"]], "Verenigd Koninkrijk": ["uk"], "Oostenrijk": ["h", ["#ED2939", "#fff", "#ED2939"]],
+  "Polen": ["h", ["#fff", "#DC143C"]], "Rusland": ["h", ["#fff", "#0039A6", "#D52B1E"]], "Oekraïne": ["h", ["#0057B7", "#FFD700"]], "Wit-Rusland": ["h", ["#C8313E", "#4AA657"], [2, 1]],
+  "Hongarije": ["h", ["#CD2A3E", "#fff", "#436F4D"]], "Roemenië": ["v", ["#002B7F", "#FCD116", "#CE1126"]], "Bulgarije": ["h", ["#fff", "#00966E", "#D62612"]],
+  "Litouwen": ["h", ["#FDB913", "#006A44", "#C1272D"]], "Letland": ["h", ["#9E3039", "#fff", "#9E3039"], [2, 1, 2]], "Estland": ["h", ["#0072CE", "#000", "#fff"]],
+  "Zweden": ["n", "#006AA7", "#FECC00"], "Noorwegen": ["n", "#BA0C2F", "#fff", "#00205B"], "Denemarken": ["n", "#C8102E", "#fff"], "Finland": ["n", "#fff", "#002F6C"],
+  "IJsland": ["n", "#02529C", "#fff", "#DC1E35"], "Faeröer": ["n", "#fff", "#005EB8", "#EF303E"], "Åland": ["n", "#0064AD", "#FFD300", "#DA0E15"],
+  "Zwitserland": ["ch"], "Griekenland": ["gr"], "Turkije": ["tr", "#E30A17"], "Tunesië": ["tr", "#E70013", 1], "Tsjechië": ["cz"],
+  "Slowakije": ["h", ["#fff", "#0B4EA2", "#EE1C25"]], "Slovenië": ["h", ["#fff", "#005DA4", "#ED1C24"]], "Kroatië": ["h", ["#FF0000", "#fff", "#171796"]],
+  "Servië": ["h", ["#C6363C", "#0C4076", "#fff"]], "Albanië": ["h", ["#E41E20"]], "Luxemburg": ["h", ["#ED2939", "#fff", "#00A1DE"]], "Montenegro": ["h", ["#C40308"]],
+  "Moldavië": ["v", ["#0046AE", "#FFD200", "#CC092F"]], "Andorra": ["v", ["#10069F", "#FEDD00", "#D50032"]], "San Marino": ["h", ["#fff", "#5EB6E4"]],
+  "Vaticaanstad": ["v", ["#FFE000", "#fff"]], "Malta": ["v", ["#fff", "#CF142B"]], "Liechtenstein": ["h", ["#002B7F", "#CE1126"]], "Kosovo": ["h", ["#244AA5"]],
+  "Bosnië-Herzegovina": ["h", ["#002395"]], "Noord-Macedonië": ["dot", "#D20000", "#FFE600"], "Cyprus": ["h", ["#fff"]], "N. Cyprus": ["tr", "#fff"],
+  "Georgië": ["ge"], "Armenië": ["h", ["#D90012", "#0033A0", "#F2A800"]], "Azerbeidzjan": ["h", ["#0092BC", "#E4002B", "#00AF66"]], "Kazachstan": ["dot", "#00AFCA", "#FEC50C"],
+  "Groenland": ["h", ["#fff", "#D00C33"]], "Man Eiland": ["h", ["#CF142B"]], "Jersey": ["h", ["#fff"]], "Guernsey": ["ge"],
+  "Marokko": ["star", "#C1272D", "#006233"], "Algerije": ["v", ["#006633", "#fff"]], "Libië": ["h", ["#E70013", "#000", "#239E46"], [1, 2, 1]], "Egypte": ["h", ["#CE1126", "#fff", "#000"]],
+  "Syrië": ["h", ["#CE1126", "#fff", "#000"]], "Irak": ["h", ["#CE1126", "#fff", "#000"]], "Iran": ["h", ["#239F40", "#fff", "#DA0000"]], "Jemen": ["h", ["#CE1126", "#fff", "#000"]],
+  "Jordanië": ["h", ["#000", "#fff", "#007A3D"]], "Libanon": ["h", ["#ED1C24", "#fff", "#ED1C24"], [1, 2, 1]], "Israël": ["h", ["#fff", "#0038B8", "#fff", "#0038B8", "#fff"], [1, 1, 4, 1, 1]],
+  "Palestina": ["h", ["#000", "#fff", "#009736"]], "Saudi-Arabië": ["h", ["#006C35"]], "Verenigde Arabische Emiraten": ["h", ["#00732F", "#fff", "#000"]],
+  "Verenigde Staten": ["us"], "Canada": ["ca"], "Mexico": ["v", ["#006847", "#fff", "#CE1126"]], "Cuba": ["h", ["#002A8F", "#fff", "#002A8F", "#fff", "#002A8F"]],
+  "Brazilië": ["br"], "Argentinië": ["h", ["#74ACDF", "#fff", "#74ACDF"]], "Chili": ["cl"], "Colombia": ["h", ["#FCD116", "#003893", "#CE1126"], [2, 1, 1]],
+  "Venezuela": ["h", ["#FFCC00", "#00247D", "#CF142B"]], "Ecuador": ["h", ["#FFDD00", "#034EA2", "#ED1C24"], [2, 1, 1]], "Peru": ["v", ["#D91023", "#fff", "#D91023"]],
+  "Bolivië": ["h", ["#D52B1E", "#F9E300", "#007934"]], "Paraguay": ["h", ["#D52B1E", "#fff", "#0038A8"]], "Uruguay": ["h", ["#fff", "#0038A8", "#fff", "#0038A8", "#fff"]],
+  "Japan": ["dot", "#fff", "#BC002D"], "China": ["star", "#EE1C25", "#FFFF00", 1], "Taiwan": ["h", ["#FE0000"]], "Zuid-Korea": ["dot", "#fff", "#CD2E3A"],
+  "Noord-Korea": ["h", ["#024FA2", "#fff", "#ED1C27", "#fff", "#024FA2"], [3, 1, 11, 1, 3]], "Vietnam": ["star", "#DA251D", "#FFFF00"], "Thailand": ["h", ["#A51931", "#F4F5F8", "#2D2A4A", "#F4F5F8", "#A51931"], [1, 1, 2, 1, 1]],
+  "India": ["h", ["#FF9933", "#fff", "#138808"]], "Pakistan": ["v", ["#fff", "#01411C"], [1, 3]], "Bangladesh": ["dot", "#006A4E", "#F42A41"], "Indonesië": ["h", ["#FF0000", "#fff"]],
+  "Filipijnen": ["h", ["#0038A8", "#CE1126"]], "Mongolië": ["v", ["#C4272F", "#015197", "#C4272F"]], "Myanmar": ["h", ["#FECB00", "#34B233", "#EA2839"]], "Maleisië": ["h", ["#CC0001", "#fff", "#CC0001", "#fff", "#CC0001", "#fff", "#CC0001"]],
+  "Afghanistan": ["v", ["#000", "#BE0000", "#007A36"]], "Oezbekistan": ["h", ["#0099B5", "#fff", "#1EB53A"]], "Australië": ["au"], "Nieuw-Zeeland": ["au", "#00247D"],
+  "Nigeria": ["v", ["#008751", "#fff", "#008751"]], "Ethiopië": ["h", ["#078930", "#FCDD09", "#DA121A"]], "Ghana": ["h", ["#CE1126", "#FCD116", "#006B3F"]], "Ivoorkust": ["v", ["#F77F00", "#fff", "#009E60"]],
+  "Mali": ["v", ["#14B53A", "#FCD116", "#CE1126"]], "Senegal": ["v", ["#00853F", "#FDEF42", "#E31B23"]], "Guinea": ["v", ["#CE1126", "#FCD116", "#009460"]], "Kameroen": ["v", ["#007A5E", "#CE1126", "#FCD116"]],
+  "Tsjaad": ["v", ["#002664", "#FECB00", "#C60C30"]], "Gabon": ["h", ["#009E60", "#FCD116", "#3A75C4"]], "Sierra Leone": ["h", ["#1EB53A", "#fff", "#0072C6"]], "Botswana": ["h", ["#6DA9D2", "#fff", "#000", "#fff", "#6DA9D2"], [4, 1, 2, 1, 4]],
+  "Kenia": ["h", ["#000", "#fff", "#BB0000", "#fff", "#006600"], [3, 1, 3, 1, 3]], "Soedan": ["h", ["#D21034", "#fff", "#000"]], "Niger": ["h", ["#E05206", "#fff", "#0DB02B"]], "Zuid-Afrika": ["h", ["#E03C31", "#fff", "#007749", "#fff", "#001489"], [4, 1, 3, 1, 4]],
+  "Madagaskar": ["v", ["#fff", "#FC3D32"], [1, 2]], "Somalië": ["star", "#4189DD", "#fff"], "Benin": ["v", ["#008751", "#FCD116"], [2, 3]], "Mauritanië": ["star", "#006233", "#FFC400"],
+};
+const FKEYS = Object.keys(FL);
+function flagDef(name) {
+  if (!name) return ["h", ["#888"]];
+  if (FL[name]) return FL[name];
+  const base = name.replace(/\s+\d+$/, ""); if (FL[base]) return FL[base];
+  let x = 0; for (const c of name) x = (x * 31 + c.charCodeAt(0)) >>> 0;
+  const P = ["#C8102E", "#fff", "#003DA5", "#009739", "#FFCD00", "#000", "#F77F00", "#5EB6E4", "#7B2D26"];
+  const a = P[x % 9], b = P[(x >> 4) % 9] === a ? P[(x + 3) % 9] : P[(x >> 4) % 9], c = P[(x >> 8) % 9];
+  return [(x >> 12) & 1 ? "h" : "v", [a, b, c === b ? a : c]];
+}
+function fStar(g, x, y, r, c) { g.fillStyle = c; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.4 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); }
+function drawFlag(g, name, W, H) {
+  const d = flagDef(name), t = d[0];
+  g.save();
+  const stripes = (cols, wts, vert) => { const tot = (wts || cols.map(() => 1)).reduce((a, b) => a + b, 0); let o = 0; cols.forEach((c, i) => { const k = (wts ? wts[i] : 1) / tot; g.fillStyle = c; if (vert) g.fillRect(Math.floor(o * W), 0, Math.ceil(k * W) + 1, H); else g.fillRect(0, Math.floor(o * H), W, Math.ceil(k * H) + 1); o += k; }); };
+  if (t === "h") stripes(d[1], d[2], false);
+  else if (t === "v") stripes(d[1], d[2], true);
+  else if (t === "n") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const cx = W * 0.36, k = H * 0.2; g.fillStyle = d[2]; g.fillRect(cx - k, 0, k * 2, H); g.fillRect(0, H / 2 - k, W, k * 2); if (d[3]) { const k2 = k * 0.5; g.fillStyle = d[3]; g.fillRect(cx - k2, 0, k2 * 2, H); g.fillRect(0, H / 2 - k2, W, k2 * 2); } }
+  else if (t === "dot") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); g.fillStyle = d[2]; g.beginPath(); g.arc(W / 2, H / 2, Math.min(W, H) * 0.3, 0, 7); g.fill(); }
+  else if (t === "star") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H); if (d[3]) fStar(g, W * 0.18, H * 0.27, m * 0.15, d[2]); else fStar(g, W / 2, H / 2, m * 0.3, d[2]); }
+  else if (t === "tr") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H), cx = d[2] ? W / 2 : W * 0.38, cy = H / 2, cc = d[1] === "#fff" ? "#E30A17" : "#fff"; if (d[2]) { g.fillStyle = "#fff"; g.beginPath(); g.arc(cx, cy, m * 0.36, 0, 7); g.fill(); } g.fillStyle = d[2] ? "#E70013" : cc; g.beginPath(); g.arc(cx, cy, m * 0.25, 0, 7); g.fill(); g.fillStyle = d[2] ? "#fff" : d[1]; g.beginPath(); g.arc(cx + m * 0.06, cy, m * 0.2, 0, 7); g.fill(); fStar(g, cx + m * 0.2, cy, m * 0.09, d[2] ? "#E70013" : cc); }
+  else if (t === "ch") { g.fillStyle = "#DA291C"; g.fillRect(0, 0, W, H); const m = Math.min(W, H), a = m * 0.12, b = m * 0.38; g.fillStyle = "#fff"; g.fillRect(W / 2 - a, H / 2 - b, a * 2, b * 2); g.fillRect(W / 2 - b, H / 2 - a, b * 2, a * 2); }
+  else if (t === "ge") { g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); const k = H * 0.12; g.fillStyle = "#E8112D"; g.fillRect(W / 2 - k, 0, k * 2, H); g.fillRect(0, H / 2 - k, W, k * 2); }
+  else if (t === "cz") { stripes(["#fff", "#D7141A"]); g.fillStyle = "#11457E"; g.beginPath(); g.moveTo(0, 0); g.lineTo(W * 0.5, H / 2); g.lineTo(0, H); g.fill(); }
+  else if (t === "gr") { stripes(["#0D5EAF", "#fff", "#0D5EAF", "#fff", "#0D5EAF", "#fff", "#0D5EAF", "#fff", "#0D5EAF"]); const cw = W * 0.37, ch = H * 5 / 9; g.fillStyle = "#0D5EAF"; g.fillRect(0, 0, cw, ch); g.fillStyle = "#fff"; g.fillRect(cw / 2 - ch / 10, 0, ch / 5, ch); g.fillRect(0, ch / 2 - ch / 10, cw, ch / 5); }
+  else if (t === "uk" || t === "au") {
+    const uk = (x, y, w2, h2) => { g.save(); g.beginPath(); g.rect(x, y, w2, h2); g.clip(); g.fillStyle = "#012169"; g.fillRect(x, y, w2, h2); g.lineWidth = h2 * 0.2; g.strokeStyle = "#fff"; g.beginPath(); g.moveTo(x, y); g.lineTo(x + w2, y + h2); g.moveTo(x + w2, y); g.lineTo(x, y + h2); g.stroke(); g.lineWidth = h2 * 0.07; g.strokeStyle = "#C8102E"; g.stroke(); const k = h2 * 0.17; g.fillStyle = "#fff"; g.fillRect(x + w2 / 2 - k, y, k * 2, h2); g.fillRect(x, y + h2 / 2 - k, w2, k * 2); const k2 = h2 * 0.1; g.fillStyle = "#C8102E"; g.fillRect(x + w2 / 2 - k2, y, k2 * 2, h2); g.fillRect(x, y + h2 / 2 - k2, w2, k2 * 2); g.restore(); };
+    if (t === "uk") uk(0, 0, W, H); else { g.fillStyle = d[1] || "#00008B"; g.fillRect(0, 0, W, H); uk(0, 0, W / 2, H / 2); const m = Math.min(W, H); fStar(g, W * 0.25, H * 0.75, m * 0.12, "#fff"); for (const [a, b] of [[0.75, 0.3], [0.62, 0.5], [0.87, 0.45], [0.75, 0.82]]) fStar(g, W * a, H * b, m * 0.06, d[1] ? "#CC142B" : "#fff"); }
+  }
+  else if (t === "us") { stripes(Array.from({ length: 13 }, (_, i) => i % 2 ? "#fff" : "#B22234")); const cw = W * 0.4, ch = H * 7 / 13; g.fillStyle = "#3C3B6E"; g.fillRect(0, 0, cw, ch); const m = Math.min(cw / 6, ch / 5); for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) fStar(g, (c + 0.5) * cw / 6, (r + 0.5) * ch / 5, m * 0.32, "#fff"); }
+  else if (t === "ca") { stripes(["#D52B1E", "#fff", "#D52B1E"], [1, 2, 1], true); const m = Math.min(W / 2, H); g.fillStyle = "#D52B1E"; g.beginPath(); const cx = W / 2, cy = H / 2; [[0, -0.42], [0.1, -0.2], [0.3, -0.28], [0.22, -0.05], [0.4, 0.02], [0.12, 0.2], [0.04, 0.2], [0.04, 0.42], [-0.04, 0.42], [-0.04, 0.2], [-0.12, 0.2], [-0.4, 0.02], [-0.22, -0.05], [-0.3, -0.28], [-0.1, -0.2]].forEach(([a, b], i) => i ? g.lineTo(cx + a * m, cy + b * m) : g.moveTo(cx + a * m, cy + b * m)); g.closePath(); g.fill(); }
+  else if (t === "br") { g.fillStyle = "#009C3B"; g.fillRect(0, 0, W, H); g.fillStyle = "#FFDF00"; g.beginPath(); g.moveTo(W * 0.08, H / 2); g.lineTo(W / 2, H * 0.1); g.lineTo(W * 0.92, H / 2); g.lineTo(W / 2, H * 0.9); g.fill(); g.fillStyle = "#002776"; g.beginPath(); g.arc(W / 2, H / 2, Math.min(W, H) * 0.24, 0, 7); g.fill(); }
+  else if (t === "cl") { stripes(["#fff", "#D52B1E"]); g.fillStyle = "#0039A6"; g.fillRect(0, 0, W / 3, H / 2); fStar(g, W / 6, H / 4, Math.min(W / 3, H / 2) * 0.3, "#fff"); }
+  g.restore();
+}
+const flagURLs = {};
+function flagURL(name) { if (flagURLs[name]) return flagURLs[name]; const c = document.createElement("canvas"); c.width = 60; c.height = 40; drawFlag(c.getContext("2d"), name, 60, 40); return flagURLs[name] = c.toDataURL(); }
+const flagOf = n => n ? (n.flag || n.name) : "";
+// ---- vlag over mijn gebied ----
+let myFlag = { sig: "", comp: null, x0: 0, y0: 0, bw: 0, bh: 0, tFlag: "" }, flagT = 0;
+function updMyFlag(force) {
+  const me = s && s.nations[s.me]; if (!me || !me.alive) { myFlag.comp = null; return; }
+  let sig = 0, cnt = 0; for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me) { sig = (sig * 31 + p + 1) >>> 0; cnt++; }
+  const key = cnt + ":" + sig + ":" + flagOf(me);
+  if (!force && key === myFlag.sig) return; myFlag.sig = key; if (!cnt) { myFlag.comp = null; return; }
+  const rx = w.cx[me.capital]; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const tiles = [];
+  for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me) for (let k = w.start[p]; k < w.start[p + 1]; k++) { const i = w.list[k]; let x = i % W; const y = (i / W) | 0; if (w.wrap) { if (x - rx > W / 2) x -= W; else if (rx - x > W / 2) x += W; } tiles.push(x, y, i); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+  const m = document.createElement("canvas"); m.width = bw; m.height = bh; const mg = m.getContext("2d"), md = mg.createImageData(bw, bh), tmp = new Int32Array(4);
+  for (let t = 0; t < tiles.length; t += 3) {
+    const i = tiles[t + 2]; let a = 255;
+    if (w.pEdge[i]) { a = 170; const n = w.nb(i, tmp); for (let k = 0; k < n; k++) { const j = tmp[k]; if (w.land[j] && s.owner[w.prov[j]] !== s.me) { a = 0; break; } } }
+    else if (w.coast[i]) a = 235;
+    const q = ((tiles[t + 1] - y0) * bw + (tiles[t] - x0)) * 4; md.data[q + 3] = a;
+  }
+  mg.putImageData(md, 0, 0);
+  const K = Math.max(1, Math.min(6, Math.floor(1600 / Math.max(bw, bh))));
+  const c = document.createElement("canvas"); c.width = bw * K; c.height = bh * K; const g = c.getContext("2d");
+  drawFlag(g, flagOf(me), c.width, c.height);
+  g.globalCompositeOperation = "destination-in"; g.imageSmoothingEnabled = false; g.drawImage(m, 0, 0, c.width, c.height);
+  Object.assign(myFlag, { comp: c, x0, y0, bw, bh });
+}
+function drawMyFlag() {
+  if (!s || picking || !settings.flag) return;
+  const nowT = performance.now(); if (nowT - flagT > 400) { flagT = nowT; updMyFlag(); }
+  const f = myFlag; if (!f.comp) return;
+  ctx.save(); ctx.imageSmoothingEnabled = scale < 2;
+  const X = scrX(f.x0), Y = scrY(f.y0), wd = f.bw * scale, ht = f.bh * scale;
+  const xs = [X]; if (w.wrap) { const span = W * scale; xs.push(X - span, X + span); }
+  for (const x of xs) if (x < VW && x + wd > 0) ctx.drawImage(f.comp, x, Y, wd, ht);
+  ctx.restore();
+}
+
+const fIcon = id => { const n = s && s.nations[id]; return n ? `<img class="fimg" alt="" src="${flagURL(flagOf(n))}">` : `<span class="fimg" style="background:#8a9a6a;display:inline-block"></span>`; };
 // ---------- toasts ----------
 function toast(msg) { const d = document.createElement("div"); d.textContent = msg; $("toasts").appendChild(d); while ($("toasts").children.length > 2) $("toasts").firstChild.remove(); setTimeout(() => d.remove(), 3600); }
 
@@ -772,7 +899,7 @@ function paintTile(i, tmp) {
     const f = w.cEdge[i] ? 0.62 : w.pEdge[i] ? 0.86 : 1;
     px[p] = T[i * 4] * f; px[p + 1] = T[i * 4 + 1] * f; px[p + 2] = T[i * 4 + 2] * f; px[p + 3] = 255; return;
   }
-  const c = o ? col(o) : [120, 130, 120];
+  const c = o ? (o === s.me && settings.flag ? [30, 34, 40] : col(o)) : [120, 130, 120];
   const a = T[i * 4 + 3];
   let r = c[0] * (1 - a) + T[i * 4] * a, g = c[1] * (1 - a) + T[i * 4 + 1] * a, b = c[2] * (1 - a) + T[i * 4 + 2] * a;
   // grenzen: tussen eigenaren dik zwart, tussen provincies dun
@@ -857,6 +984,7 @@ function render() {
   if (w.wrap) for (let X = ox; X < VW; X += span) ctx.drawImage(off, X, oy, span, H * scale);
   else ctx.drawImage(off, ox, oy, span, H * scale);
   if (!s) return;
+  drawMyFlag();
   const now = performance.now(), pulse = 0.5 + 0.5 * Math.sin(now / 160);
   ctx.lineJoin = "round"; ctx.miterLimit = 2;
   // hoofdsteden
@@ -928,7 +1056,7 @@ function endPtr(e) {
   if (g.pinch) { if (ptrs.size === 0) g = null; return; }
   const up = e.type === "pointerup";
   if (g.front) { const pts = frontPts; frontPts = null; g = null; if (up && pts && pts.length > 2) doFront(pts); else if (up) toast("✏️ Trek met je vinger een lijn over de kaart"); return; }
-  if (g.army && drag) { const d = drag; drag = null; g = null; if (up && d.to >= 0) orderTo(d.a, d.to); return; }
+  if (g.army && drag) { const d = drag; drag = null; g = null; if (up && d.to >= 0) orderTo(d.a, d.to, sel === d.a); return; }
   if (up && !g.moved) tap(e.clientX, e.clientY);
   g = null;
 }
@@ -942,12 +1070,15 @@ function tap(cx, cy) {
   if (a && a.o === s.me) { if (sel === a) { sel = null; hideCard(); } else { sel = a; armyCard(a); } return; }
   const p = a ? a.p : provAt(cx, cy);
   if (p < 0) { sel = null; hideCard(); return; }
-  if (sel && s.armies.includes(sel)) { orderTo(sel, p); return; }
+  if (sel && s.armies.includes(sel)) { orderTo(sel, p, true); return; }
   provCard(p);
 }
-function orderTo(a, p) {
+function orderTo(a, p, part) {
   if (!s.armies.includes(a)) return;
+  let rest = null;
+  if (part && armyFrac < 0.999) { const b = WZ.splitOff(s, a, a.n * armyFrac); if (b) { rest = a; a = b; } }
   const r = WZ.order(w, s, a, p);
+  if (rest && !r.ok) { rest.n += a.n; s.armies.splice(s.armies.indexOf(a), 1); a = rest; }
   if (r.ok) { const o = s.owner[p]; toast(!o ? `🌱 Leger breidt uit${r.sea ? " over zee ⛵" : ""}` : WZ.hostile(s, s.me, o) ? `⚔️ ${fmt(a.n)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🚶 Leger onderweg${r.sea ? " over zee ⛵" : ""}`); sel = null; hideCard(); }
   else toast(r.err === "geen route" ? "❌ Daar kan dit leger niet komen" : r.err === "is er al" ? "Dit leger staat daar al" : "❌ " + r.err);
 }
@@ -965,60 +1096,94 @@ function doFront(pts) {
 function hideCard() { card = null; $("card").classList.add("hidden"); $("toasts").classList.remove("up"); }
 function showCard(html, data) { card = data; $("card").innerHTML = html; $("card").classList.remove("hidden"); $("toasts").classList.add("up"); }
 function regionName(p) { return w.names[w.pCtry[p]] || ""; }
+// schuifbalk voor aantal troepen (reserve of leger)
+function trpRow(kind) {
+  const v = Math.round((kind === "army" ? armyFrac : frac) * 100);
+  return `<div class="trp" data-k="${kind}"><div class="tl"><b id="trpN"></b><span id="trpP"></span></div>
+    <input type="range" id="trpR" min="5" max="100" step="5" value="${v}" aria-label="Aantal troepen">
+    <div class="qk"><button type="button" data-q="25">25%</button><button type="button" data-q="50">50%</button><button type="button" data-q="75">75%</button><button type="button" data-q="100">Alles</button></div></div>`;
+}
+function setFrac(v, kind) {
+  v = Math.max(0.05, Math.min(1, v));
+  if (kind === "army") armyFrac = v; else { frac = v; $("pctR").value = Math.round(v * 100); $("pctV").textContent = Math.round(v * 100) + "%"; }
+  const r = $("trpR"); if (r && document.activeElement !== r) r.value = Math.round(v * 100);
+  if (card && card.upd) card.upd();
+}
 function provCard(p) {
   sel = null; const o = s.owner[p], me = s.nations[s.me], n = s.nations[o];
-  const defs = WZ.armiesIn(s, p).filter(a => a.o === o).reduce((x, a) => x + a.n, 0), mil = s.mil[p];
-  const amount = Math.floor(me.pool * frac);
+  const defs = () => WZ.armiesIn(s, p).filter(a => a.o === o).reduce((x, a) => x + a.n, 0);
+  const amt = () => Math.floor(s.nations[s.me].pool * frac);
   if (o === s.me) {
-    showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">Jouw provincie${regionName(p) && regionName(p) !== me.name ? " · " + E(regionName(p)) : ""}</div><div class="rel">${p === me.capital ? "★ Hoofdstad" : "Eigen"}</div></div>
-      <div class="info">🛡️ Verdediging ${fmt(mil)}${defs ? ` · 🪖 ${fmt(defs)} in je legers hier` : ""}</div>
-      <div class="btns"><button type="button" class="go" data-a="new">➕ Nieuw leger · ${fmt(amount)}</button><button type="button" data-a="x">✖️ Sluiten</button></div>`, { p });
-    return;
-  }
-  if (!o) {
+    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">Jouw provincie${regionName(p) && regionName(p) !== me.name ? " · " + E(regionName(p)) : ""}</div><div class="rel">${p === me.capital ? "★ Hoofdstad" : "Eigen"}</div></div>
+      <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` · 🪖 ${fmt(defs())} in je legers hier` : ""}</div>
+      ${trpRow("pool")}
+      <div class="btns"><button type="button" class="go" data-a="new">➕ Nieuw leger · <span data-amt></span></button><button type="button" data-a="flag">🏳️ Vlag kiezen</button><button type="button" class="wide" data-a="x">✖️ Sluiten</button></div>`, { p });
+  } else if (!o) {
     const nearest0 = nearestArmy(p);
-    showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:#8a9a6a"></span><div class="ttl">🌱 Niemandsland${regionName(p) ? " · " + E(regionName(p)) : ""}</div><div class="rel">Vrij land</div></div>
-      <div class="info">🛡️ Lokale verdediging ${fmt(mil)} · ${amount > mil * 1.3 ? "✅ je reserve is sterk genoeg" : "⚠️ te weinig reserve: kies 100% onderin, of stuur een leger"}</div>
-      <div class="btns"><button type="button" class="atk" data-a="atk" ${amount < WZ.MIN_ARMY ? "disabled" : ""}>⚔️ Uitbreiden · ${fmt(amount)}</button>${nearest0 ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest0.n)}</button>` : `<button type="button" data-a="x">✖️ Sluiten</button>`}
+    showCard(`<div class="hd">${fIcon(0)}<div class="ttl">🌱 Niemandsland${regionName(p) ? " · " + E(regionName(p)) : ""}</div><div class="rel">Vrij land</div></div>
+      <div class="info">🛡️ Lokale verdediging ${fmt(s.mil[p])} · <span id="trpW"></span></div>
+      ${trpRow("pool")}
+      <div class="btns"><button type="button" class="atk" data-a="atk">⚔️ Uitbreiden · <span data-amt></span></button>${nearest0 ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest0.n)}</button>` : `<button type="button" data-a="x">✖️ Sluiten</button>`}
       ${nearest0 ? `<button type="button" class="wide" data-a="x">✖️ Sluiten</button>` : ""}</div>`, { p });
-    return;
+  } else {
+    const al = WZ.allied(s, s.me, o), f = n && n.fac ? WZ.facOf(s, n.fac) : null;
+    const atkMe = s.armies.some(a => a.o === o && a.fight === s.me);
+    const nearest = nearestArmy(p);
+    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${al ? "🤝 Bondgenoot" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
+      <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` + 🪖 ${fmt(defs())} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${al ? "" : ` · <span id="trpW"></span>`}</div>
+      ${al ? "" : trpRow("pool")}
+      <div class="btns">${al ? `<button type="button" disabled>🤝 Bondgenoot</button><button type="button" data-a="betray">🗡️ Verraad</button>` :
+        `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · <span data-amt></span></button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
+        ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
+        <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>`, { p });
   }
-  const al = WZ.allied(s, s.me, o), f = n && n.fac ? WZ.facOf(s, n.fac) : null;
-  const atkMe = s.armies.some(a => a.o === o && a.fight === s.me);
-  const nearest = nearestArmy(p);
-  showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${al ? "🤝 Bondgenoot" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
-    <div class="info">🛡️ Verdediging ${fmt(mil)}${defs ? ` + 🪖 ${fmt(defs)} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${!al && amount < (mil + defs) ? " · ⚠️ je aanval is waarschijnlijk te zwak" : ""}</div>
-    <div class="btns">${al ? `<button type="button" disabled>🤝 Bondgenoot</button><button type="button" data-a="betray">🗡️ Verraad</button>` :
-      `<button type="button" class="atk" data-a="atk" ${amount < WZ.MIN_ARMY ? "disabled" : ""}>⚔️ Aanvallen · ${fmt(amount)}</button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
-      ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
-      <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>`, { p });
+  card.upd = () => {
+    const n2 = amt(), pool = s.nations[s.me].pool, need = s.mil[p] + (o && o !== s.me ? defs() : 0);
+    if ($("trpN")) { $("trpN").textContent = `🪖 ${fmt(n2)} troepen`; $("trpP").textContent = `${Math.round(frac * 100)}% van ${fmt(pool)}`; }
+    $("card").querySelectorAll("[data-amt]").forEach(x => { x.textContent = fmt(n2); x.parentElement.disabled = n2 < WZ.MIN_ARMY; });
+    const wn = $("trpW"); if (wn) wn.textContent = n2 < WZ.MIN_ARMY ? "⚠️ te weinig reserve" : n2 > need * 1.3 ? "✅ sterk genoeg" : n2 > need ? "⚠️ krap, kan mislukken" : "❌ te zwak: schuif naar meer troepen";
+  };
+  card.upd();
 }
 function nearestArmy(p) { let best = null, bd = Infinity; for (const a of s.armies) if (a.o === s.me) { const d = WZ.pdist(w, a.p, p) + (a.path.length ? 30 : 0); if (d < bd) { bd = d; best = a; } } return best; }
-function armyCard(a) {
-  const st = a.fight ? `⚔️ Vecht tegen ${E(nm(a.fight))}` : a.path.length ? `🚶 Onderweg (${a.path.length} provincie${a.path.length === 1 ? "" : "s"})` : "🛑 Staat stil";
-  const canReinf = s.owner[a.p] === s.me && s.nations[s.me].pool * frac >= WZ.MIN_ARMY;
-  showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #fff;border-radius:2px;background:${css(col(a.o))}"></span><div class="ttl">🪖 Leger · ${fmt(a.n)} soldaten</div><div class="rel">${st}</div></div>
-    <div class="btns" style="margin-top:9px"><button type="button" data-a="split">✂️ Splitsen</button><button type="button" data-a="stop" ${a.path.length ? "" : "disabled"}>⛔ Stoppen</button>
-    <button type="button" class="go" data-a="reinf" ${canReinf ? "" : "disabled"}>➕ Versterken · ${fmt(s.nations[s.me].pool * frac)}</button><button type="button" data-a="x">✖️ Sluiten</button></div>
-    <div class="hint">👉 Tik nu op een provincie, of sleep het leger erheen.</div>`, { army: a, p: a.p });
+function armyCard(a, keep) {
+  if (!keep) armyFrac = 1;
+  showCard(`<div class="hd">${fIcon(a.o)}<div class="ttl" id="aT"></div><div class="rel" id="aS"></div></div>
+    ${trpRow("army")}
+    <div class="btns" style="margin-top:9px"><button type="button" data-a="split">✂️ Halveren</button><button type="button" data-a="stop">⛔ Stoppen</button>
+    <button type="button" class="go" data-a="reinf">➕ Versterken · <span id="rA"></span></button><button type="button" data-a="x">✖️ Sluiten</button></div>
+    <div class="hint">👉 Kies hierboven hoeveel er meegaan, en tik dan op een provincie.</div>`, { army: a, p: a.p });
+  card.upd = () => {
+    if (!s.armies.includes(a)) return;
+    const st = a.fight ? `⚔️ Vecht tegen ${nm(a.fight)}` : a.path.length ? `🚶 Onderweg (${a.path.length})` : "🛑 Staat stil";
+    $("aT").textContent = `🪖 Leger · ${fmt(a.n)} soldaten`; $("aS").textContent = st;
+    const go = Math.floor(a.n * armyFrac);
+    $("trpN").textContent = armyFrac >= 0.999 ? `🪖 Heel het leger: ${fmt(a.n)}` : `🪖 ${fmt(go)} gaan mee`;
+    $("trpP").textContent = armyFrac >= 0.999 ? "100%" : `${fmt(a.n - go)} blijven staan`;
+    const rf = Math.floor(s.nations[s.me].pool * frac); $("rA").textContent = fmt(rf);
+    $("card").querySelector('[data-a="reinf"]').disabled = !(s.owner[a.p] === s.me && rf >= WZ.MIN_ARMY);
+    $("card").querySelector('[data-a="stop"]').disabled = !a.path.length;
+  };
+  card.upd();
 }
 function spawnCard(p) {
   const o = s.owner[p], reg = regionName(p) || "dit gebied";
-  if (o) { showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">${E(s.nations[o].name)}</div><div class="rel">Bezet</div></div><div class="info">Hier begint al een tegenstander. Kies een plek in het niemandsland (de gekleurde aarde zonder vlag).</div>`, { p }); return; }
+  if (o) { showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(s.nations[o].name)}</div><div class="rel">Bezet</div></div><div class="info">Hier begint al een tegenstander. Kies een plek in het niemandsland (de gekleurde aarde zonder vlag).</div>`, { p }); return; }
   let near = Infinity, who = ""; for (const n of s.nations) if (n) { const d = WZ.pdist(w, n.capital, p); if (d < near) { near = d; who = n.name; } }
   const free = w.adj[p].filter(q => !s.owner[q]).length, prov = Math.sqrt(w.PS);
   const tip = near < prov * 1.6 ? "❌ Te dicht bij " + E(who) : near < prov * 3.5 ? "⚠️ " + E(who) + " is vlakbij" : "✅ Rustige plek";
-  showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:#2f7cf6"></span><div class="ttl">🌱 ${E(reg)}</div><div class="rel">Niemandsland</div></div>
+  showCard(`<div class="hd"><img class="fimg" alt="" src="${flagURL(reg)}"><div class="ttl">🌱 ${E(reg)}</div><div class="rel">Niemandsland</div></div>
     <div class="info">${tip} · ${free} vrije buurprovincie${free === 1 ? "" : "s"} om in uit te breiden</div>
     <div class="btns"><button type="button" class="go wide" data-a="spawn">▶ Begin hier</button></div>`, { spawn: p, p });
 }
 function pickCard(o, p) {
   const n = s.nations[o];
-  showCard(`<div class="hd"><span class="flag" style="width:14px;height:10px;border:2px solid #000;border-radius:2px;background:${css(col(o))}"></span><div class="ttl">${E(n.name)}</div><div class="rel">${n.provs} provincie${n.provs === 1 ? "" : "s"}</div></div>
+  showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n.name)}</div><div class="rel">${n.provs} provincie${n.provs === 1 ? "" : "s"}</div></div>
     <div class="info">🪖 ${fmt(WZ.power(s, o))} soldaten · ${(WZ.share(w, s, o) * 100).toFixed(1)}% van de kaart · doel ${Math.round(n.goal * 100)}%</div>
     <div class="btns"><button type="button" class="go wide" data-a="play">▶ Speel als ${E(n.name)}</button></div>`, { pick: o, p });
 }
 $("card").addEventListener("click", e => {
+  const q = e.target.closest("[data-q]"); if (q && card) { const k = q.closest(".trp").dataset.k; setFrac(+q.dataset.q / 100, k); return; }
   const b = e.target.closest("[data-a]"); if (!b || !card) return; const act = b.dataset.a, c = card;
   if (act === "x") { sel = null; hideCard(); return; }
   if (act === "play") { startAs(c.pick); return; }
@@ -1026,23 +1191,25 @@ $("card").addEventListener("click", e => {
   const me = s.nations[s.me];
   if (c.army) {
     const a = c.army; if (!s.armies.includes(a)) { hideCard(); return; }
-    if (act === "split") { const b2 = WZ.split(s, a); toast(b2 ? "✂️ Leger gesplitst" : "Te klein om te splitsen"); armyCard(a); }
-    if (act === "stop") { a.path = []; a.prog = 0; a.fight = 0; toast("⛔ Leger gestopt"); armyCard(a); }
-    if (act === "reinf") { const r = WZ.createArmy(w, s, s.me, a.p, me.pool * frac); toast(r.ok ? `➕ Leger versterkt tot ${fmt(a.n)}` : "❌ " + r.err); armyCard(a); }
+    if (act === "split") { const b2 = WZ.split(s, a); toast(b2 ? "✂️ Leger gehalveerd: er staat nu een tweede leger naast" : "Te klein om te splitsen"); armyCard(a, true); }
+    if (act === "stop") { a.path = []; a.prog = 0; a.fight = 0; toast("⛔ Leger gestopt"); armyCard(a, true); }
+    if (act === "reinf") { const r = WZ.createArmy(w, s, s.me, a.p, me.pool * frac); toast(r.ok ? `➕ Leger versterkt tot ${fmt(a.n)}` : "❌ " + r.err); armyCard(a, true); }
     return;
   }
   const p = c.p, o = s.owner[p];
   if (act === "new") { const r = WZ.createArmy(w, s, s.me, p, me.pool * frac); if (r.ok) { toast(`🪖 Nieuw leger van ${fmt(r.a.n)}`); sel = r.a; armyCard(r.a); } else toast("❌ " + r.err); }
   if (act === "atk") { const r = WZ.attackWithPool(w, s, s.me, p, frac); if (r.ok) { toast(o ? `⚔️ ${fmt(r.troops)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🌱 ${fmt(r.troops)} troepen breiden uit${r.sea ? " over zee ⛵" : ""}`); hideCard(); } else toast("❌ " + (r.err === "geen route" ? "daar kun je niet komen" : r.err)); }
+  if (act === "flag") { flagPanel(); return; }
   if (act === "send") { const a = nearestArmy(p); if (a) orderTo(a, p); }
   if (act === "ally") { const r = WZ.askAlliance(s, s.me, o); if (r.ok) { toast(r.kind === "join" ? `🤝 Je zit nu in ${r.f.naam}!` : r.kind === "invite" ? `🤝 ${nm(o)} doet mee met ${r.f.naam}!` : `🤝 ${nm(o)} en jij vormen nu ${r.f.naam}!`); provCard(p); } else toast(`❌ ${nm(o)}: ${r.err}`); }
   if (act === "betray") { if (b.dataset.sure) { WZ.betray(s, s.me, o); toast(`🗡️ Je verraadt ${nm(o)}!`); provCard(p); } else { b.dataset.sure = 1; b.textContent = "Zeker?"; } }
 });
 
+$("card").addEventListener("input", e => { if (e.target.id === "trpR") setFrac(+e.target.value / 100, e.target.closest(".trp").dataset.k); });
 // ---------- onderbalk ----------
 function setMode(m) { mode = m; $("mode").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.m === m)); if (m === "front") { sel = null; hideCard(); toast("✏️ Trek met één vinger een lijn: je legers rukken op tot die lijn"); } }
 $("mode").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setMode(b.dataset.m === mode && mode === "front" ? "cmd" : b.dataset.m); });
-$("pct").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; frac = +b.dataset.v; $("pct").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); if (card) { if (card.army) armyCard(card.army); else if (card.p >= 0 && !card.pick) provCard(card.p); } });
+$("pctR").addEventListener("input", e => setFrac(+e.target.value / 100, "pool"));
 
 // ---------- HUD ----------
 let lastHud = 0, lastWarn = -99, lastLossToast = -99;
@@ -1094,7 +1261,7 @@ function loop(ts) {
     if (ts - lastSave > 20000) { lastSave = ts; save(); }
   }
   if (dirty.size) { paintProvs(dirty); dirty.clear(); }
-  if (s && !picking && ts - lastHud > 250) { lastHud = ts; hud(); if (card && card.army && s.armies.includes(card.army) && ts % 1000 < 260) armyCard(card.army); }
+  if (s && !picking && ts - lastHud > 250) { lastHud = ts; hud(); if (card && card.upd) card.upd(); }
   render();
   requestAnimationFrame(loop);
 }
@@ -1145,10 +1312,24 @@ async function startPick() {
   picking = true; $("pickHint").classList.remove("hidden"); $("hud").classList.add("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.add("hidden"); $("pctLbl").classList.add("hidden");
   scale = minScale(); if (w.wrap) { ox = VW / 2 - W * 0.53 * scale; } clampView();
 }
+function setHudFlag() { const n = s.nations[s.me]; $("myFlag").style.background = `center/cover url(${flagURL(flagOf(n))})`; }
+function flagPanel() {
+  hideCard(); const me = s.nations[s.me], cur = flagOf(me);
+  const names = [...new Set([me.name, ...FKEYS])];
+  ov(`<h2>🏳️ Kies je vlag</h2><p>Je vlag wappert over al je gebied.</p>
+    <div class="seg" style="margin-top:8px"><button type="button" id="fOn" class="${settings.flag ? "on" : ""}">Vlag op kaart aan</button><button type="button" id="fOff" class="${settings.flag ? "" : "on"}">Uit</button></div>
+    <div class="fgrid">${names.map(k => `<button type="button" data-fl="${E(k)}" class="${k === cur ? "on" : ""}"><img alt="" src="${flagURL(k)}">${E(k)}</button>`).join("")}</div>
+    <button class="big" id="fB" type="button" style="margin-top:12px">✔️ Klaar</button>`);
+  paused = true;
+  $("ovc").onclick = e => { const b = e.target.closest("[data-fl]"); if (!b) return; me.flag = b.dataset.fl; setHudFlag(); updMyFlag(true); $("ovc").querySelectorAll("[data-fl]").forEach(x => x.classList.toggle("on", x === b)); toast("🏳️ Nieuwe vlag: " + me.flag); };
+  $("fOn").onclick = () => { settings.flag = true; keepSet(); paintAll(); $("fOn").classList.add("on"); $("fOff").classList.remove("on"); };
+  $("fOff").onclick = () => { settings.flag = false; keepSet(); paintAll(); $("fOff").classList.add("on"); $("fOn").classList.remove("on"); };
+  $("fB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
+}
 function startAs(id, spawned) {
   picking = false; $("pickHint").classList.add("hidden"); $("bar").classList.remove("hidden"); $("pctLbl").classList.remove("hidden");
   if (!spawned) WZ.choose(w, s, id); hideCard();
-  $("myName").textContent = s.nations[id].name; $("myFlag").style.background = css(col(id));
+  $("myName").textContent = s.nations[id].name; setHudFlag();
   $("hud").classList.remove("hidden"); speed = 1; paused = false; $("bPause").textContent = "⏸";
   focusProv(s.nations[id].capital, Math.max(minScale() * 2.2, 3 / w.L)); paintAll(); save();
   toast(spawned ? `🌱 Je begint in ${s.nations[id].name}. Breid uit in het niemandsland!` : `★ Je speelt als ${s.nations[id].name}. Tik op je leger om te beginnen!`);
@@ -1169,7 +1350,7 @@ function resumePlay() { closeOv(); paused = false; $("bPause").textContent = "�
 function ranking() {
   if (!s) return; paused = true;
   const list = s.nations.filter(n => n && n.alive).sort((a, b) => b.tiles - a.tiles);
-  ov(`<h2>🏆 Ranglijst</h2><p>${list.length} landen over</p><div>${list.slice(0, 30).map((n, i) => `<div class="rk ${n.id === s.me ? "me" : ""}"><span style="width:22px;color:var(--muted)">${i + 1}</span><span class="flag" style="background:${css(n.col)}"></span><span class="n">${E(n.name)}${n.id === s.me ? " (jij)" : ""}${WZ.allied(s, s.me, n.id) && n.id !== s.me ? " 🤝" : ""}</span><span>${(n.tiles / w.landN * 100).toFixed(1)}%</span><span style="width:52px;text-align:right;color:var(--muted)">🪖${fmt(WZ.power(s, n.id))}</span></div>`).join("")}</div>
+  ov(`<h2>🏆 Ranglijst</h2><p>${list.length} landen over</p><div>${list.slice(0, 30).map((n, i) => `<div class="rk ${n.id === s.me ? "me" : ""}"><span style="width:22px;color:var(--muted)">${i + 1}</span><img class="fimg" alt="" src="${flagURL(flagOf(n))}"><span class="n">${E(n.name)}${n.id === s.me ? " (jij)" : ""}${WZ.allied(s, s.me, n.id) && n.id !== s.me ? " 🤝" : ""}</span><span>${(n.tiles / w.landN * 100).toFixed(1)}%</span><span style="width:52px;text-align:right;color:var(--muted)">🪖${fmt(WZ.power(s, n.id))}</span></div>`).join("")}</div>
     <button class="big red" id="rB" type="button">Terug</button>`);
   $("rB").onclick = resumePlay;
 }
@@ -1241,7 +1422,7 @@ async function resume(d) {
 document.addEventListener("visibilitychange", () => { if (document.hidden) save(); });
 
 // ---------- start ----------
-window.__wwz = () => ({ s, w, WZ, provAt, scrX, scrY, armyPos, get sel() { return sel; } });
+window.__wwz = () => ({ s, w, WZ, provAt, scrX, scrY, armyPos, provCard, armyCard, orderTo, setFrac, flagPanel, get sel() { return sel; } });
 resize(); requestAnimationFrame(loop);
 (async () => {
   let saved = null;
