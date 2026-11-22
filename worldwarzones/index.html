@@ -983,9 +983,17 @@ const WZ = (() => {
         let sc = (nb ? 1 : 0.35) * (0.5 + Math.min(2, ratio)) * (n.ideo && n.ideo === me.ideo ? 1.8 : 1) * (n.target === s.me ? 0.2 : 1) * (0.5 + Math.random());
         if (sc > bs) { bs = sc; best = n; }
       }
-      let uni = null; for (const n of s.nations) if (n && n.alive && n.id !== s.me && allied(s, s.me, n.id) && n.provs <= me.provs * 0.35 && power(s, s.me) > 3 * power(s, n.id) && !(n.refuse && (n.refuse["r" + s.me] || 0) > s.t) && Math.random() < 0.35) { uni = n; break; }
-      if (uni) { s.pendReq = { id: uni.id, kind: "unie" }; s.ev.push({ type: "friendReq", id: uni.id, kind: "unie" }); s.nextReq = s.t + 75 + Math.random() * 60; best = null; }
-      if (best && bs > 0.9) { const kind = bs > 1.8 && !nap(s, s.me, best.id) ? "ally" : nap(s, s.me, best.id) ? "ally" : "nap"; s.pendReq = { id: best.id, kind }; s.ev.push({ type: "friendReq", id: best.id, kind }); }
+      // een veel sterkere buur eist een provincie van je (ultimatum)
+      if (me.provs >= 2 && s.t > (me.immuneUntil || 0) && s.t > s.peaceUntil && Math.random() < 0.45) {
+        let bully = null, br = 0;
+        for (const n of s.nations) { if (!n || !n.alive || n.id === s.me || allied(s, s.me, n.id) || nap(s, s.me, n.id)) continue; if (!(me.nbTags || []).includes(tagOf(n))) continue; if (n.refuse && (n.refuse["r" + s.me] || 0) > s.t) continue; const r = power(s, n.id) / Math.max(1, myP); if (r > 2.2 && r > br) { br = r; bully = n; } }
+        if (bully) { let q = -1, qv = Infinity; for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me && p !== me.capital && w.adj[p].some(r => s.owner[r] === bully.id) && w.val[p] < qv) { qv = w.val[p]; q = p; }
+          if (q >= 0) { s.pendReq = { id: bully.id, kind: "ultb", q }; s.ev.push({ type: "friendReq", id: bully.id, kind: "ultb", q }); s.nextReq = s.t + 90 + Math.random() * 60; bully = "done"; } }
+        if (bully === "done") { /* verzoek staat klaar */ }
+      }
+      let uni = null; if (s.pendReq) uni = null; else for (const n of s.nations) if (n && n.alive && n.id !== s.me && allied(s, s.me, n.id) && n.provs <= me.provs * 0.35 && power(s, s.me) > 3 * power(s, n.id) && !(n.refuse && (n.refuse["r" + s.me] || 0) > s.t) && Math.random() < 0.35) { uni = n; break; }
+      if (!s.pendReq && uni) { s.pendReq = { id: uni.id, kind: "unie" }; s.ev.push({ type: "friendReq", id: uni.id, kind: "unie" }); s.nextReq = s.t + 75 + Math.random() * 60; best = null; }
+      if (!s.pendReq && best && bs > 0.9) { const kind = bs > 1.8 && !nap(s, s.me, best.id) ? "ally" : nap(s, s.me, best.id) ? "ally" : "nap"; s.pendReq = { id: best.id, kind }; s.ev.push({ type: "friendReq", id: best.id, kind }); }
       s.nextReq = s.t + 75 + Math.random() * 60;
     }
     // stabiliteit van de speler
@@ -1072,7 +1080,75 @@ const WZ = (() => {
       if (s.mil[q] <= 0) capture(w, s, q, attackers);
     }
   }
+  // ---------- provincie delen: twee landen veroveren tegelijk ----------
+  const growA = (a, n) => { if (Array.isArray(a)) { while (a.length < n) a.push(0); return a; } const b = new a.constructor(n); b.set(a); return b; };
+  function centerOf(w, p) {
+    const W = w.W; let rx = -1, ax = 0, ay = 0, c = 0;
+    for (let k = w.start[p]; k < w.start[p + 1]; k++) { const t = w.list[k]; let x = t % W; if (rx < 0) rx = x; if (w.wrap) { if (x - rx > W / 2) x -= W; else if (rx - x > W / 2) x += W; } ax += x; ay += (t / W) | 0; c++; }
+    ax /= c; ay /= c; let best = w.list[w.start[p]], bd = 1e18;
+    for (let k = w.start[p]; k < w.start[p + 1]; k++) { const t = w.list[k]; let dx = Math.abs(t % W - ((ax % W) + W) % W); if (w.wrap) dx = Math.min(dx, W - dx); const d = dx * dx + (((t / W) | 0) - ay) ** 2; if (d < bd) { bd = d; best = t; } }
+    w.ctile[p] = best; w.cx[p] = best % W + 0.5; w.cy[p] = ((best / W) | 0) + 0.5;
+  }
+  // splitst provincie p: de tegels in tilesB worden een nieuwe provincie (alleen de wereld, niet het spel)
+  function splitWorld(w, p, tilesB) {
+    const q = w.P, n = q + 1, tmp = new Int32Array(4);
+    for (const k of ["cx", "cy", "ctile", "size", "val", "pCtry", "coastP"]) w[k] = growA(w[k], n);
+    w.adj.push([]); w.seaAdj.push([]); w.P = n; w._mut = true;
+    const oldSize = w.size[p];
+    for (const t of tilesB) w.prov[t] = q;
+    w.size[q] = tilesB.length; w.size[p] = oldSize - tilesB.length;
+    const vq = w.val[p] * w.size[q] / oldSize; w.val[q] = vq; w.val[p] -= vq; w.pCtry[q] = w.pCtry[p];
+    // tegellijst (CSR) opnieuw opbouwen
+    const start = new Int32Array(n + 1); for (let i = 0; i < w.N; i++) { const pr = w.prov[i]; if (pr >= 0) start[pr + 1]++; }
+    for (let i = 0; i < n; i++) start[i + 1] += start[i];
+    const fill = start.slice(0, n), list = new Int32Array(start[n]); for (let i = 0; i < w.N; i++) { const pr = w.prov[i]; if (pr >= 0) list[fill[pr]++] = i; }
+    w.start = start; w.list = list;
+    centerOf(w, p); centerOf(w, q);
+    // randen en buren van p en q opnieuw berekenen
+    const touched = new Set([p, q]), adjS = { [p]: new Set(), [q]: new Set() }; w.coastP[p] = 0; w.coastP[q] = 0;
+    for (const pr of [p, q]) for (let k = w.start[pr]; k < w.start[pr + 1]; k++) {
+      const i = w.list[k], m = w.nb(i, tmp); let e = 0;
+      for (let j = 0; j < m; j++) { const u = tmp[j]; if (!w.land[u]) { w.coastP[pr] = 1; continue; } const b = w.prov[u]; if (b !== pr) { e = 1; adjS[pr].add(b); w.pEdge[u] = 1; touched.add(b); } }
+      w.pEdge[i] = e;
+    }
+    w.adj[p] = [...adjS[p]]; w.adj[q] = [...adjS[q]];
+    for (const r of touched) if (r !== p && r !== q) { const l = w.adj[r].filter(x => x !== p && x !== q); if (adjS[p].has(r)) l.push(p); if (adjS[q].has(r)) l.push(q); w.adj[r] = l; }
+    if (w.coastP[q]) { w.seaAdj[q] = w.seaAdj[p].map(e => ({ q: e.q, d: e.d })); for (const e of w.seaAdj[q]) if (!w.seaAdj[e.q].some(x => x.q === q)) w.seaAdj[e.q].push({ q, d: e.d }); }
+    return q;
+  }
+  function shareProvince(w, s, q, X, Y) {
+    // verdeel de tegels: wie vanaf zijn eigen grens het dichtst bij is, krijgt ze
+    const tmp = new Int32Array(4), lab = new Map(), qu = [];
+    for (let k = w.start[q]; k < w.start[q + 1]; k++) { const t = w.list[k], m = w.nb(t, tmp); for (let j = 0; j < m; j++) { const u = tmp[j]; if (!w.land[u] || w.prov[u] === q) continue; const o = s.owner[w.prov[u]]; if (o === X || o === Y) { if (!lab.has(t)) { lab.set(t, o); qu.push(t); } break; } } }
+    const has = id => [...lab.values()].includes(id);
+    if (!has(X) || !has(Y)) { // bv. landing over zee: zaad bij het tegelvak dat het dichtst bij dat land ligt
+      for (const id of [X, Y]) if (!has(id)) { const n = s.nations[id], cx = w.cx[n.capital], cy = w.cy[n.capital]; let best = -1, bd = Infinity;
+        for (let k = w.start[q]; k < w.start[q + 1]; k++) { const t = w.list[k]; if (lab.has(t)) continue; let dx = Math.abs(t % w.W - cx); if (w.wrap) dx = Math.min(dx, w.W - dx); const d = dx * dx + ((t / w.W | 0) - cy) ** 2; if (d < bd) { bd = d; best = t; } }
+        if (best >= 0) { lab.set(best, id); qu.push(best); } }
+    }
+    for (let h = 0; h < qu.length; h++) { const t = qu[h], m = w.nb(t, tmp); for (let j = 0; j < m; j++) { const u = tmp[j]; if (w.land[u] && w.prov[u] === q && !lab.has(u)) { lab.set(u, lab.get(t)); qu.push(u); } } }
+    const tilesB = []; for (const [t, o] of lab) if (o === Y) tilesB.push(t);
+    if (tilesB.length < 3 || w.size[q] - tilesB.length < 3) return -1;
+    const nq = splitWorld(w, q, tilesB);
+    s.owner = growA(s.owner, w.P); s.mil = growA(s.mil, w.P); if (s.core) s.core = growA(s.core, w.P);
+    (s.splits = s.splits || []).push({ p: q, t: tilesB });
+    s.owner[nq] = Y; s.mil[nq] = milMax(w, s, nq) * 0.6; if (s.core) s.core[nq] = Y;
+    recount(w, s);
+    return nq;
+  }
   function capture(w, s, q, attackers) {
+    // twee landen vallen tegelijk aan en een van hen is de speler: de provincie wordt gedeeld
+    { const by0 = attackers.slice().sort((a, b) => b.n - a.n)[0].o, other = attackers.find(a => a.o !== by0 && a.n > 0) || s.armies.find(a => a.o !== by0 && a.o !== s.owner[q] && a.n > 0 && a.path[0] && a.path[0].q === q && a.prog > 0.05);
+      if (other && (by0 === s.me || other.o === s.me) && s.nations[other.o] && s.nations[other.o].alive) {
+        const o0 = s.owner[q], Y = other.o;
+        const nq = shareProvince(w, s, q, by0, Y);
+        if (nq >= 0) {
+          for (const a of s.armies) if (a.o === Y && a.path[0] && a.path[0].q === q) { a.p = nq; a.path = []; a.prog = 0; a.fight = 0; }
+          s.ev.push({ type: "split", p: q, q: nq, a: by0, b: Y, o: o0 });
+          attackers = attackers.filter(a => a.o !== Y);
+          if (!attackers.length) return;
+        }
+      } }
     const by = attackers.sort((a, b) => b.n - a.n)[0].o, o = s.owner[q];
     const O = s.nations[o], B = s.nations[by];
     s.owner[q] = by; s.mil[q] = milMax(w, s, q) * 0.6;
@@ -1185,6 +1261,11 @@ const WZ = (() => {
   function answerReq(w, s, choice) {
     const r = s.pendReq; s.pendReq = null; if (!r) return { err: "geen verzoek" };
     const B = s.nations[r.id]; if (!B || !B.alive) return { err: "dat land bestaat niet meer" };
+    if (r.kind === "ultb") {
+      const me = s.nations[s.me];
+      if (choice === "give") { if (s.owner[r.q] === s.me && r.q !== me.capital && me.provs > 1) transfer(w, s, s.me, B.id, r.q); B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 300; return { ok: true, kind: "gave" }; }
+      B.target = s.me; B.nextT = s.t + 45; me.stab = Math.min(100, (me.stab ?? 60) + 4); B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 200; return { ok: true, kind: "war" };
+    }
     if (r.kind === "unie") { if (choice === "unie") { mergeInto(w, s, s.me, B.id); return { ok: true, kind: "unie" }; } B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 240; return { ok: true, kind: "no" }; }
     if (choice === "ally") { if (!B.allies.includes(s.me)) B.allies.push(s.me); const me = s.nations[s.me]; if (!me.allies.includes(B.id)) me.allies.push(B.id); stopFighting(s, s.me, B.id); if (B.target === s.me) B.target = 0; return { ok: true, kind: "ally" }; }
     if (choice === "nap") { s.naps = s.naps || {}; s.naps[napKey(s.me, B.id)] = s.t + 300; stopFighting(s, s.me, B.id); if (B.target === s.me) B.target = 0; return { ok: true, kind: "nap" }; }
@@ -1299,7 +1380,7 @@ const WZ = (() => {
 
   // ---------- opslaan ----------
   function serialize(s) { return JSON.stringify(Object.assign({}, s, { owner: Array.from(s.owner), mil: Array.from(s.mil, x => Math.round(x)), ev: [], nations: s.nations.map(n => n && Object.assign({}, n, { fx: undefined })) })); }
-  function deserialize(w, str) { ensureClaims(w); const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
+  function deserialize(w, str) { ensureClaims(w); const o = JSON.parse(str); if (o.v !== 2) return null; if (o.splits) for (const sp of o.splits) splitWorld(w, sp.p, sp.t); o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
   return { unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
@@ -1315,7 +1396,7 @@ const cv = $("cv"), ctx = cv.getContext("2d");
 let VW = 0, VH = 0, DPR = 1;
 let w = null, s = null, mapId = "", W = 0, H = 0, N = 0;
 let off = null, octx = null, img = null, px = null;
-let scale = 1, ox = 0, oy = 0;
+let scale = 1, ox = 0, oy = 0, hlProv = null;
 let speed = 1, paused = false, frac = 0.5, armyFrac = 1, mode = "cmd";
 let sel = null, card = null, picking = false, dirty = new Set(), fullPaint = false;
 let db = null, uid = null;
@@ -1749,6 +1830,7 @@ function render() {
   if (drag && drag.to >= 0) { const [x, y] = armyPos(drag.a); arrowLine([[scrX(x), scrY(y)], [scrX(w.cx[drag.to]), scrY(w.cy[drag.to])]], "#f5b531", 4); }
   if (frontPts && frontPts.length > 1) { ctx.save(); ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); frontPts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); ctx.strokeStyle = "#f5b531"; ctx.lineWidth = 5; ctx.setLineDash([10, 7]); ctx.stroke(); ctx.restore(); }
   // geselecteerde provincie
+  if (hlProv && performance.now() < hlProv.until && s.owner[hlProv.p] !== undefined) { const x = scrX(w.cx[hlProv.p]), y = scrY(w.cy[hlProv.p]); ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, 18 + pulse * 8, 0, 7); ctx.stroke(); ctx.font = "22px sans-serif"; ctx.fillText("📜", x - 11, y - 26); }
   if (card && card.p >= 0 && !card.army) { const x = scrX(w.cx[card.p]), y = scrY(w.cy[card.p]); ctx.strokeStyle = "#f5b531"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 14 + pulse * 5, 0, 7); ctx.stroke(); }
 }
 
@@ -1992,6 +2074,10 @@ function onEvents(evs) {
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
     else if (e.type === "revolt") { dirty.add(e.q); labelT = -9; if (e.id === s.me) toast("🔥 Opstand! Een provincie scheurt zich af. Verhoog je stabiliteit via 🏛️"); }
+    else if (e.type === "split") {
+      for (const k of [e.p, e.q]) { pBox.delete(k); sOrd.delete(k); dirty.add(k); for (const r of w.adj[k]) dirty.add(r); } labelT = -9;
+      if (e.a === s.me || e.b === s.me) toast(`✂️ Jij en ${nm(e.a === s.me ? e.b : e.a)} vielen tegelijk aan: de provincie is gedeeld`);
+    }
     else if (e.type === "union") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🫱🏻‍🫲🏽 ${s.nations[e.t].name} sluit zich bij je aan! +${e.ps.length} provincie${e.ps.length === 1 ? "" : "s"}` : `📢 ${s.nations[e.t].name} gaat op in ${nm(e.id)}`); }
     else if (e.type === "annex") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🤝 Je lijft ${s.nations[e.t].name} in!` : `📢 ${nm(e.id)} lijft ${s.nations[e.t].name} in`); }
     else if (e.type === "annexFail" && e.id === s.me) toast(`❌ ${s.nations[e.t].name} is te groot om in te lijven`);
@@ -2052,6 +2138,8 @@ function menu(resumeData) {
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
   <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>✂️</i><div><b>Delen:</b> val je een provincie aan terwijl een ander land dat ook doet, dan wordt hij verdeeld. Ieder krijgt het stuk aan zijn eigen kant.</div></div>
+  <div class="st"><i>📜</i><div><b>Ultimatums:</b> een veel sterker buurland kan een provincie van je eisen. Geef toe, of weiger en vecht.</div></div>
   <div class="st"><i>🫱🏻‍🫲🏽</i><div><b>Unificatie:</b> tik op een kleiner land en vraag of het zich bij jou aansluit. Bondgenoten en landen met dezelfde ideologie zeggen sneller ja. Kleine bondgenoten vragen het soms zelf.</div></div>
   <div class="st"><i>✉️</i><div><b>Vriendschapsverzoeken:</b> andere landen vragen je soms om bondgenoot te worden of een verdrag te sluiten. Weiger je, dan kan een land beledigd raken.</div></div>
   <div class="st"><i>💰</i><div><b>Politiek:</b> tik op een ander land om een provincie te kopen voor troepen, een verdrag te sluiten of een ultimatum te sturen. Je kunt ook eigen land verkopen.</div></div>
@@ -2097,6 +2185,18 @@ function maybeReq() {
   const r = s.pendReq, B = s.nations[r.id]; if (!B || !B.alive) { s.pendReq = null; return; }
   paused = true; hideCard();
   const f = B.fac ? WZ.facOf(s, B.fac) : null, ratio = WZ.power(s, B.id) / Math.max(1, WZ.power(s, s.me));
+  if (r.kind === "ultb") { const q = r.q; if (s.owner[q] !== s.me) { s.pendReq = null; return; }
+    // camera naar de geëiste provincie
+    focusProv(q, Math.max(scale, minScale() * 3)); oy = VH * 0.25 - w.cy[q] * scale; clampView(); hlProv = { p: q, until: performance.now() + 20000 };
+    ov(`<h2>📜 Ultimatum!</h2>
+    <div class="fm" style="margin-top:8px"><div class="t"><img alt="" src="${flagURL(flagOf(B))}"><div><b>${E(B.name)}</b><small>${ratio.toFixed(1).replace(".", ",")}× zo sterk als jij</small></div></div></div>
+    <p>${E(B.name)} eist dat je ${regionName(q) && regionName(q) !== s.nations[s.me].name ? "de provincie <b style=\"color:var(--ink)\">" + E(regionName(q)) + "</b>" : "een grensprovincie"} afstaat (gemarkeerd op de kaart). Geef je niet toe, dan verklaart ${E(B.name)} je de oorlog.</p>
+    <button class="big" data-rq="give" type="button" style="min-height:52px">🏳️ Geef toe · provincie afstaan</button>
+    <button class="big red" data-rq="no" type="button">⚔️ Weigeren · oorlog!</button>`);
+    $("ovc").onclick = e => { const b = e.target.closest("[data-rq]"); if (!b) return; const res = WZ.answerReq(w, s, b.dataset.rq); onEvents(s.ev.splice(0));
+      toast(res.kind === "gave" ? `🏳️ Je staat de provincie af aan ${B.name}` : `⚔️ ${B.name} verklaart je de oorlog! Je volk staat achter je (+4 stabiliteit)`);
+      $("ovc").onclick = null; resumePlay(); };
+    return; }
   ov(`<h2>${r.kind === "unie" ? "🫱🏻‍🫲🏽 Verzoek tot unificatie" : "✉️ Vriendschapsverzoek"}</h2>
     <div class="fm" style="margin-top:8px"><div class="t"><img alt="" src="${flagURL(flagOf(B))}"><div><b>${E(B.name)}</b><small>${B.ideo ? WZ.IDEO[B.ideo].icon + " " + WZ.IDEO[B.ideo].naam + " · " : ""}${f ? E(f.naam) + " · " : ""}${ratio > 1.2 ? "sterker dan jij" : ratio < 0.8 ? "zwakker dan jij" : "even sterk"}</small></div></div></div>
     <p>${r.kind === "unie" ? `${E(B.name)} wil zich <b style="color:var(--ink)">bij jou aansluiten</b>. Alle provincies, legers en reserve van ${E(B.name)} worden van jou.` : r.kind === "ally" ? `${E(B.name)} wil je <b style="color:var(--ink)">bondgenoot</b> worden. Bondgenoten vallen elkaar niet aan en helpen elkaar tegen vijanden.` : `${E(B.name)} stelt een <b style="color:var(--ink)">niet-aanvalsverdrag</b> voor: 5 minuten geen oorlog tussen jullie.`}</p>
@@ -2284,11 +2384,11 @@ function focusPanel() {
 }
 
 // ---------- kaart laden ----------
-const mapCache = {};
+const mapCache = {}, mapG = {};
 const mapKey = () => settings.map === "mega" ? "wereld-mega" : settings.map + "-" + settings.size;
 async function loadMap(id) {
   $("loading").classList.remove("hidden");
-  if (!mapCache[id]) { const G = await (await fetch("maps/" + id + ".json")).json(); mapCache[id] = WZ.makeWorld(G, id.split("-")[1]); }
+  if (!mapCache[id] || mapCache[id]._mut) { const G = mapG[id] || (mapG[id] = await (await fetch("maps/" + id + ".json")).json()); mapCache[id] = WZ.makeWorld(G, id.split("-")[1]); }
   w = mapCache[id]; mapId = id; W = w.W; H = w.H; N = w.N; pBox.clear(); sOrd.clear(); sieged = new Set();
   off = document.createElement("canvas"); off.width = W; off.height = H; octx = off.getContext("2d"); img = octx.createImageData(W, H); px = img.data;
   await loadKlimaat(); makeTerrain(); $("loading").classList.add("hidden");
