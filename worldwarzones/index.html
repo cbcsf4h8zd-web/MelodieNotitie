@@ -991,6 +991,20 @@ const WZ = (() => {
           if (q >= 0) { s.pendReq = { id: bully.id, kind: "ultb", q }; s.ev.push({ type: "friendReq", id: bully.id, kind: "ultb", q }); s.nextReq = s.t + 90 + Math.random() * 60; bully = "done"; } }
         if (bully === "done") { /* verzoek staat klaar */ }
       }
+      // handelsbod: een buurland wil een provincie van je kopen, of er een aan je verkopen
+      if (!s.pendReq && me.provs >= 2 && Math.random() < 0.35) {
+        const nbs = s.nations.filter(n => n && n.alive && n.id !== s.me && (me.nbTags || []).includes(tagOf(n)) && !(n.refuse && (n.refuse["r" + s.me] || 0) > s.t) && !s.armies.some(a => (a.o === n.id && a.fight === s.me) || (a.o === s.me && a.fight === n.id)));
+        const B = nbs[(Math.random() * nbs.length) | 0];
+        if (B) {
+          const wantBuy = Math.random() < 0.55, wantSell = B.provs >= 3;
+          if (wantBuy) { let q = -1, qv = Infinity; for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me && p !== me.capital && w.adj[p].some(r => s.owner[r] === B.id) && w.val[p] < qv) { qv = w.val[p]; q = p; }
+            const price = q >= 0 ? Math.round(provPrice(w, s, q) * 1.1) : 0;
+            if (q >= 0 && B.pool >= price) { s.pendReq = { id: B.id, kind: "buyb", q, price }; s.ev.push({ type: "friendReq", id: B.id, kind: "buyb", q }); } }
+          else if (wantSell) { let q = -1, qv = Infinity; for (let p = 0; p < w.P; p++) if (s.owner[p] === B.id && p !== B.capital && w.adj[p].some(r => s.owner[r] === s.me) && w.val[p] < qv) { qv = w.val[p]; q = p; }
+            const price = q >= 0 ? Math.round(provPrice(w, s, q) * 0.8) : 0;
+            if (q >= 0 && me.pool >= price) { s.pendReq = { id: B.id, kind: "sellb", q, price }; s.ev.push({ type: "friendReq", id: B.id, kind: "sellb", q }); } }
+        }
+      }
       let uni = null; if (s.pendReq) uni = null; else for (const n of s.nations) if (n && n.alive && n.id !== s.me && allied(s, s.me, n.id) && n.provs <= me.provs * 0.35 && power(s, s.me) > 3 * power(s, n.id) && !(n.refuse && (n.refuse["r" + s.me] || 0) > s.t) && Math.random() < 0.35) { uni = n; break; }
       if (!s.pendReq && uni) { s.pendReq = { id: uni.id, kind: "unie" }; s.ev.push({ type: "friendReq", id: uni.id, kind: "unie" }); s.nextReq = s.t + 75 + Math.random() * 60; best = null; }
       if (!s.pendReq && best && bs > 0.9) { const kind = bs > 1.8 && !nap(s, s.me, best.id) ? "ally" : nap(s, s.me, best.id) ? "ally" : "nap"; s.pendReq = { id: best.id, kind }; s.ev.push({ type: "friendReq", id: best.id, kind }); }
@@ -1261,6 +1275,12 @@ const WZ = (() => {
   function answerReq(w, s, choice) {
     const r = s.pendReq; s.pendReq = null; if (!r) return { err: "geen verzoek" };
     const B = s.nations[r.id]; if (!B || !B.alive) return { err: "dat land bestaat niet meer" };
+    if (r.kind === "buyb" || r.kind === "sellb") {
+      const me = s.nations[s.me]; B.refuse = B.refuse || {};
+      if (choice !== "yes") { B.refuse["r" + s.me] = s.t + 120; return { ok: true, kind: "no" }; }
+      if (r.kind === "buyb") { if (s.owner[r.q] !== s.me || r.q === me.capital || B.pool < r.price) return { err: "het bod is niet meer geldig" }; B.pool -= r.price; me.pool += r.price; transfer(w, s, s.me, B.id, r.q); return { ok: true, kind: "sold", price: r.price }; }
+      if (s.owner[r.q] !== B.id || r.q === B.capital || me.pool < r.price) return { err: "het bod is niet meer geldig" }; me.pool -= r.price; B.pool += r.price; transfer(w, s, B.id, s.me, r.q); return { ok: true, kind: "bought", price: r.price };
+    }
     if (r.kind === "ultb") {
       const me = s.nations[s.me];
       if (choice === "give") { if (s.owner[r.q] === s.me && r.q !== me.capital && me.provs > 1) transfer(w, s, s.me, B.id, r.q); B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 300; return { ok: true, kind: "gave" }; }
@@ -2141,7 +2161,7 @@ const HELP = `<div class="help">
   <div class="st"><i>✂️</i><div><b>Delen:</b> val je een provincie aan terwijl een ander land dat ook doet, dan wordt hij verdeeld. Ieder krijgt het stuk aan zijn eigen kant.</div></div>
   <div class="st"><i>📜</i><div><b>Ultimatums:</b> een veel sterker buurland kan een provincie van je eisen. Geef toe, of weiger en vecht.</div></div>
   <div class="st"><i>🫱🏻‍🫲🏽</i><div><b>Unificatie:</b> tik op een kleiner land en vraag of het zich bij jou aansluit. Bondgenoten en landen met dezelfde ideologie zeggen sneller ja. Kleine bondgenoten vragen het soms zelf.</div></div>
-  <div class="st"><i>✉️</i><div><b>Vriendschapsverzoeken:</b> andere landen vragen je soms om bondgenoot te worden of een verdrag te sluiten. Weiger je, dan kan een land beledigd raken.</div></div>
+  <div class="st"><i>✉️</i><div><b>Verzoeken van andere landen:</b> ze vragen je om bondgenoot te worden, een verdrag te sluiten, een provincie te kopen of te verkopen, of ze sturen een ultimatum. Weiger je, dan kan een land beledigd raken.</div></div>
   <div class="st"><i>💰</i><div><b>Politiek:</b> tik op een ander land om een provincie te kopen voor troepen, een verdrag te sluiten of een ultimatum te sturen. Je kunt ook eigen land verkopen.</div></div>
   <div class="st"><i>🏛️</i><div><b>Binnenland:</b> houd je stabiliteit hoog met besluiten en reageer op gebeurtenissen, anders komen er opstanden.</div></div>
   <div class="st"><i>🏁</i><div><b>Doel:</b> verover genoeg van de kaart. Je doel staat bovenin.</div></div>
@@ -2185,6 +2205,19 @@ function maybeReq() {
   const r = s.pendReq, B = s.nations[r.id]; if (!B || !B.alive) { s.pendReq = null; return; }
   paused = true; hideCard();
   const f = B.fac ? WZ.facOf(s, B.fac) : null, ratio = WZ.power(s, B.id) / Math.max(1, WZ.power(s, s.me));
+  if (r.kind === "buyb" || r.kind === "sellb") { const q = r.q, buy = r.kind === "buyb";
+    if (s.owner[q] !== (buy ? s.me : B.id)) { s.pendReq = null; return; }
+    focusProv(q, Math.max(scale, minScale() * 3)); oy = VH * 0.25 - w.cy[q] * scale; clampView(); hlProv = { p: q, until: performance.now() + 20000 };
+    ov(`<h2>${buy ? "💰 Koopbod" : "🏷️ Te koop aangeboden"}</h2>
+    <div class="fm" style="margin-top:8px"><div class="t"><img alt="" src="${flagURL(flagOf(B))}"><div><b>${E(B.name)}</b><small>${ratio > 1.2 ? "sterker dan jij" : ratio < 0.8 ? "zwakker dan jij" : "even sterk"}</small></div></div></div>
+    <p>${buy ? `${E(B.name)} wil een grensprovincie van je <b style="color:var(--ink)">kopen</b> (gemarkeerd op de kaart) en biedt <b style="color:var(--ink)">${fmt(r.price)} troepen</b>.` : `${E(B.name)} heeft troepen nodig en wil je een provincie <b style="color:var(--ink)">verkopen</b> (gemarkeerd op de kaart) voor <b style="color:var(--ink)">${fmt(r.price)} troepen</b>.`}</p>
+    <p style="font-size:12.5px">Jouw reserve nu: ${fmt(s.nations[s.me].pool)}</p>
+    <button class="big red" data-rq="yes" type="button">${buy ? "💰 Verkopen voor " + fmt(r.price) : "🏷️ Kopen voor " + fmt(r.price)}</button>
+    <button class="big" data-rq="no" type="button" style="min-height:48px">❌ Nee, bedankt</button>`);
+    $("ovc").onclick = e => { const b = e.target.closest("[data-rq]"); if (!b) return; const res = WZ.answerReq(w, s, b.dataset.rq); onEvents(s.ev.splice(0));
+      toast(res.err ? "❌ " + res.err : res.kind === "sold" ? `💰 Verkocht aan ${B.name}: +${fmt(res.price)} troepen` : res.kind === "bought" ? `🏷️ Gekocht van ${B.name} voor ${fmt(res.price)} troepen` : `❌ Je slaat het bod van ${B.name} af`);
+      hlProv = null; $("ovc").onclick = null; resumePlay(); };
+    return; }
   if (r.kind === "ultb") { const q = r.q; if (s.owner[q] !== s.me) { s.pendReq = null; return; }
     // camera naar de geëiste provincie
     focusProv(q, Math.max(scale, minScale() * 3)); oy = VH * 0.25 - w.cy[q] * scale; clampView(); hlProv = { p: q, until: performance.now() + 20000 };
