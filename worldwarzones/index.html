@@ -43,6 +43,9 @@ button{font:inherit;color:inherit}
 .fn small{font-weight:600;color:var(--muted);font-size:10px;margin-top:3px}
 .fn.done{background:#14532d;border-color:#22c55e}
 .fn.cur{background:#3b2a07;border-color:var(--gold)}
+.fn.q{border-color:var(--gold);background:#2b2410;position:relative}
+.fn.q .qn{position:absolute;top:4px;right:6px;background:var(--gold);color:#1b1206;border-radius:9px;font-size:11px;font-weight:900;padding:0 6px}
+.fn.qa{border-color:#a78bfa;border-style:dashed}
 .fn.ok{border-color:#60a5fa;box-shadow:inset 0 0 0 1px #60a5fa}
 .fn.lock{opacity:.4}
 .fn.x{opacity:.22;text-decoration:line-through}
@@ -197,8 +200,8 @@ const WZ = (() => {
   "use strict";
   const WIN = 0.5;
   const DIFF = {
-    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, prod: 0.75, aggr: 0.55, think: 1.6, meBonus: 1.3, focusMe: 0.6, meProd: 1.5, coalMe: 0.15 },
-    standaard: { naam: "Standaard", capMe: 2.2, protect: 150, ftime: 1.4, fxs: 0.7, prod: 0.85, aggr: 0.85, think: 1.15, meBonus: 1.1, focusMe: 0.8, meProd: 1.35, coalMe: 0.45 },
+    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, prod: 0.75, aggr: 0.42, think: 1.9, meBonus: 1.3, focusMe: 0.45, meProd: 1.5, coalMe: 0.15 },
+    standaard: { naam: "Standaard", capMe: 2.2, protect: 150, ftime: 1.4, fxs: 0.7, prod: 0.85, aggr: 0.62, think: 1.4, meBonus: 1.1, focusMe: 0.6, meProd: 1.35, coalMe: 0.45 },
     brutaal: { naam: "Brutaal", capMe: 1.4, protect: 75, ftime: 1, fxs: 1, prod: 1.35, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
   };
   const K = 0.07;               // gevechtskracht per seconde
@@ -520,6 +523,7 @@ const WZ = (() => {
   function finishFocus(w, s, n, k) {
     const F = FOCUS[k]; n.focus.done.push(k); n.focus.cur = null; if (F.ideo) n.ideo = F.ideo; calcFx(n);
     s.ev.push({ type: "focus", id: n.id, k });
+    const qu = n.focus.queue; while (qu && qu.length && !n.focus.cur) startFocus(s, n.id, qu.shift());
     if (F.pool) n.pool = Math.min(poolCap(w, s, n.id) * 1.5, n.pool + poolCap(w, s, n.id) * F.pool);
     const find = names => s.nations.filter(t => t && t.alive && t.id !== n.id && names.includes(tagOf(t)));
     if (F.ally) for (const t of find(F.ally)) if (!allied(s, n.id, t.id) && t.id !== s.me) { if (!n.allies.includes(t.id)) n.allies.push(t.id); if (!t.allies.includes(n.id)) t.allies.push(n.id); stopFighting(s, n.id, t.id); s.ev.push({ type: "pact", id: n.id, with: t.id }); }
@@ -532,6 +536,28 @@ const WZ = (() => {
       s.ev.push({ type: "annex", id: n.id, t: t.id, ps });
       s.ev.push({ type: "dead", id: t.id, by: n.id });
     }
+  }
+  // wachtrij: focussen alvast inplannen; ze starten vanzelf na elkaar
+  function canQueue(n, k) {
+    const F = FOCUS[k], fo = n.focus; if (!F || fo.done.includes(k) || fo.cur === k || (fo.queue || []).includes(k)) return false;
+    if (F.tag && F.tag !== natTag(n)) return false;
+    if (F.claim && !(n.nbTags || []).includes(F.claim)) return false;
+    const have = new Set([...fo.done, fo.cur, ...(fo.queue || [])]);
+    if (!F.req.every(r => have.has(r))) return false;
+    if (F.any && !F.any.some(r => have.has(r))) return false;
+    if (F.excl && F.excl.some(r => have.has(r))) return false;
+    return true;
+  }
+  function queueFocus(s, id, k) {
+    const n = s.nations[id], fo = n.focus;
+    if (!fo.cur) return startFocus(s, id, k) ? "start" : false;
+    if (!canQueue(n, k)) return false; (fo.queue = fo.queue || []).push(k); return "queue";
+  }
+  function unqueueFocus(s, id, k) {
+    const fo = s.nations[id].focus; if (!fo.queue) return; const i = fo.queue.indexOf(k); if (i < 0) return;
+    // ook alles erachter dat hiervan afhangt verwijderen
+    const rest = fo.queue.filter(x => x !== k); fo.queue = [];
+    for (const x of rest) if (canQueue(s.nations[id], x)) fo.queue.push(x);
   }
   function startFocus(s, id, k) { const n = s.nations[id]; if (!focusOk(n, k)) return false; n.focus.cur = k; n.focus.left = FOCUS[k].tijd * (n.bot ? DIFF[s.diff].ftime : 1); return true; }
 
@@ -601,7 +627,7 @@ const WZ = (() => {
       const c = pc[pc0.id], cx = sx[pc0.id] / size[pc0.id], cy = sy[pc0.id] / size[pc0.id];
       let best = -1, bd = 1e18;
       for (let p = 0; p < pn; p++) { if (p === pc0.id || pc[p] !== c || size[p] < Math.max(6, PS * 0.18)) continue; let dx = Math.abs(sx[p] / size[p] - cx); if (wrap) dx = Math.min(dx, W - dx); const d = dx * dx + (sy[p] / size[p] - cy) ** 2; if (d < bd) { bd = d; best = p; } }
-      if (best >= 0 && bd < (PS * 1.2) ** 2) remap[pc0.id] = best;
+      if (best >= 0 && bd < (Math.sqrt(PS) * 2.2) ** 2) remap[pc0.id] = best;
     }
     // hernummeren
     const newId = new Int32Array(pn).fill(-1); let P = 0;
@@ -860,7 +886,7 @@ const WZ = (() => {
     while (heap.length) {
       const [dd, u] = pop(); if (done[u]) continue; done[u] = 1; if (u === goal) break; if (++steps > 6000) break;
       const friendly = s.owner[u] === o || allied(s, o, s.owner[u]);
-      for (const v of w.adj[u]) { const c = (s.owner[v] === o || allied(s, o, s.owner[v]) ? 1 : 2.5) * pdist(w, u, v); const nd = dd + c; if (nd < d[v]) { d[v] = nd; prev[v] = u; sea[v] = 0; push(nd, v); } }
+      for (const v of w.adj[u]) { if (v !== goal && s.owner[v] && s.owner[v] !== o && nap(s, o, s.owner[v])) continue; const c = (s.owner[v] === o || allied(s, o, s.owner[v]) ? 1 : 2.5) * pdist(w, u, v); const nd = dd + c; if (nd < d[v]) { d[v] = nd; prev[v] = u; sea[v] = 0; push(nd, v); } }
       if (friendly) for (const e of w.seaAdj[u]) { const v = e.q, nd = dd + e.d * 1.6 + 6; if (nd < d[v]) { d[v] = nd; prev[v] = u; sea[v] = 1; push(nd, v); } }
     }
     if (!isFinite(d[goal])) return null;
@@ -942,6 +968,10 @@ const WZ = (() => {
       s._nb = 1; const sets = new Map();
       for (let p = 0; p < w.P; p++) { const o = s.owner[p]; if (!o) continue; for (const q of w.adj[p]) { const o2 = s.owner[q]; if (o2 && o2 !== o) { let st = sets.get(o); if (!st) sets.set(o, st = new Set()); st.add(tagOf(s.nations[o2])); } } }
       for (const n of s.nations) if (n) n.nbTags = [...(sets.get(n.id) || [])];
+      for (const a of s.armies) { const o = s.owner[a.p]; if (a.path.length || o === a.o || (o && allied(s, a.o, o))) continue;
+        let best = -1, bd = Infinity; for (let p = 0; p < w.P; p++) if (s.owner[p] === a.o) { const d = pdist(w, p, a.p); if (d < bd) { bd = d; best = p; } }
+        if (best < 0) { a.n = 0; continue; }
+        if (o && nap(s, a.o, o)) { a.p = best; a.prog = 0; } else order(w, s, a, best); }
     }
     // stabiliteit van de speler
     const ME = s.nations[s.me];
@@ -969,6 +999,7 @@ const WZ = (() => {
       const step = a.path[0], qv = step.q, len = Math.max(1, step.sea ? (w.seaAdj[a.p].find(e => e.q === qv) || { d: pdist(w, a.p, qv) }).d + 4 : pdist(w, a.p, qv));
       const fA = FX(s.nations[a.o]), speed = (step.sea ? 10 * fA.sea : 8) * w.L * TUNE.speed * fA.speed;
       const ownQ = s.owner[qv], hostileQ = ownQ === 0 || hostile(s, a.o, ownQ);
+      if (ownQ && ownQ !== a.o && nap(s, a.o, ownQ) && !allied(s, a.o, ownQ)) { a.path = []; a.prog = 0; a.fight = 0; continue; }
       if (hostileQ && ownQ !== 0 && (s.t < s.peaceUntil || s.t < (s.nations[ownQ].immuneUntil || 0))) { a.prog = Math.min(a.prog, 0.45); continue; }
       a.sea = step.sea && a.prog < 0.95;
       if (hostileQ) {
@@ -1019,6 +1050,8 @@ const WZ = (() => {
       const m = s.mil[q];
       if (!s.siege) s.siege = {}; const sg = s.siege[q]; if (!sg || sg.by !== attackers[0].o || s.t - sg.t > 1) s.siege[q] = { by: attackers[0].o, m0: Math.max(m, 1), t: s.t }; else sg.t = s.t;
       s.mil[q] = m - A * K * 1.6 * seaPen * dt;
+      // reserve schiet automatisch te hulp bij een aanval op eigen land
+      const Od = s.nations[o]; if (Od && Od.pool > 0) { const give = Math.min(Od.pool, poolCap(w, s, o) * (o === s.me ? 0.05 : 0.01) * dt, Math.max(0, milMax(w, s, q) - s.mil[q])); Od.pool -= give; s.mil[q] += give; }
       for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt * a.n / A;
       if (s.mil[q] <= 0) capture(w, s, q, attackers);
     }
@@ -1026,7 +1059,7 @@ const WZ = (() => {
   function capture(w, s, q, attackers) {
     const by = attackers.sort((a, b) => b.n - a.n)[0].o, o = s.owner[q];
     const O = s.nations[o], B = s.nations[by];
-    s.owner[q] = by; s.mil[q] = milMax(w, s, q) * 0.35;
+    s.owner[q] = by; s.mil[q] = milMax(w, s, q) * 0.6;
     if (O) { O.tiles -= w.size[q]; O.provs--; O.val -= provVal(w, s, q, o); }
     if (!o && s.core) s.core[q] = by;
     s.owner[q] = by; B.tiles += w.size[q]; B.provs++; B.val += provVal(w, s, q, by); s.owner[q] = by;
@@ -1113,6 +1146,7 @@ const WZ = (() => {
     const ratio = power(s, id) / Math.max(1, power(s, o)), want = Math.min(0.9, 0.3 + ratio * 0.35) - (B.target === id ? 0.25 : 0);
     if (Math.random() > want) { B.refuse["n" + id] = s.t + 45; return { err: B.name + " weigert" }; }
     s.naps = s.naps || {}; s.naps[napKey(id, o)] = s.t + 240; stopFighting(s, id, o); if (B.target === id) B.target = 0;
+    for (const a of s.armies) if ((a.o === id && s.owner[a.p] === o) || (a.o === o && s.owner[a.p] === id) || ((a.o === id || a.o === o) && a.path.some(st => s.owner[st.q] === (a.o === id ? o : id)))) { a.path = []; a.prog = 0; }
     return { ok: true };
   }
   function ultimatum(w, s, id, p) {
@@ -1162,6 +1196,7 @@ const WZ = (() => {
     // doel kiezen
     if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target) || nap(s, id, n.target))) {
       n.nextT = s.t + 25 + Math.random() * 25;
+      if (n.target && Math.random() < 0.35 * (1.2 - D.aggr)) { n.target = 0; n.nextT = s.t + 35 + Math.random() * 30; return; }
       const nbs = neighbours(w, s, id); let best = 0, bs = 0; const myP = power(s, id);
       for (const [o, cnt] of nbs) {
         if (allied(s, id, o) || nap(s, id, o) || s.t < (s.nations[o].immuneUntil || 0)) continue;
@@ -1215,7 +1250,7 @@ const WZ = (() => {
   function deserialize(w, str) { ensureClaims(w); const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -1404,7 +1439,10 @@ function updFlags(force) {
     const key = l.length + ":" + sig + ":" + flagOf(s.nations[id]), cur = FC.get(id);
     if (cur && cur.key === key) continue;
     if (budget-- <= 0 && id !== s.me) continue;
-    const f = buildFlag(id, l); f.key = key; FC.set(id, f);
+    // elk los stuk land (bv. overzeese gebieden) krijgt een eigen vlag
+    const inL = new Set(l), seen = new Set(), parts = [];
+    for (const p0 of l) { if (seen.has(p0)) continue; const comp = [p0]; seen.add(p0); for (let h = 0; h < comp.length; h++) for (const q of w.adj[comp[h]]) if (inL.has(q) && !seen.has(q)) { seen.add(q); comp.push(q); } parts.push(buildFlag(id, comp)); }
+    FC.set(id, { key, parts });
   }
 }
 const updMyFlag = () => updFlags(true);
@@ -1412,7 +1450,7 @@ function drawFlags() {
   if (!s || settings.flag === "uit") return;
   const nowT = performance.now(); if (nowT - flagT > 400) { flagT = nowT; updFlags(); }
   ctx.save(); ctx.imageSmoothingEnabled = scale < 2;
-  for (const f of FC.values()) {
+  for (const e of FC.values()) for (const f of e.parts) {
     const X = scrX(f.x0), Y = scrY(f.y0), wd = f.bw * scale, ht = f.bh * scale;
     if (Y > VH || Y + ht < 0) continue;
     const xs = [X]; if (w.wrap) { const span = W * scale; xs.push(X - span, X + span); }
@@ -1432,15 +1470,35 @@ addEventListener("resize", resize);
 const MAPDEF = { wereld: [-180, 180, 83, -58], europa: [-25, 50, 72, 33], afrika: [-20, 55, 38, -36], noordamerika: [-170, -50, 75, 7], zuidamerika: [-85, -33, 13, -56], azie: [25, 150, 60, -11], oceanie: [110, 180, 2, -48] };
 function hash2(x, y) { let h = (x * 374761393 + y * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
 function vnoise(x, y) { const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy); const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; }
-const inB = (lat, lon, a, b, c, d) => lat >= a && lat <= b && lon >= c && lon <= d;
+// echte klimaatzones (Köppen, 0,5°) bepalen het terrein
+const KCOL = { Af: [22, 88, 38, .3], Am: [30, 100, 42, .28], Aw: [128, 150, 66, .22], As: [140, 150, 72, .22], BWh: [224, 196, 138, .34], BWk: [198, 180, 140, .3], BSh: [186, 170, 108, .26], BSk: [168, 162, 116, .24],
+  Csa: [140, 150, 80, .2], Csb: [118, 146, 76, .2], Csc: [100, 130, 80, .2], Cwa: [98, 142, 66, .2], Cwb: [92, 132, 72, .2], Cwc: [90, 120, 80, .2], Cfa: [84, 140, 68, .18], Cfb: [76, 132, 66, .18], Cfc: [70, 115, 75, .2],
+  Dsa: [130, 138, 90, .2], Dsb: [116, 130, 92, .2], Dsc: [92, 112, 90, .22], Dsd: [96, 110, 96, .22], Dwa: [96, 132, 72, .2], Dwb: [82, 120, 72, .2], Dwc: [56, 96, 70, .22], Dwd: [64, 96, 78, .22],
+  Dfa: [88, 130, 70, .2], Dfb: [72, 120, 70, .2], Dfc: [46, 90, 68, .24], Dfd: [58, 92, 76, .24], ET: [150, 150, 136, .3], EF: [236, 240, 244, .45] };
+let KLIM = null;
+async function loadKlimaat() {
+  if (KLIM) return KLIM;
+  try { const G = await (await fetch("maps/klimaat.json")).json(); const bin = Uint8Array.from(atob(G.r), c => c.charCodeAt(0)), runs = new Uint16Array(bin.buffer); const g = new Uint8Array(G.W * G.H); let p0 = 0; for (let k = 0; k < runs.length; k += 2) { g.fill(runs[k], p0, p0 + runs[k + 1]); p0 += runs[k + 1]; } KLIM = { W: G.W, H: G.H, cl: G.cl, g }; } catch (e) { KLIM = null; }
+  return KLIM;
+}
+function klimaat(lat, lon) {
+  const K = KLIM; if (!K) return null;
+  const x0 = Math.floor((lon + 180) * 2), y0 = Math.floor((89.999 - lat) * 2);
+  for (let r = 0; r <= 3; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+    const y = y0 + dy; if (y < 0 || y >= K.H) continue; const x = ((x0 + dx) % K.W + K.W) % K.W, c = K.g[y * K.W + x];
+    if (c) return K.cl[c];
+  }
+  return null;
+}
 function terr(lat, lon, nz) {
+  const k = klimaat(lat, lon), c = k && KCOL[k];
+  if (c) { const v = 0.9 + nz * 0.2; return [c[0] * v, c[1] * v, c[2] * v, c[3]]; }
   const al = Math.abs(lat);
-  if (al > 70 || (lat > 60 && lon > -75 && lon < -12)) return [236, 240, 244, 0.45];
-  if (inB(lat, lon, 27, 40, 68, 100) || inB(lat, lon, 44, 48, 5, 16) || inB(lat, lon, 35, 62, -126, -106) || inB(lat, lon, -55, 8, -79, -66)) if (nz > 0.5) return [120, 110, 100, 0.32];
-  if (inB(lat, lon, 14, 33, -18, 60) || inB(lat, lon, 25, 37, 50, 70) || inB(lat, lon, 36, 47, 75, 112) || inB(lat, lon, -32, -19, 115, 142) || inB(lat, lon, 24, 37, -118, -103) || inB(lat, lon, -28, -18, 12, 25)) return [222, 196, 136, 0.3];
-  if (al > 58) return [150, 160, 140, 0.25];
-  if (al < 10) return [30, 96, 44, 0.24];
-  return nz > 0.55 ? [50, 96, 50, 0.2] : [110, 150, 80, 0.16];
+  if (al > 68) return [236, 240, 244, 0.45];
+  if (al > 55) return [56, 96, 72, 0.24];
+  if (al < 12) return [28, 94, 42, 0.26];
+  return [84, 136, 68, 0.18];
 }
 let T = null;
 function makeTerrain() {
@@ -1448,10 +1506,13 @@ function makeTerrain() {
   T = new Uint8Array(N * 4);
   for (let i = 0; i < N; i++) {
     if (!w.land[i]) continue;
-    const x = i % W, y = (i / W) | 0, lon = d[0] + (x + 0.5) / W * (d[1] - d[0]), lat = d[2] - (y + 0.5) / H * (d[2] - d[3]);
+    const x = i % W, y = (i / W) | 0;
+    // kleine verschuiving met ruis zodat de 0,5°-blokjes niet zichtbaar zijn
+    const jx = (vnoise(x / (k / 2), y / (k / 2)) - 0.5) * 1.1, jy = (vnoise(x / (k / 2) + 31, y / (k / 2) + 17) - 0.5) * 1.1;
+    const lon = d[0] + (x + 0.5) / W * (d[1] - d[0]) + jx, lat = d[2] - (y + 0.5) / H * (d[2] - d[3]) + jy;
     const nz = vnoise(x / k, y / k) * 0.8 + vnoise(x / (k / 3), y / (k / 3)) * 0.2;
-    const c = terr(lat, lon, nz), j = (hash2(x, y) - 0.5) * 0.08;
-    T[i * 4] = c[0]; T[i * 4 + 1] = c[1]; T[i * 4 + 2] = c[2]; T[i * 4 + 3] = Math.max(0, c[3] + j) * 255;
+    const c = terr(lat, ((lon + 540) % 360) - 180, nz), j = (hash2(x, y) - 0.5) * 0.06;
+    T[i * 4] = Math.min(255, c[0]); T[i * 4 + 1] = Math.min(255, c[1]); T[i * 4 + 2] = Math.min(255, c[2]); T[i * 4 + 3] = Math.max(0, c[3] + j) * 255;
   }
 }
 const SEA = [16, 30, 52], SHALLOW = [28, 52, 82], DEEP = [11, 21, 38];
@@ -1464,7 +1525,7 @@ function paintTile(i, tmp) {
     const c = col(sg.by), a = T[i * 4 + 3] / 255 * 0.6, f = w.pEdge[i] ? 0.8 : 1;
     px[p] = (c[0] * (1 - a) + T[i * 4] * a) * f; px[p + 1] = (c[1] * (1 - a) + T[i * 4 + 1] * a) * f; px[p + 2] = (c[2] * (1 - a) + T[i * 4 + 2] * a) * f; px[p + 3] = 255; return;
   }
-  if (!o && s && s.mode === "spawn") {
+  if (!o) {
     const f = w.cEdge[i] ? 0.62 : w.pEdge[i] ? 0.86 : 1;
     px[p] = T[i * 4] * f; px[p + 1] = T[i * 4 + 1] * f; px[p + 2] = T[i * 4 + 2] * f; px[p + 3] = 255; return;
   }
@@ -1594,9 +1655,15 @@ function render() {
   for (const l of labels()) {
     const sz = Math.sqrt(l.n) * scale; if (sz < 46 && l.o !== s.me) continue;
     const x = scrX(l.x), y = scrY(l.y); if (x < -100 || x > VW + 100 || y < -40 || y > VH + 40) continue;
-    const fs = Math.max(10, Math.min(26, sz * 0.16)); ctx.font = `900 ${fs}px -apple-system,sans-serif`;
-    const t = (l.o === s.me ? "★ " : "") + s.nations[l.o].name.toUpperCase();
-    ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(0,0,0,.75)"; ctx.strokeText(t, x, y + fs * 1.1); ctx.fillStyle = l.o === s.me ? "#ffe28a" : "rgba(255,255,255,.92)"; ctx.fillText(t, x, y + fs * 1.1);
+    let fs = Math.max(10, Math.min(26, sz * 0.16));
+    const t = (l.o === s.me ? "★ " : "") + s.nations[l.o].name.toUpperCase(), maxW = Math.max(90, sz * 1.15);
+    ctx.font = `900 ${fs}px -apple-system,sans-serif`; let lines = [t];
+    if (ctx.measureText(t).width > maxW) {
+      fs = Math.max(9, fs * maxW / ctx.measureText(t).width); ctx.font = `900 ${fs}px -apple-system,sans-serif`;
+      if (ctx.measureText(t).width > maxW && t.includes(" ")) { const ws = t.split(" "); let best = 1, bd = 1e9; for (let i = 1; i < ws.length; i++) { const d = Math.abs(ws.slice(0, i).join(" ").length - ws.slice(i).join(" ").length); if (d < bd) { bd = d; best = i; } } lines = [ws.slice(0, best).join(" "), ws.slice(best).join(" ")]; fs = Math.max(9, Math.min(Math.max(10, Math.min(26, sz * 0.16)), fs * 1.6)); ctx.font = `900 ${fs}px -apple-system,sans-serif`; const mw = Math.max(...lines.map(x => ctx.measureText(x).width)); if (mw > maxW) { fs = Math.max(9, fs * maxW / mw); ctx.font = `900 ${fs}px -apple-system,sans-serif`; } }
+    }
+    ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(0,0,0,.75)"; ctx.fillStyle = l.o === s.me ? "#ffe28a" : "rgba(255,255,255,.92)";
+    lines.forEach((ln, k) => { const yy = y + fs * 1.1 + (k - (lines.length - 1) / 2) * fs * 1.05; ctx.strokeText(ln, x, yy); ctx.fillText(ln, x, yy); });
   }
   // routes van mijn legers
   for (const a of s.armies) if (a.o === s.me && a.path.length) arrowLine(pathPts(a), a === sel ? "#f5b531" : a.front ? "#fbbf24" : "#ffffff", a === sel ? 4 : 3, a.front ? [8, 6] : []);
@@ -1833,8 +1900,8 @@ function hud() {
   $("share").textContent = (WZ.share(w, s, s.me) * 100).toFixed(1) + "%"; $("goal").textContent = Math.round(me.goal * 100) + "%";
   const t = Math.floor(s.t); $("clock").textContent = "⏱ " + Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
   const fo = me.focus, fl = $("focusLine");
-  if (fo && fo.cur) { const F = WZ.FOCUS[fo.cur]; fl.className = ""; fl.textContent = `🎯 ${F.icon} ${F.naam} · nog ${Math.ceil(fo.left)}s`; $("bFocus").classList.remove("glow"); }
-  else if (fo && Object.keys(WZ.FOCUS).some(k => WZ.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Kies een nieuwe focus (knop 🎯 Focus)"; $("bFocus").classList.add("glow"); }
+  if (fo && fo.cur) { const F = WZ.FOCUS[fo.cur]; fl.className = ""; fl.textContent = `🎯 ${F.icon} ${F.naam} · nog ${Math.ceil(fo.left)}s${fo.queue && fo.queue.length ? " · 📋 " + fo.queue.length : ""}`; $("bFocus").classList.remove("glow"); }
+  else if (fo && Object.keys(WZ.FOCUS).some(k => WZ.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Geen focus bezig · tik op 🎯 Focus"; $("bFocus").classList.toggle("glow", !(focusSnooze > s.t)); }
   else { fl.className = ""; fl.textContent = me.ideo ? `${WZ.IDEO[me.ideo].icon} ${WZ.IDEO[me.ideo].naam}` : ""; $("bFocus").classList.remove("glow"); }
   $("bForm").classList.toggle("glow", (s.formReady || []).some(k => !(s.formedBy || {})[k]));
   { const st = Math.round(me.stab ?? 60); $("stab").textContent = (st >= 65 ? "😀 " : st >= 40 ? "😐 " : st >= 25 ? "😠 " : "🔥 ") + st; $("stab").style.color = st < 25 ? "#f87171" : st < 40 ? "#fbbf24" : ""; $("bInt").classList.toggle("glow", st < 35 || Object.keys(WZ.DECIS).some(k => !((me.cds || {})[k] > s.t) && k === "propaganda" && st < 50)); }
@@ -1865,7 +1932,7 @@ function onEvents(evs) {
     else if (e.type === "annexFail" && e.id === s.me) toast(`❌ ${s.nations[e.t].name} is te groot om in te lijven`);
     else if (e.type === "pact" && (e.id === s.me || e.with === s.me)) toast(`🤝 Bondgenootschap met ${nm(e.id === s.me ? e.with : e.id)}`);
     else if (e.type === "formReady") toast(`👑 Je kunt nu ${e.naam} vormen! Tik op 👑 Rijken`);
-    else if (e.type === "formed") { labelT = -9; if (e.id === s.me) { $("myName").textContent = e.naam; setHudFlag(); } else toast(`📢 ${e.old} heeft ${e.naam} gevormd!`); }
+    else if (e.type === "formed") { labelT = -9; if (e.id === s.me) { setMyName(e.naam); setHudFlag(); } else toast(`📢 ${e.old} heeft ${e.naam} gevormd!`); }
     else if (e.type === "focus" && e.id === s.me) { const F = WZ.FOCUS[e.k]; toast(`🎯 Focus klaar: ${F.icon} ${F.naam} (${F.info})`); }
   }
 }
@@ -1939,6 +2006,7 @@ async function startPick() {
   picking = true; $("pickHint").classList.remove("hidden"); $("hud").classList.add("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.add("hidden"); $("pctLbl").classList.add("hidden");
   scale = minScale(); if (w.wrap) { ox = VW / 2 - W * 0.53 * scale; } clampView();
 }
+function setMyName(t) { const el = $("myName"); el.textContent = t; el.style.fontSize = t.length > 26 ? "12px" : t.length > 18 ? "13.5px" : ""; }
 function setHudFlag() { const n = s.nations[s.me]; $("myFlag").style.background = `center/cover url(${flagURL(flagOf(n))})`; }
 // ---------- binnenland ----------
 const EVENTS = [
@@ -2042,7 +2110,7 @@ function flagMaker() {
     const nm2 = (ed.name || "").trim().slice(0, 32) || me.name, key = "★ " + nm2, d = def();
     FL[key] = d; delete flagURLs[key]; delete FL["__ed"];
     let saved = {}; try { saved = JSON.parse(localStorage.getItem("wwz2flags") || "{}"); } catch (e) { } saved[key] = d; try { localStorage.setItem("wwz2flags", JSON.stringify(saved)); } catch (e) { }
-    me.flag = key; me.flagDef = d; me.name = nm2; labelT = -9; $("myName").textContent = nm2; setHudFlag(); updMyFlag(true); save();
+    me.flag = key; me.flagDef = d; me.name = nm2; labelT = -9; setMyName(nm2); setHudFlag(); updMyFlag(true); save();
     toast(`🎨 ${nm2} heeft een nieuwe vlag!`); ed = null; $("ovc").onclick = null; resumePlay();
   };
   $("feX").onclick = () => { delete FL["__ed"]; ed = null; flagPanel(); };
@@ -2051,7 +2119,7 @@ function startAs(id, spawned) {
   nextEv = (s ? s.t : 0) + 70 + Math.random() * 40;
   picking = false; $("pickHint").classList.add("hidden"); $("bar").classList.remove("hidden"); $("pctLbl").classList.remove("hidden");
   if (!spawned) WZ.choose(w, s, id); hideCard();
-  $("myName").textContent = s.nations[id].name; setHudFlag();
+  setMyName(s.nations[id].name); setHudFlag();
   $("hud").classList.remove("hidden"); speed = 1; paused = false; $("bPause").textContent = "⏸";
   focusProv(s.nations[id].capital, Math.max(minScale() * 2.2, 3 / w.L)); paintAll(); save();
   toast(spawned ? `🌱 Je begint in ${s.nations[id].name}. Breid uit in het niemandsland!` : `★ Je speelt als ${s.nations[id].name}. Tik op je leger om te beginnen!`);
@@ -2101,29 +2169,33 @@ function end() {
 }
 $("bPause").onclick = () => { if (!s || s.over) return; paused = !paused; $("bPause").textContent = paused ? "▶" : "⏸"; toast(paused ? "⏸ Gepauzeerd" : "▶ Verder"); };
 $("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel; $("bForm").onclick = formPanel; $("bInt").onclick = intPanel;
-let focusTab = "nat";
+let focusTab = "nat", focusSnooze = -1;
 const FTABS = [["nat", "🏳️ Nationaal"], ["pol", "🏛️ Politiek"], ["ind", "🏭 Industrie"], ["eco", "💰 Economie"], ["tech", "🔬 Onderzoek"], ["leger", "🪖 Leger"], ["lucht", "✈️ Lucht"], ["vloot", "⚓ Vloot"], ["log", "🚂 Logistiek"], ["dipl", "🌐 Diplomatie"]];
 function focusPanel() {
   if (!s || s.over || picking) return; paused = true; $("bPause").textContent = "▶"; hideCard();
   const me = s.nations[s.me], fo = me.focus, tag = WZ.natTag(me);
   const keys = br => WZ.BRANCH[br].filter(k => { const F = WZ.FOCUS[k]; return (!F.tag || F.tag === tag) && (!F.claim || (me.nbTags || []).includes(F.claim) || fo.done.includes(k)); });
   const depth = {}; const dep = k => { if (depth[k] !== undefined) return depth[k]; const F = WZ.FOCUS[k]; const rs = [...F.req, ...(F.any || [])].filter(r => WZ.FOCUS[r].br === F.br); return depth[k] = rs.length ? 1 + Math.max(...rs.map(dep)) : 0; };
-  const st = k => { const F = WZ.FOCUS[k]; return fo.done.includes(k) ? "done" : fo.cur === k ? "cur" : WZ.focusOk(me, k) ? "ok" : (F.excl && F.excl.some(x => fo.done.includes(x) || fo.cur === x)) ? "x" : "lock"; };
+  const qu = fo.queue || [];
+  const st = k => { const F = WZ.FOCUS[k]; return fo.done.includes(k) ? "done" : fo.cur === k ? "cur" : qu.includes(k) ? "q" : WZ.focusOk(me, k) ? "ok" : (F.excl && F.excl.some(x => fo.done.includes(x) || fo.cur === x || qu.includes(x))) ? "x" : WZ.canQueue(me, k) ? "qa" : "lock"; };
   const node = k => { const F = WZ.FOCUS[k], t = st(k), need = [...F.req.filter(r => !fo.done.includes(r))].map(r => WZ.FOCUS[r].naam), any = F.any && !F.any.some(r => fo.done.includes(r)) ? [F.any.map(r => WZ.FOCUS[r].naam).join(" of ")] : [];
-    return `<button type="button" class="fn ${t}" data-k="${k}"><i>${F.icon}</i>${E(F.naam)}<small>${t === "cur" ? "⏳ nog " + Math.ceil(fo.left) + "s" : t === "done" ? "✓ klaar" : E(F.info)}</small>${t === "lock" && need.concat(any).length ? `<span class="rq">🔒 na ${E(need.concat(any).join(", "))}</span>` : ""}</button>`; };
+    return `<button type="button" class="fn ${t}" data-k="${k}">${t === "q" ? `<span class="qn">${qu.indexOf(k) + 1}</span>` : ""}<i>${F.icon}</i>${E(F.naam)}<small>${t === "cur" ? "⏳ nog " + Math.ceil(fo.left) + "s" : t === "done" ? "✓ klaar" : t === "q" ? "📋 ingepland · tik om te schrappen" : E(F.info)}</small>${t === "lock" && need.concat(any).length ? `<span class="rq">🔒 na ${E(need.concat(any).join(", "))}</span>` : ""}</button>`; };
   const cnt = br => keys(br).filter(k => st(k) === "ok").length;
   const ks = keys(focusTab), rows = {}; for (const k of ks) (rows[dep(k)] = rows[dep(k)] || []).push(k);
   const done = Object.values(WZ.FOCUS).filter(F => fo.done.includes(F.k)).length, tot = FTABS.reduce((a, [b]) => a + keys(b).length, 0);
   ov(`<h2>🎯 Focusboom</h2><p>${done} van ${tot} focussen klaar${fo.cur ? ` · nu: ${WZ.FOCUS[fo.cur].icon} ${E(WZ.FOCUS[fo.cur].naam)} (nog ${Math.ceil(fo.left)}s)` : ""}. Eén tegelijk; elke focus geeft een blijvende bonus.</p>
     <div class="ftabs">${FTABS.map(([b, l]) => `<button type="button" data-tab="${b}" class="${b === focusTab ? "on" : ""}">${l}${cnt(b) ? `<b>${cnt(b)}</b>` : ""}</button>`).join("")}</div>
+    <p style="font-size:12.5px">💡 Tik meerdere focussen aan: ze komen in de <b style="color:var(--ink)">wachtrij</b> (${qu.length}) en starten vanzelf na elkaar. Paars gestippeld = kan in de wachtrij.</p>
     ${focusTab === "nat" ? `<p style="font-size:12.5px">${tag === "*" ? "Algemene nationale tak (" + E(me.name) + " heeft nog geen eigen tak)." : "Eigen tak van " + E(tag) + ": speciale bonussen, bondgenoten en landen inlijven."} Inlijven lukt alleen als dat land kleiner is dan jij.</p>` : focusTab === "dipl" ? `<p style="font-size:12.5px">Na Ambassades kun je een claim leggen op elk buurland. Is dat land kleiner dan jij, dan lijf je het in. Anders krijg je +4% aanval.</p>` : focusTab === "pol" ? `<p style="font-size:12.5px">Kies één ideologie, definitief. Die bepaalt je alliantie: 🔵 Geallieerden, ⚫ Asmogendheden, 🔴 Komintern of 👑 Heilige Alliantie.</p>` : ""}
     <div class="ftree">${Object.keys(rows).sort((a, b) => a - b).map(d => `<div class="frow">${+d === 0 ? "START" : "NIVEAU " + (+d + 1)}</div>` + rows[d].map(node).join("")).join("")}</div>
     <button class="big red" id="fB" type="button">Verder spelen</button>`);
   $("ovc").onclick = e => {
     const t = e.target.closest("[data-tab]"); if (t) { focusTab = t.dataset.tab; focusPanel(); return; }
-    const b = e.target.closest(".fn.ok"); if (!b) return; if (WZ.startFocus(s, s.me, b.dataset.k)) { toast(`🎯 Focus gestart: ${WZ.FOCUS[b.dataset.k].naam}`); focusPanel(); }
+    const b = e.target.closest(".fn.ok,.fn.qa,.fn.q"); if (!b) return; const k = b.dataset.k;
+    if (b.classList.contains("q")) { WZ.unqueueFocus(s, s.me, k); focusPanel(); return; }
+    const r = WZ.queueFocus(s, s.me, k); if (r === "start") toast(`🎯 Focus gestart: ${WZ.FOCUS[k].naam}`); else if (r === "queue") toast(`📋 In de wachtrij: ${WZ.FOCUS[k].naam}`); focusPanel();
   };
-  $("fB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
+  $("fB").onclick = () => { $("ovc").onclick = null; if (!fo.cur) focusSnooze = s.t + 60; resumePlay(); };
 }
 
 // ---------- kaart laden ----------
@@ -2134,7 +2206,7 @@ async function loadMap(id) {
   if (!mapCache[id]) { const G = await (await fetch("maps/" + id + ".json")).json(); mapCache[id] = WZ.makeWorld(G, id.split("-")[1]); }
   w = mapCache[id]; mapId = id; W = w.W; H = w.H; N = w.N; pBox.clear(); sOrd.clear(); sieged = new Set();
   off = document.createElement("canvas"); off.width = W; off.height = H; octx = off.getContext("2d"); img = octx.createImageData(W, H); px = img.data;
-  makeTerrain(); $("loading").classList.add("hidden");
+  await loadKlimaat(); makeTerrain(); $("loading").classList.add("hidden");
 }
 
 // ---------- opslaan ----------
@@ -2149,7 +2221,7 @@ async function resume(d) {
   closeOv(); await loadMap(d.map); const sv = WZ.deserialize(w, d.json);
   if (!sv || sv.over) { toast("Dit spel kon niet geladen worden"); menu(null); return; }
   s = sv; picking = false; nextEv = s.t + 60; for (const n of s.nations) if (n && n.flagDef) { FL[n.flag] = n.flagDef; delete flagURLs[n.flag]; } paintAll(); labelT = -9;
-  $("myName").textContent = s.nations[s.me].name; setHudFlag();
+  setMyName(s.nations[s.me].name); setHudFlag();
   $("hud").classList.remove("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.remove("hidden"); $("pctLbl").classList.remove("hidden");
   focusProv(s.nations[s.me].capital, Math.max(minScale() * 2.2, 3 / w.L)); paused = false; $("bPause").textContent = "⏸";
 }
