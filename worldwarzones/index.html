@@ -23,7 +23,20 @@ button{font:inherit;color:inherit}
 #me .row b{color:var(--ink)}
 #focusLine{font-size:11.5px;margin-top:4px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #focusLine.pick{color:var(--gold)}
-#bFocus.glow{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,181,49,.5)}
+.fm{border:1px solid var(--line);background:#132033;border-radius:13px;padding:10px;margin-top:8px}
+.fm.ok{border-color:var(--gold);background:#2b2410}
+.fm.gone{opacity:.5}
+.fm .t{display:flex;align-items:center;gap:9px}
+.fm .t img{width:42px;height:28px;border:1.5px solid #000;border-radius:3px;flex:none}
+.fm .t b{font-size:15px;line-height:1.15}
+.fm .t small{display:block;color:var(--muted);font-size:11.5px;font-weight:700}
+.fm .pb{height:8px;border-radius:4px;background:#24364f;margin:8px 0 6px;overflow:hidden}
+.fm .pb i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#fde047)}
+.fm .cs{display:flex;flex-wrap:wrap;gap:4px}
+.fm .cs span{font-size:11px;font-weight:700;padding:2px 6px;border-radius:7px;background:#1c2a3f;color:var(--muted)}
+.fm .cs span.g{background:#14532d;color:#bbf7d0}
+.fm button{width:100%;margin-top:8px;min-height:42px;border-radius:11px;border:1px solid var(--gold);background:var(--gold);color:#1b1206;font-weight:900;font-size:15px}
+#bForm.glow,#bFocus.glow{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,181,49,.5)}
 .ftree{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 .fn{min-height:70px;border-radius:12px;border:1px solid var(--line);background:#15243a;font-size:11.5px;font-weight:800;padding:6px 4px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .fn i{font-style:normal;font-size:20px}
@@ -141,6 +154,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
     <div><button class="tb" id="bPause" type="button" aria-label="Pauze">⏸</button><button class="tb" id="bMenu" type="button" aria-label="Menu">☰</button></div>
     <div><button class="tb" id="bFac" type="button" aria-label="Allianties">🤝</button><button class="tb" id="bRank" type="button" aria-label="Ranglijst">🏆</button></div>
     <div><button class="tb" id="bFocus" type="button" aria-label="Focusboom" style="width:94px;font-size:14px;font-weight:800">🎯 Focus</button></div>
+    <div><button class="tb" id="bForm" type="button" aria-label="Rijken vormen" style="width:94px;font-size:14px;font-weight:800">👑 Rijken</button></div>
   </div>
 </div>
 <div id="peace" class="hidden"></div>
@@ -194,7 +208,81 @@ const WZ = (() => {
   function calcFx(n) {
     const f = { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 }, sc = n.bot ? (n.fxs || 1) : 1;
     for (const k of (n.focus ? n.focus.done : [])) { const F = FOCUS[k]; if (F) for (const e in F.fx) f[e] += F.fx[e] * sc; }
+    for (const fn of (n.formed || [])) { const F = FORMS.find(x => x.naam === fn); if (F) for (const e in RANK[F.rank].fx) f[e] += RANK[F.rank].fx[e] * sc; }
     n.fx = f; return f;
+  }
+
+  // ---------- vormbare rijken ----------
+  const RANK = {
+    keizerrijk: { naam: "Keizerrijk", icon: "👑", fx: { atk: 0.15, cap: 0.15 }, info: "+15% aanval, +15% max. reserve" },
+    koninkrijk: { naam: "Koninkrijk", icon: "🏰", fx: { def: 0.15, rate: 0.1 }, info: "+15% verdediging, +10% groei" },
+    unie: { naam: "Moderne unie", icon: "🇪🇺", fx: { rate: 0.2, speed: 0.1 }, info: "+20% groei, +10% snelheid" },
+    federatie: { naam: "Federatie", icon: "🏛️", fx: { rate: 0.1, def: 0.1 }, info: "+10% groei, +10% verdediging" }
+  };
+  const FORMS = [
+    ["Zuidoost-Aziatische Unie", "unie", "Vietnam,Laos,Cambodja,Thailand,Myanmar,Maleisië,Indonesië,Filipijnen,Singapore,Brunei,Timor Leste"],
+    ["Verenigde Provinciën van La Plata", "federatie", "Argentinië,Uruguay,Paraguay,Bolivië"],
+    ["Groot-Colombia", "federatie", "Colombia,Venezuela,Ecuador,Panama"],
+    ["Inca-rijk", "keizerrijk", "Peru,Bolivië,Ecuador,Chili"],
+    ["Zuid-Amerikaanse Unie", "unie", "Brazilië,Argentinië,Colombia,Peru,Venezuela,Chili"],
+    ["Centraal-Amerikaanse Federatie", "federatie", "Guatemala,Honduras,El Salvador,Nicaragua,Costa Rica"],
+    ["Noord-Amerikaanse Unie", "unie", "Verenigde Staten,Canada,Mexico"],
+    ["Heilig Roomse Rijk", "keizerrijk", "Duitsland,Oostenrijk,Tsjechië,Zwitserland,Nederland,België,Luxemburg"],
+    ["Rijk van Karel de Grote", "keizerrijk", "Frankrijk,Duitsland,Nederland,België,Luxemburg,Zwitserland,Italië"],
+    ["Romeinse Rijk", "keizerrijk", "Italië,Frankrijk,Spanje,Griekenland,Turkije,Egypte,Tunesië"],
+    ["Europese Unie", "unie", "Frankrijk,Duitsland,Italië,Spanje,Polen,Nederland,België,Oostenrijk,Portugal,Zweden"],
+    ["Verenigd Koninkrijk der Nederlanden", "koninkrijk", "Nederland,België,Luxemburg"],
+    ["Iberische Unie", "koninkrijk", "Spanje,Portugal"],
+    ["Koninkrijk Groot-Brittannië en Ierland", "koninkrijk", "Verenigd Koninkrijk,Ierland"],
+    ["Kalmar Unie", "koninkrijk", "Zweden,Noorwegen,Denemarken,Finland,IJsland"],
+    ["Baltische Unie", "federatie", "Estland,Letland,Litouwen"],
+    ["Pools-Litouwse Gemenebest", "koninkrijk", "Polen,Litouwen,Letland,Wit-Rusland,Oekraïne"],
+    ["Russisch Keizerrijk", "keizerrijk", "Rusland,Oekraïne,Wit-Rusland,Finland,Estland,Letland,Litouwen,Kazachstan"],
+    ["Oostenrijk-Hongarije", "keizerrijk", "Oostenrijk,Hongarije,Tsjechië,Slowakije,Slovenië,Kroatië"],
+    ["Joegoslavië", "federatie", "Slovenië,Kroatië,Bosnië-Herzegovina,Servië,Montenegro,Noord-Macedonië,Kosovo"],
+    ["Ottomaanse Rijk", "keizerrijk", "Turkije,Syrië,Irak,Egypte,Griekenland,Bulgarije,Libanon,Jordanië"],
+    ["Kaukasische Federatie", "federatie", "Georgië,Armenië,Azerbeidzjan"],
+    ["Perzisch Rijk", "keizerrijk", "Iran,Irak,Afghanistan,Turkmenistan,Azerbeidzjan,Armenië"],
+    ["Arabische Unie", "unie", "Saudi-Arabië,Jemen,Oman,Verenigde Arabische Emiraten,Irak,Syrië,Jordanië,Egypte"],
+    ["Turkestan", "federatie", "Kazachstan,Oezbekistan,Turkmenistan,Kirgizië,Tadzjikistan"],
+    ["Mughalrijk", "keizerrijk", "India,Pakistan,Bangladesh,Nepal,Sri Lanka,Bhutan"],
+    ["Qing-keizerrijk", "keizerrijk", "China,Mongolië,Taiwan"],
+    ["Verenigd Korea", "koninkrijk", "Noord-Korea,Zuid-Korea"],
+    ["Keizerrijk Japan", "keizerrijk", "Japan,Noord-Korea,Zuid-Korea,Taiwan"],
+    ["Maghreb-Unie", "unie", "Marokko,Algerije,Tunesië,Libië,Mauritanië"],
+    ["Mali-rijk", "keizerrijk", "Mali,Senegal,Guinea,Niger,Burkina Faso,Mauritanië"],
+    ["Oost-Afrikaanse Federatie", "federatie", "Kenia,Tanzania,Oeganda,Rwanda,Burundi"],
+    ["Zuidelijk-Afrikaanse Unie", "unie", "Zuid-Afrika,Namibië,Botswana,Zimbabwe,Lesotho,Eswatini,Mozambique"],
+    ["Afrikaanse Unie", "unie", "Nigeria,Ethiopië,Egypte,Zuid-Afrika,Congo-Kinshasa,Kenia,Algerije"],
+    ["Gemenebest Australazië", "federatie", "Australië,Nieuw-Zeeland,Papoea-Nieuw-Guinea"]
+  ].map(([naam, rank, req]) => ({ naam, rank, req: req.split(",") }));
+  const FORM_NEED = 0.7, FORM_EACH = 0.3;
+  // welke vormbare rijken passen op deze kaart: minstens 2 van de landen moeten bestaan
+  function formsFor(w) {
+    if (w._forms) return w._forms;
+    const idx = new Map(); w.names.forEach((n, i) => idx.set(n, i));
+    const cnt = new Map(); for (let p = 0; p < w.P; p++) cnt.set(w.pCtry[p], (cnt.get(w.pCtry[p]) || 0) + 1);
+    return w._forms = FORMS.map(f => ({ ...f, ids: f.req.map(n => idx.get(n)).filter(c => c !== undefined && cnt.get(c)) })).filter(f => f.ids.length >= 2);
+  }
+  function formProgress(w, s, id, f) {
+    const tot = new Map(), mine = new Map();
+    for (let p = 0; p < w.P; p++) { const c = w.pCtry[p]; if (!f.ids.includes(c)) continue; tot.set(c, (tot.get(c) || 0) + 1); if (s.owner[p] === id) mine.set(c, (mine.get(c) || 0) + 1); }
+    let T = 0, M = 0; const per = f.ids.map(c => { const t = tot.get(c) || 1, m = mine.get(c) || 0; T += t; M += m; return { c, name: w.names[c], share: m / t }; });
+    const all = M / Math.max(1, T), ok = all >= FORM_NEED && per.every(x => x.share >= FORM_EACH);
+    return { all, per, ok };
+  }
+  function formNation(w, s, id, naam) {
+    const n = s.nations[id], f = formsFor(w).find(x => x.naam === naam); if (!n || !f) return { err: "onbekend" };
+    if ((n.formed || []).includes(naam)) return { err: "al gevormd" };
+    if (s.formedBy && s.formedBy[naam]) return { err: "al gevormd door " + (s.nations[s.formedBy[naam]] || {}).name };
+    if (!formProgress(w, s, id, f).ok) return { err: "nog niet genoeg veroverd" };
+    n.formed = (n.formed || []).concat(naam); s.formedBy = s.formedBy || {}; s.formedBy[naam] = id;
+    const old = n.name; n.name = naam; n.flag = naam; n.rank = f.rank;
+    if (s.core) for (let p = 0; p < w.P; p++) if (s.owner[p] === id && f.ids.includes(w.pCtry[p])) s.core[p] = id;
+    n.pool = Math.min(poolCap(w, s, id) * 1.5, n.pool + poolCap(w, s, id) * 0.5);
+    calcFx(n); recountOne(w, s, id);
+    s.ev.push({ type: "formed", id, naam, old, rank: f.rank });
+    return { ok: true };
   }
   const FX = n => (n && (n.fx || calcFx(n))) || { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 };
   function focusOk(n, k) {
@@ -236,7 +324,7 @@ const WZ = (() => {
       ? (i, out) => { const x = i % W, y = (i / W) | 0; let n = 0; out[n++] = y * W + (x + W - 1) % W; out[n++] = y * W + (x + 1) % W; if (y > 0) out[n++] = i - W; if (y < H - 1) out[n++] = i + W; return n; }
       : (i, out) => { const x = i % W, y = (i / W) | 0; let n = 0; if (x > 0) out[n++] = i - 1; if (x < W - 1) out[n++] = i + 1; if (y > 0) out[n++] = i - W; if (y < H - 1) out[n++] = i + W; return n; };
     const tmp = new Int32Array(4);
-    const target = grootte === "groot" ? 560 : 320;
+    const target = grootte === "mega" ? 2000 : grootte === "groot" ? 560 : 320;
     const PS = Math.max(40, landN / target);
     // heel kleine landen (Vaticaan, Andorra ...) opgaan in hun buurland
     const cnt = new Map(); for (let i = 0; i < N; i++) if (land[i]) cnt.set(ctry[i], (cnt.get(ctry[i]) || 0) + 1);
@@ -550,6 +638,18 @@ const WZ = (() => {
       n.pool = Math.min(cap, n.pool + rate * dt);
       if (n.focus && n.focus.cur) { n.focus.left -= dt; if (n.focus.left <= 0) { const k = n.focus.cur; n.focus.done.push(k); n.focus.cur = null; if (FOCUS[k].ideo) n.ideo = FOCUS[k].ideo; calcFx(n); s.ev.push({ type: "focus", id: n.id, k }); } }
     }
+    // vormbare rijken (bots vormen zelf; speler krijgt een melding)
+    if (Math.floor(s.t / 5) !== Math.floor((s.t - dt) / 5)) {
+      const fs = formsFor(w);
+      for (const n of s.nations) if (n && n.alive) for (const f of fs) {
+        if ((n.formed || []).includes(f.naam) || (s.formedBy && s.formedBy[f.naam])) continue;
+        if (!f.ids.includes(w.pCtry[n.capital]) && n.id !== s.me) continue;
+        const pr = formProgress(w, s, n.id, f);
+        if (!pr.ok) continue;
+        if (n.bot) formNation(w, s, n.id, f.naam);
+        else if (!(s.formReady || []).includes(f.naam)) { s.formReady = (s.formReady || []).concat(f.naam); s.ev.push({ type: "formReady", id: n.id, naam: f.naam }); }
+      }
+    }
     // beweging + gevechten
     const att = new Map(); // provincie -> aanvallende legers
     for (const a of s.armies) {
@@ -720,7 +820,7 @@ const WZ = (() => {
   function deserialize(w, str) { const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -737,9 +837,10 @@ let scale = 1, ox = 0, oy = 0;
 let speed = 1, paused = false, frac = 0.5, armyFrac = 1, mode = "cmd";
 let sel = null, card = null, picking = false, dirty = new Set(), fullPaint = false;
 let db = null, uid = null;
-let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: true };
+let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: "alle" };
 try { Object.assign(settings, JSON.parse(localStorage.getItem("wwz2set") || "{}")); } catch (e) { }
-const MAPS = [["europa", "🇪🇺 Europa"], ["wereld", "🌍 Wereld"], ["azie", "🌏 Azië"], ["afrika", "🌍 Afrika"], ["noordamerika", "🌎 Noord-Amerika"], ["zuidamerika", "🌎 Zuid-Amerika"], ["oceanie", "🏝️ Oceanië"]];
+if (settings.flag === true) settings.flag = "alle"; if (settings.flag === false) settings.flag = "uit";
+const MAPS = [["europa", "🇪🇺 Europa"], ["wereld", "🌍 Wereld"], ["mega", "🌐 Megawereld"], ["azie", "🌏 Azië"], ["afrika", "🌍 Afrika"], ["noordamerika", "🌎 Noord-Amerika"], ["zuidamerika", "🌎 Zuid-Amerika"], ["oceanie", "🏝️ Oceanië"]];
 const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(Math.max(0, Math.round(n)));
 const E = x => String(x).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
 const nm = id => !id ? "Niemandsland" : id === s.me ? "Jij" : (s.nations[id] ? s.nations[id].name : "?");
@@ -783,6 +884,19 @@ const FL = {
   "Kenia": ["h", ["#000", "#fff", "#BB0000", "#fff", "#006600"], [3, 1, 3, 1, 3]], "Soedan": ["h", ["#D21034", "#fff", "#000"]], "Niger": ["h", ["#E05206", "#fff", "#0DB02B"]], "Zuid-Afrika": ["h", ["#E03C31", "#fff", "#007749", "#fff", "#001489"], [4, 1, 3, 1, 4]],
   "Madagaskar": ["v", ["#fff", "#FC3D32"], [1, 2]], "Somalië": ["star", "#4189DD", "#fff"], "Benin": ["v", ["#008751", "#FCD116"], [2, 3]], "Mauritanië": ["star", "#006233", "#FFC400"],
 };
+Object.assign(FL, {
+  "Zuidoost-Aziatische Unie": ["dot", "#0039A6", "#FCD116"], "Verenigde Provinciën van La Plata": ["hd", ["#74ACDF", "#fff", "#74ACDF"], "#F6B40E"], "Groot-Colombia": ["h", ["#FCD116", "#003893", "#CE1126"]],
+  "Inca-rijk": ["h", ["#E4002B", "#F68D2E", "#FFD100", "#3CB54A", "#00A6E0", "#2E3192", "#7F3F98"]], "Zuid-Amerikaanse Unie": ["ring", "#00843D", "#FFDF00"], "Centraal-Amerikaanse Federatie": ["hd", ["#0047AB", "#fff", "#0047AB"], "#0047AB"],
+  "Noord-Amerikaanse Unie": ["hd", ["#002868", "#fff", "#BF0A30"], "#fff", 1], "Heilig Roomse Rijk": ["dot", "#FFD700", "#111"], "Rijk van Karel de Grote": ["hd", ["#1F3A93"], "#FFD700", 1],
+  "Romeinse Rijk": ["txt", "#7B0A0A", "#F1C40F", "SPQR"], "Europese Unie": ["ring", "#003399", "#FFCC00"], "Verenigd Koninkrijk der Nederlanden": ["h", ["#FF7F00", "#fff", "#21468B"]],
+  "Iberische Unie": ["v", ["#006600", "#AA151B", "#F1BF00"]], "Koninkrijk Groot-Brittannië en Ierland": ["uk"], "Kalmar Unie": ["n", "#C8102E", "#FECC00"], "Baltische Unie": ["h", ["#0072CE", "#FDB913", "#9E3039"]],
+  "Pools-Litouwse Gemenebest": ["hd", ["#DC143C"], "#fff"], "Russisch Keizerrijk": ["h", ["#000", "#FFD700", "#fff"]], "Oostenrijk-Hongarije": ["h", ["#000", "#FFD700"]],
+  "Joegoslavië": ["hd", ["#0038A8", "#fff", "#CE1126"], "#CE1126", 1], "Ottomaanse Rijk": ["tr", "#B22222"], "Kaukasische Federatie": ["h", ["#E8112D", "#fff", "#0092BC"]],
+  "Perzisch Rijk": ["hd", ["#239F40", "#fff", "#DA0000"], "#FFC107"], "Arabische Unie": ["cz2", ["#000", "#fff", "#007A3D"], "#CE1126"], "Turkestan": ["hd", ["#0099B5", "#fff", "#1EB53A"], "#fff", 1],
+  "Mughalrijk": ["dot", "#1B5E20", "#FFD700"], "Qing-keizerrijk": ["dot", "#FFD700", "#1E90FF"], "Verenigd Korea": ["dot", "#fff", "#3C6EB4"], "Keizerrijk Japan": ["rays", "#fff", "#BC002D"],
+  "Maghreb-Unie": ["star", "#006233", "#fff"], "Mali-rijk": ["v", ["#14B53A", "#FCD116", "#CE1126"]], "Oost-Afrikaanse Federatie": ["h", ["#3EA8E0", "#000", "#078930"]],
+  "Zuidelijk-Afrikaanse Unie": ["ring", "#001489", "#FFB81C"], "Afrikaanse Unie": ["dot", "#078930", "#FCDD09"], "Gemenebest Australazië": ["au"],
+});
 const FKEYS = Object.keys(FL);
 function flagDef(name) {
   if (!name) return ["h", ["#888"]];
@@ -804,6 +918,14 @@ function drawFlag(g, name, W, H) {
   else if (t === "dot") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); g.fillStyle = d[2]; g.beginPath(); g.arc(W / 2, H / 2, Math.min(W, H) * 0.3, 0, 7); g.fill(); }
   else if (t === "star") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H); if (d[3]) fStar(g, W * 0.18, H * 0.27, m * 0.15, d[2]); else fStar(g, W / 2, H / 2, m * 0.3, d[2]); }
   else if (t === "tr") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H), cx = d[2] ? W / 2 : W * 0.38, cy = H / 2, cc = d[1] === "#fff" ? "#E30A17" : "#fff"; if (d[2]) { g.fillStyle = "#fff"; g.beginPath(); g.arc(cx, cy, m * 0.36, 0, 7); g.fill(); } g.fillStyle = d[2] ? "#E70013" : cc; g.beginPath(); g.arc(cx, cy, m * 0.25, 0, 7); g.fill(); g.fillStyle = d[2] ? "#fff" : d[1]; g.beginPath(); g.arc(cx + m * 0.06, cy, m * 0.2, 0, 7); g.fill(); fStar(g, cx + m * 0.2, cy, m * 0.09, d[2] ? "#E70013" : cc); }
+  else if (t === "hd" || t === "cz2") {
+    stripes(d[1]); const m = Math.min(W, H);
+    if (t === "cz2") { g.fillStyle = d[2]; g.beginPath(); g.moveTo(0, 0); g.lineTo(W * 0.35, H / 2); g.lineTo(0, H); g.fill(); }
+    else if (d[3]) fStar(g, W / 2, H / 2, m * 0.3, d[2]); else { g.fillStyle = d[2]; g.beginPath(); g.arc(W / 2, H / 2, m * 0.22, 0, 7); g.fill(); }
+  }
+  else if (t === "ring") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H); for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; fStar(g, W / 2 + Math.cos(a) * m * 0.33, H / 2 + Math.sin(a) * m * 0.33, m * 0.06, d[2]); } }
+  else if (t === "txt") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); g.fillStyle = d[2]; g.font = `900 ${Math.min(H * 0.42, W / d[3].length * 1.25)}px Georgia,serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(d[3], W / 2, H / 2); }
+  else if (t === "rays") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const cx = W * 0.42, cy = H / 2, R = Math.hypot(W, H); g.fillStyle = d[2]; for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a - 0.09) * R, cy + Math.sin(a - 0.09) * R); g.lineTo(cx + Math.cos(a + 0.09) * R, cy + Math.sin(a + 0.09) * R); g.fill(); } g.beginPath(); g.arc(cx, cy, Math.min(W, H) * 0.26, 0, 7); g.fill(); }
   else if (t === "ch") { g.fillStyle = "#DA291C"; g.fillRect(0, 0, W, H); const m = Math.min(W, H), a = m * 0.12, b = m * 0.38; g.fillStyle = "#fff"; g.fillRect(W / 2 - a, H / 2 - b, a * 2, b * 2); g.fillRect(W / 2 - b, H / 2 - a, b * 2, a * 2); }
   else if (t === "ge") { g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); const k = H * 0.12; g.fillStyle = "#E8112D"; g.fillRect(W / 2 - k, 0, k * 2, H); g.fillRect(0, H / 2 - k, W, k * 2); }
   else if (t === "cz") { stripes(["#fff", "#D7141A"]); g.fillStyle = "#11457E"; g.beginPath(); g.moveTo(0, 0); g.lineTo(W * 0.5, H / 2); g.lineTo(0, H); g.fill(); }
@@ -821,41 +943,54 @@ function drawFlag(g, name, W, H) {
 const flagURLs = {};
 function flagURL(name) { if (flagURLs[name]) return flagURLs[name]; const c = document.createElement("canvas"); c.width = 60; c.height = 40; drawFlag(c.getContext("2d"), name, 60, 40); return flagURLs[name] = c.toDataURL(); }
 const flagOf = n => n ? (n.flag || n.name) : "";
-// ---- vlag over mijn gebied ----
-let myFlag = { sig: "", comp: null, x0: 0, y0: 0, bw: 0, bh: 0, tFlag: "" }, flagT = 0;
-function updMyFlag(force) {
-  const me = s && s.nations[s.me]; if (!me || !me.alive) { myFlag.comp = null; return; }
-  let sig = 0, cnt = 0; for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me) { sig = (sig * 31 + p + 1) >>> 0; cnt++; }
-  const key = cnt + ":" + sig + ":" + flagOf(me);
-  if (!force && key === myFlag.sig) return; myFlag.sig = key; if (!cnt) { myFlag.comp = null; return; }
-  const rx = w.cx[me.capital]; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const tiles = [];
-  for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me) for (let k = w.start[p]; k < w.start[p + 1]; k++) { const i = w.list[k]; let x = i % W; const y = (i / W) | 0; if (w.wrap) { if (x - rx > W / 2) x -= W; else if (rx - x > W / 2) x += W; } tiles.push(x, y, i); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+// ---- vlaggen over het gebied van elk land ----
+const flagOn = id => id > 0 && (settings.flag === "alle" || (settings.flag === "ik" && s && id === s.me));
+let FC = new Map(), flagT = 0, flagMode = "";
+function buildFlag(id, tilesOf) {
+  const n = s.nations[id], rx = w.cx[n.capital]; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const tiles = [];
+  for (const p of tilesOf) for (let k = w.start[p]; k < w.start[p + 1]; k++) { const i = w.list[k]; let x = i % W; const y = (i / W) | 0; if (w.wrap) { if (x - rx > W / 2) x -= W; else if (rx - x > W / 2) x += W; } tiles.push(x, y, i); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
   const m = document.createElement("canvas"); m.width = bw; m.height = bh; const mg = m.getContext("2d"), md = mg.createImageData(bw, bh), tmp = new Int32Array(4);
   for (let t = 0; t < tiles.length; t += 3) {
     const i = tiles[t + 2]; let a = 255;
-    if (w.pEdge[i]) { a = 170; const n = w.nb(i, tmp); for (let k = 0; k < n; k++) { const j = tmp[k]; if (w.land[j] && s.owner[w.prov[j]] !== s.me) { a = 0; break; } } }
+    if (w.pEdge[i]) { a = 170; const c = w.nb(i, tmp); for (let k = 0; k < c; k++) { const j = tmp[k]; if (w.land[j] && s.owner[w.prov[j]] !== id) { a = 0; break; } } }
     else if (w.coast[i]) a = 235;
-    const q = ((tiles[t + 1] - y0) * bw + (tiles[t] - x0)) * 4; md.data[q + 3] = a;
+    md.data[((tiles[t + 1] - y0) * bw + (tiles[t] - x0)) * 4 + 3] = a;
   }
   mg.putImageData(md, 0, 0);
-  const K = Math.max(1, Math.min(6, Math.floor(1600 / Math.max(bw, bh))));
+  const lim = id === s.me ? 1600 : 640, K = Math.max(1, Math.min(6, Math.floor(lim / Math.max(bw, bh))));
   const c = document.createElement("canvas"); c.width = bw * K; c.height = bh * K; const g = c.getContext("2d");
-  drawFlag(g, flagOf(me), c.width, c.height);
+  drawFlag(g, flagOf(n), c.width, c.height);
   g.globalCompositeOperation = "destination-in"; g.imageSmoothingEnabled = false; g.drawImage(m, 0, 0, c.width, c.height);
-  Object.assign(myFlag, { comp: c, x0, y0, bw, bh });
+  return { comp: c, x0, y0, bw, bh };
 }
-function drawMyFlag() {
-  if (!s || picking || !settings.flag) return;
-  const nowT = performance.now(); if (nowT - flagT > 400) { flagT = nowT; updMyFlag(); }
-  const f = myFlag; if (!f.comp) return;
+function updFlags(force) {
+  if (force || flagMode !== settings.flag) { flagMode = settings.flag; FC = new Map(); }
+  const own = new Map();
+  for (let p = 0; p < w.P; p++) { const o = s.owner[p]; if (o && flagOn(o)) { let l = own.get(o); if (!l) own.set(o, l = []); l.push(p); } }
+  for (const id of FC.keys()) if (!own.has(id)) FC.delete(id);
+  let budget = picking || FC.size < 3 ? 999 : 14; const ids = [...own.keys()].sort((a, b) => (b === s.me) - (a === s.me));
+  for (const id of ids) {
+    const l = own.get(id); let sig = 0; for (const p of l) sig = (sig * 31 + p + 1) >>> 0;
+    const key = l.length + ":" + sig + ":" + flagOf(s.nations[id]), cur = FC.get(id);
+    if (cur && cur.key === key) continue;
+    if (budget-- <= 0 && id !== s.me) continue;
+    const f = buildFlag(id, l); f.key = key; FC.set(id, f);
+  }
+}
+const updMyFlag = () => updFlags(true);
+function drawFlags() {
+  if (!s || settings.flag === "uit") return;
+  const nowT = performance.now(); if (nowT - flagT > 400) { flagT = nowT; updFlags(); }
   ctx.save(); ctx.imageSmoothingEnabled = scale < 2;
-  const X = scrX(f.x0), Y = scrY(f.y0), wd = f.bw * scale, ht = f.bh * scale;
-  const xs = [X]; if (w.wrap) { const span = W * scale; xs.push(X - span, X + span); }
-  for (const x of xs) if (x < VW && x + wd > 0) ctx.drawImage(f.comp, x, Y, wd, ht);
+  for (const f of FC.values()) {
+    const X = scrX(f.x0), Y = scrY(f.y0), wd = f.bw * scale, ht = f.bh * scale;
+    if (Y > VH || Y + ht < 0) continue;
+    const xs = [X]; if (w.wrap) { const span = W * scale; xs.push(X - span, X + span); }
+    for (const x of xs) if (x < VW && x + wd > 0) ctx.drawImage(f.comp, x, Y, wd, ht);
+  }
   ctx.restore();
 }
-
 const fIcon = id => { const n = s && s.nations[id]; return n ? `<img class="fimg" alt="" src="${flagURL(flagOf(n))}">` : `<span class="fimg" style="background:#8a9a6a;display:inline-block"></span>`; };
 // ---------- toasts ----------
 function toast(msg) { const d = document.createElement("div"); d.textContent = msg; $("toasts").appendChild(d); while ($("toasts").children.length > 2) $("toasts").firstChild.remove(); setTimeout(() => d.remove(), 3600); }
@@ -881,13 +1016,13 @@ function terr(lat, lon, nz) {
 let T = null;
 function makeTerrain() {
   const d = MAPDEF[mapId.split("-")[0]] || MAPDEF.wereld, k = 34 * w.L;
-  T = new Float32Array(N * 4);
+  T = new Uint8Array(N * 4);
   for (let i = 0; i < N; i++) {
     if (!w.land[i]) continue;
     const x = i % W, y = (i / W) | 0, lon = d[0] + (x + 0.5) / W * (d[1] - d[0]), lat = d[2] - (y + 0.5) / H * (d[2] - d[3]);
     const nz = vnoise(x / k, y / k) * 0.8 + vnoise(x / (k / 3), y / (k / 3)) * 0.2;
     const c = terr(lat, lon, nz), j = (hash2(x, y) - 0.5) * 0.08;
-    T[i * 4] = c[0]; T[i * 4 + 1] = c[1]; T[i * 4 + 2] = c[2]; T[i * 4 + 3] = Math.max(0, c[3] + j);
+    T[i * 4] = c[0]; T[i * 4 + 1] = c[1]; T[i * 4 + 2] = c[2]; T[i * 4 + 3] = Math.max(0, c[3] + j) * 255;
   }
 }
 const SEA = [16, 30, 52], SHALLOW = [28, 52, 82], DEEP = [11, 21, 38];
@@ -899,8 +1034,8 @@ function paintTile(i, tmp) {
     const f = w.cEdge[i] ? 0.62 : w.pEdge[i] ? 0.86 : 1;
     px[p] = T[i * 4] * f; px[p + 1] = T[i * 4 + 1] * f; px[p + 2] = T[i * 4 + 2] * f; px[p + 3] = 255; return;
   }
-  const c = o ? (o === s.me && settings.flag ? [30, 34, 40] : col(o)) : [120, 130, 120];
-  const a = T[i * 4 + 3];
+  const c = o ? (flagOn(o) ? [30, 34, 40] : col(o)) : [120, 130, 120];
+  const a = T[i * 4 + 3] / 255;
   let r = c[0] * (1 - a) + T[i * 4] * a, g = c[1] * (1 - a) + T[i * 4 + 1] * a, b = c[2] * (1 - a) + T[i * 4 + 2] * a;
   // grenzen: tussen eigenaren dik zwart, tussen provincies dun
   let ownerEdge = false;
@@ -984,7 +1119,7 @@ function render() {
   if (w.wrap) for (let X = ox; X < VW; X += span) ctx.drawImage(off, X, oy, span, H * scale);
   else ctx.drawImage(off, ox, oy, span, H * scale);
   if (!s) return;
-  drawMyFlag();
+  drawFlags();
   const now = performance.now(), pulse = 0.5 + 0.5 * Math.sin(now / 160);
   ctx.lineJoin = "round"; ctx.miterLimit = 2;
   // hoofdsteden
@@ -1223,6 +1358,7 @@ function hud() {
   if (fo && fo.cur) { const F = WZ.FOCUS[fo.cur]; fl.className = ""; fl.textContent = `🎯 ${F.icon} ${F.naam} · nog ${Math.ceil(fo.left)}s`; $("bFocus").classList.remove("glow"); }
   else if (fo && Object.keys(WZ.FOCUS).some(k => WZ.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Kies een nieuwe focus (knop 🎯 Focus)"; $("bFocus").classList.add("glow"); }
   else { fl.className = ""; fl.textContent = me.ideo ? `${WZ.IDEO[me.ideo].icon} ${WZ.IDEO[me.ideo].naam}` : ""; $("bFocus").classList.remove("glow"); }
+  $("bForm").classList.toggle("glow", (s.formReady || []).some(k => !(s.formedBy || {})[k]));
   const pz = $("peace");
   if (me.immuneUntil && s.t < me.immuneUntil && s.t >= s.peaceUntil) { pz.textContent = `🛡️ Startbescherming · nog ${Math.ceil(me.immuneUntil - s.t)}s niemand kan je aanvallen`; pz.classList.remove("hidden"); }
   else if (s.t < s.peaceUntil) { pz.textContent = `🕊️ Voorbereiding · ${Math.ceil(s.peaceUntil - s.t)}s · zet je legers klaar`; pz.classList.remove("hidden"); } else pz.classList.add("hidden");
@@ -1245,6 +1381,8 @@ function onEvents(evs) {
     else if (e.type === "join" && e.id !== s.me && s.nations[s.me].fac && e.fac === s.nations[s.me].fac) toast(`🤝 ${nm(e.id)} sluit zich aan bij je alliantie`);
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
+    else if (e.type === "formReady") toast(`👑 Je kunt nu ${e.naam} vormen! Tik op 👑 Rijken`);
+    else if (e.type === "formed") { labelT = -9; if (e.id === s.me) { $("myName").textContent = e.naam; setHudFlag(); } else toast(`📢 ${e.old} heeft ${e.naam} gevormd!`); }
     else if (e.type === "focus" && e.id === s.me) { const F = WZ.FOCUS[e.k]; toast(`🎯 Focus klaar: ${F.icon} ${F.naam} (${F.info})`); }
   }
 }
@@ -1278,15 +1416,15 @@ function menu(resumeData) {
     <p>Kies een land, bouw legers en verover provincie na provincie.</p>
     ${resumeData ? `<button class="big red" id="mRes" type="button">▶ Verder met je spel als ${E(resumeData.naam || "")}</button><div class="lab">Of begin opnieuw</div>` : ""}
     <div class="lab">Spelvorm</div>${opts("oMode", [["spawn", "🌱 Startplek kiezen (RoFront)"], ["landen", "🗺️ Echte landen (HOI)"]], settings.mode)}
-    <div id="botsBox" class="${settings.mode === "spawn" ? "" : "hidden"}"><div class="lab">Tegenstanders</div>${opts("oBots", [["10", "10"], ["20", "20"], ["40", "40"], ["70", "70"]], settings.bots)}</div>
+    <div id="botsBox" class="${settings.mode === "spawn" ? "" : "hidden"}"><div class="lab">Tegenstanders</div>${opts("oBots", [["10", "10"], ["20", "20"], ["40", "40"], ["70", "70"], ["120", "120"]], settings.bots)}</div>
     <div class="lab">Kaart</div>${opts("oMap", MAPS, settings.map)}
-    <div class="lab">Grootte</div>${opts("oSize", [["normaal", "Normaal · ~320 provincies"], ["groot", "Groot · ~560 provincies"]], settings.size)}
+    <div id="sizeBox" class="${settings.map === "mega" ? "hidden" : ""}"><div class="lab">Grootte</div>${opts("oSize", [["normaal", "Normaal · ~320 provincies"], ["groot", "Groot · ~560 provincies"]], settings.size)}</div><div id="megaNote" class="${settings.map === "mega" ? "" : "hidden"}" style="font-size:12.5px;color:var(--muted);margin-top:6px">🌐 Alle continenten in groot formaat op één wereldkaart · ~2200 provincies · lange potjes</div>
     <div class="lab">Moeilijkheid</div>${opts("oDiff", [["relaxed", "😌 Relaxed"], ["standaard", "⚔️ Standaard"], ["brutaal", "💀 Brutaal"]], settings.diff)}
     <button class="big ${resumeData ? "" : "red"}" id="mGo" type="button">${settings.mode === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"}</button>
     <button class="big" id="mHelp" type="button" style="min-height:44px;font-size:14px">❔ Hoe speel je?</button>`);
   bindOpts("oMode", v => { settings.mode = v; keepSet(); $("botsBox").classList.toggle("hidden", v !== "spawn"); $("mGo").textContent = v === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"; });
   bindOpts("oBots", v => { settings.bots = v; keepSet(); });
-  bindOpts("oMap", v => { settings.map = v; keepSet(); }); bindOpts("oSize", v => { settings.size = v; keepSet(); }); bindOpts("oDiff", v => { settings.diff = v; keepSet(); });
+  bindOpts("oMap", v => { settings.map = v; keepSet(); $("sizeBox").classList.toggle("hidden", v === "mega"); $("megaNote").classList.toggle("hidden", v !== "mega"); }); bindOpts("oSize", v => { settings.size = v; keepSet(); }); bindOpts("oDiff", v => { settings.diff = v; keepSet(); });
   $("mGo").onclick = () => { clearSave(); startPick(); };
   $("mHelp").onclick = () => help(() => menu(resumeData));
   if (resumeData) $("mRes").onclick = () => resume(resumeData);
@@ -1305,7 +1443,7 @@ const HELP = `<div class="help">
   <div class="st"><i>🤏</i><div><b>Kaart:</b> slepen = verschuiven, knijpen = zoomen.</div></div></div>`;
 function help(back) { ov(`<h2>❔ Hoe speel je?</h2>${HELP}<button class="big red" id="hB" type="button">Snap ik</button>`); $("hB").onclick = back; }
 async function startPick() {
-  closeOv(); await loadMap(settings.map + "-" + settings.size);
+  closeOv(); await loadMap(mapKey());
   s = WZ.newGame(w, { mode: settings.mode, bots: +settings.bots, diff: settings.diff, map: mapId, size: settings.size }); s.me = 0;
   $("pickHint").textContent = s.mode === "spawn" ? "🌱 Tik op een plek in niemandsland om te beginnen" : "👆 Tik op het land waarmee je wilt spelen";
   fullPaint = true; paintAll(); labelT = -9;
@@ -1313,17 +1451,34 @@ async function startPick() {
   scale = minScale(); if (w.wrap) { ox = VW / 2 - W * 0.53 * scale; } clampView();
 }
 function setHudFlag() { const n = s.nations[s.me]; $("myFlag").style.background = `center/cover url(${flagURL(flagOf(n))})`; }
+function formPanel() {
+  const me = s.nations[s.me]; paused = true; hideCard();
+  const list = WZ.formsFor(w).map(f => ({ f, pr: WZ.formProgress(w, s, s.me, f), by: (s.formedBy || {})[f.naam] }));
+  list.sort((a, b) => (!!a.by - !!b.by) || (b.pr.ok - a.pr.ok) || (b.pr.all - a.pr.all));
+  ov(`<h2>👑 Rijken vormen</h2><p>Verover genoeg land en vorm een Keizerrijk, Koninkrijk, Federatie of moderne Unie. Je krijgt een nieuwe naam, een nieuwe vlag en een blijvende bonus.</p>
+    <p style="font-size:12.5px">Nodig: <b style="color:var(--ink)">70%</b> van alle provincies samen, én van elk land minstens <b style="color:var(--ink)">30%</b>.</p>
+    ${list.length ? "" : "<p>Op deze kaart zijn geen rijken te vormen.</p>"}
+    ${list.map(({ f, pr, by }) => { const R = WZ.RANK[f.rank], mine = by === s.me; return `<div class="fm ${pr.ok && !by ? "ok" : by && !mine ? "gone" : ""}">
+      <div class="t"><img alt="" src="${flagURL(f.naam)}"><div><b>${R.icon} ${E(f.naam)}</b><small>${R.naam} · ${R.info}</small></div></div>
+      ${mine ? `<div class="pb"><i style="width:100%"></i></div><small style="color:#bbf7d0;font-weight:800">✅ Jij hebt dit rijk gevormd</small>` : by ? `<small style="color:var(--muted);font-weight:700;display:block;margin-top:6px">❌ Al gevormd door ${E(nm(by))}</small>` :
+      `<div class="pb"><i style="width:${Math.min(100, pr.all / 0.7 * 100)}%"></i></div>
+      <div class="cs">${pr.per.map(c => `<span class="${c.share >= 0.3 ? "g" : ""}">${E(c.name)} ${Math.round(c.share * 100)}%</span>`).join("")}</div>
+      <small style="color:var(--muted);font-weight:700;display:block;margin-top:5px">Totaal ${Math.round(pr.all * 100)}% van 70%</small>
+      ${pr.ok ? `<button type="button" data-form="${E(f.naam)}">👑 Vorm ${E(f.naam)}</button>` : ""}`}</div>`; }).join("")}
+    <button class="big" id="frB" type="button" style="margin-top:12px">Verder spelen</button>`);
+  $("ovc").onclick = e => { const b = e.target.closest("[data-form]"); if (!b) return; const r = WZ.formNation(w, s, s.me, b.dataset.form); if (r.ok) { onEvents(s.ev.splice(0)); toast(`👑 Je bent nu ${b.dataset.form}!`); save(); formPanel(); } else toast("❌ " + r.err); };
+  $("frB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
+}
 function flagPanel() {
   hideCard(); const me = s.nations[s.me], cur = flagOf(me);
   const names = [...new Set([me.name, ...FKEYS])];
   ov(`<h2>🏳️ Kies je vlag</h2><p>Je vlag wappert over al je gebied.</p>
-    <div class="seg" style="margin-top:8px"><button type="button" id="fOn" class="${settings.flag ? "on" : ""}">Vlag op kaart aan</button><button type="button" id="fOff" class="${settings.flag ? "" : "on"}">Uit</button></div>
+    <div class="lab">Vlaggen op de kaart</div>${opts("fMode", [["alle", "🌍 Alle landen"], ["ik", "🙋 Alleen ik"], ["uit", "🎨 Uit (kleuren)"]], settings.flag)}
     <div class="fgrid">${names.map(k => `<button type="button" data-fl="${E(k)}" class="${k === cur ? "on" : ""}"><img alt="" src="${flagURL(k)}">${E(k)}</button>`).join("")}</div>
     <button class="big" id="fB" type="button" style="margin-top:12px">✔️ Klaar</button>`);
   paused = true;
   $("ovc").onclick = e => { const b = e.target.closest("[data-fl]"); if (!b) return; me.flag = b.dataset.fl; setHudFlag(); updMyFlag(true); $("ovc").querySelectorAll("[data-fl]").forEach(x => x.classList.toggle("on", x === b)); toast("🏳️ Nieuwe vlag: " + me.flag); };
-  $("fOn").onclick = () => { settings.flag = true; keepSet(); paintAll(); $("fOn").classList.add("on"); $("fOff").classList.remove("on"); };
-  $("fOff").onclick = () => { settings.flag = false; keepSet(); paintAll(); $("fOff").classList.add("on"); $("fOn").classList.remove("on"); };
+  bindOpts("fMode", v => { settings.flag = v; keepSet(); paintAll(); });
   $("fB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
 }
 function startAs(id, spawned) {
@@ -1378,7 +1533,7 @@ function end() {
   $("eN").onclick = () => menu(null);
 }
 $("bPause").onclick = () => { if (!s || s.over) return; paused = !paused; $("bPause").textContent = paused ? "▶" : "⏸"; toast(paused ? "⏸ Gepauzeerd" : "▶ Verder"); };
-$("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel;
+$("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel; $("bForm").onclick = formPanel;
 const FROWS = [["", "industrie", ""], ["leger", "", "vloot"], ["demo", "fasc", "comm"], ["demo2", "fasc2", "comm2"], ["demo3", "fasc3", "comm3"], ["", "wegen", ""]];
 function focusPanel() {
   if (!s || s.over || picking) return; paused = true; $("bPause").textContent = "▶";
@@ -1395,6 +1550,7 @@ function focusPanel() {
 
 // ---------- kaart laden ----------
 const mapCache = {};
+const mapKey = () => settings.map === "mega" ? "wereld-mega" : settings.map + "-" + settings.size;
 async function loadMap(id) {
   $("loading").classList.remove("hidden");
   if (!mapCache[id]) { const G = await (await fetch("maps/" + id + ".json")).json(); mapCache[id] = WZ.makeWorld(G, id.split("-")[1]); }
@@ -1432,7 +1588,7 @@ resize(); requestAnimationFrame(loop);
     if (db && uid) { const snap = await db.doc("data/users/" + uid + "/wwz2").get(); if (snap.exists) { const d = snap.data(); if (!saved || String(d.at) > String(saved.at)) saved = d; } }
   } catch (e) { db = null; }
   // achtergrondkaart voor het menu
-  try { await loadMap(settings.map + "-" + settings.size); s = null; paintAll(); scale = minScale(); if (w.wrap) ox = VW / 2 - W * 0.53 * scale; clampView(); } catch (e) { $("loading").textContent = "Kaart laden mislukt. Probeer het opnieuw."; return; }
+  try { await loadMap(mapKey()); s = null; paintAll(); scale = minScale(); if (w.wrap) ox = VW / 2 - W * 0.53 * scale; clampView(); } catch (e) { $("loading").textContent = "Kaart laden mislukt. Probeer het opnieuw."; return; }
   menu(saved && saved.json ? saved : null);
 })();
 })();
