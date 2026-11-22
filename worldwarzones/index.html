@@ -1522,10 +1522,10 @@ const fIcon = id => { const n = s && s.nations[id]; return n ? `<img class="fimg
 function toast(msg) { const d = document.createElement("div"); d.textContent = msg; $("toasts").appendChild(d); while ($("toasts").children.length > 2) $("toasts").firstChild.remove(); setTimeout(() => d.remove(), 3600); }
 
 // ---------- canvas ----------
-function resize() { DPR = Math.min(2, devicePixelRatio || 1); VW = innerWidth; VH = innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); clampView(); }
+function resize() { DPR = Math.min(2, devicePixelRatio || 1); VW = cv.clientWidth || innerWidth; VH = cv.clientHeight || innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); clampView(); }
 addEventListener("resize", resize);
 // iPad/iPhone: na draaien klopt de schermmaat vaak pas later; daarom een paar keer opnieuw meten
-const resizeSoon = () => { for (const t of [60, 250, 600, 1200]) setTimeout(() => { if (innerWidth !== VW || innerHeight !== VH) resize(); }, t); };
+const resizeSoon = () => { for (const t of [60, 250, 600, 1200]) setTimeout(() => { if (cv.clientWidth !== VW || cv.clientHeight !== VH) resize(); }, t); };
 addEventListener("orientationchange", resizeSoon);
 if (window.visualViewport) visualViewport.addEventListener("resize", resizeSoon);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) resizeSoon(); });
@@ -2017,6 +2017,8 @@ function loop(ts) {
   if (dirty.size) { paintProvs(dirty); dirty.clear(); }
   if (s && ts - siegeT > 120) { siegeT = ts; paintSieges(); }
   if (s && !picking && ts - lastHud > 250) { maybeReq(); maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
+  // tekenvlak moet precies even groot zijn als het scherm, anders wordt de kaart uitgerekt (iPad na draaien)
+  if (cv.clientWidth && (cv.clientWidth !== VW || cv.clientHeight !== VH)) resize();
   render();
   requestAnimationFrame(loop);
 }
