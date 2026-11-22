@@ -36,7 +36,7 @@ button{font:inherit;color:inherit}
 .fm .cs span{font-size:11px;font-weight:700;padding:2px 6px;border-radius:7px;background:#1c2a3f;color:var(--muted)}
 .fm .cs span.g{background:#14532d;color:#bbf7d0}
 .fm button{width:100%;margin-top:8px;min-height:42px;border-radius:11px;border:1px solid var(--gold);background:var(--gold);color:#1b1206;font-weight:900;font-size:15px}
-#bForm.glow,#bFocus.glow{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,181,49,.5)}
+#bForm.glow,#bInt.glow,#bFocus.glow{border-color:var(--gold);box-shadow:0 0 0 2px rgba(245,181,49,.5)}
 .ftree{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 .fn{min-height:70px;border-radius:12px;border:1px solid var(--line);background:#15243a;font-size:11.5px;font-weight:800;padding:6px 4px;line-height:1.2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .fn i{font-style:normal;font-size:20px}
@@ -47,6 +47,21 @@ button{font:inherit;color:inherit}
 .fn.lock{opacity:.4}
 .fn.x{opacity:.22;text-decoration:line-through}
 .fn.e{visibility:hidden}
+.ftabs{display:flex;gap:5px;overflow-x:auto;padding-bottom:4px;margin-top:8px}
+.ftabs button{flex:none;border:1px solid var(--line);background:#132033;color:var(--muted);border-radius:10px;padding:7px 10px;font-weight:800;font-size:12.5px;position:relative}
+.ftabs button.on{background:#24364f;color:var(--ink);border-color:#60a5fa}
+.ftabs button b{position:absolute;top:-6px;right:-5px;background:var(--gold);color:#1b1206;border-radius:9px;font-size:10px;padding:1px 5px}
+.fn .rq{font-size:9.5px;color:#93a3b8;font-weight:700;margin-top:2px}
+.fe{display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px}
+.fe canvas{width:min(100%,300px);height:auto;display:block;margin:0 auto;border:2px solid #000;border-radius:4px;background:#fff}
+.fe .pal{display:flex;flex-wrap:wrap;gap:5px}
+.fe .pal button{width:30px;height:30px;border-radius:8px;border:2px solid #0008}
+.fe .pal button.on{outline:3px solid var(--gold);outline-offset:1px}
+.fe .slot{display:flex;gap:6px}
+.fe .slot button{flex:1;min-height:34px;border-radius:9px;border:1px solid var(--line);background:#132033;color:var(--ink);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.fe .slot button.on{border-color:var(--gold);background:#2b2410}
+.fe .slot i{width:16px;height:16px;border-radius:4px;border:1.5px solid #000;display:inline-block}
+.fe input[type=text]{width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:#0b1422;color:var(--ink);padding:0 12px;font-size:15px;font-weight:700}
 .frow{grid-column:1/-1;font-size:10.5px;color:var(--muted);font-weight:800;letter-spacing:.06em;margin-top:8px}
 #tr{display:flex;flex-direction:column;gap:6px;pointer-events:auto;margin-top:30px}
 #tr div{display:flex;gap:6px}
@@ -74,6 +89,9 @@ button{font:inherit;color:inherit}
 #card .btns .ally{background:#1d4ed8;border-color:#60a5fa;color:#fff}
 #card .btns .go{background:#15803d;border-color:#22c55e;color:#fff}
 #card .btns .wide{grid-column:1/-1}
+#card .dip{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px}
+#card .dip button{min-height:38px;border-radius:10px;border:1px solid var(--line);background:#132033;color:var(--ink);font-weight:800;font-size:11.5px;line-height:1.15;padding:2px 3px}
+#card .dip button small{display:block;color:var(--muted);font-weight:700;font-size:10px}
 #card .btns button:disabled{opacity:.4}
 #card .hint{font-size:12px;color:var(--gold);margin-top:8px;font-weight:700}
 #bar{display:flex;gap:6px;align-items:stretch}
@@ -147,14 +165,14 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
   <div id="me">
     <div class="nm"><span class="flag" id="myFlag"></span><span id="myName"></span></div>
     <div class="bar"><i id="poolBar"></i></div>
-    <div class="row"><span>🪖 Reserve <b id="pool">0</b></span><span>🗺️ <b id="share">0%</b> / <span id="goal">60%</span></span><span id="clock">0:00</span></div>
+    <div class="row"><span>🪖 <b id="pool">0</b></span><span>🗺️ <b id="share">0%</b> / <span id="goal">60%</span></span><span id="stab">😐 60</span><span id="clock">0:00</span></div>
     <div id="focusLine"></div>
   </div>
   <div id="tr">
     <div><button class="tb" id="bPause" type="button" aria-label="Pauze">⏸</button><button class="tb" id="bMenu" type="button" aria-label="Menu">☰</button></div>
     <div><button class="tb" id="bFac" type="button" aria-label="Allianties">🤝</button><button class="tb" id="bRank" type="button" aria-label="Ranglijst">🏆</button></div>
     <div><button class="tb" id="bFocus" type="button" aria-label="Focusboom" style="width:94px;font-size:14px;font-weight:800">🎯 Focus</button></div>
-    <div><button class="tb" id="bForm" type="button" aria-label="Rijken vormen" style="width:94px;font-size:14px;font-weight:800">👑 Rijken</button></div>
+    <div><button class="tb" id="bForm" type="button" aria-label="Rijken vormen">👑</button><button class="tb" id="bInt" type="button" aria-label="Binnenland">🏛️</button></div>
   </div>
 </div>
 <div id="peace" class="hidden"></div>
@@ -188,26 +206,97 @@ const WZ = (() => {
   const MIN_ARMY = 60;
   const TUNE = { mil: 3000, cap: 2600, rate: 8, speed: 0.6, milHit: 0.8, botSpend: 0.4, pk: 2.6, pe: 0.6, core: 0.4, giant: 16, coal: 5, neutral: 420, spawnArmy: 2200 };
 
-  // ---------- focusboom (evolutieboom) ----------
-  const FOCUS = {
-    industrie: { naam: "Industrialisatie", icon: "🏭", tijd: 40, req: [], fx: { rate: 0.25 }, info: "+25% reserve-groei" },
-    leger: { naam: "Herbewapening", icon: "🪖", tijd: 45, req: ["industrie"], fx: { cap: 0.25 }, info: "+25% maximale reserve" },
-    vloot: { naam: "Vlootbouw", icon: "⚓", tijd: 40, req: ["industrie"], fx: { sea: 0.5 }, info: "schepen 50% sneller, landingen sterker" },
-    wegen: { naam: "Spoorwegen", icon: "🚂", tijd: 50, req: ["vloot"], fx: { speed: 0.3 }, info: "legers 30% sneller" },
-    demo: { naam: "Democratie", icon: "🔵", tijd: 50, req: ["leger"], excl: ["fasc", "comm"], ideo: "demo", fx: { def: 0.25 }, info: "verdediging +25%, makkelijker bondgenoten" },
-    fasc: { naam: "Fascisme", icon: "⚫", tijd: 50, req: ["leger"], excl: ["demo", "comm"], ideo: "fasc", fx: { atk: 0.2 }, info: "aanvallen 20% sterker" },
-    comm: { naam: "Communisme", icon: "🔴", tijd: 50, req: ["leger"], excl: ["demo", "fasc"], ideo: "comm", fx: { rate: 0.3 }, info: "+30% reserve-groei" },
-    demo2: { naam: "Arsenaal der democratie", icon: "🏦", tijd: 60, req: ["demo"], fx: { rate: 0.3, cap: 0.2 }, info: "+30% groei, +20% reserve" },
-    fasc2: { naam: "Blitzkrieg", icon: "⚡", tijd: 60, req: ["fasc"], fx: { speed: 0.4, atk: 0.1 }, info: "legers 40% sneller, +10% aanval" },
-    comm2: { naam: "Rode Leger", icon: "☭", tijd: 60, req: ["comm"], fx: { cap: 0.4 }, info: "+40% maximale reserve" },
-    demo3: { naam: "Vrije wereld", icon: "🗽", tijd: 75, req: ["demo2"], fx: { def: 0.2, atk: 0.1 }, info: "+20% verdediging, +10% aanval" },
-    fasc3: { naam: "Totale oorlog", icon: "🔥", tijd: 75, req: ["fasc2"], fx: { atk: 0.2, rate: 0.15 }, info: "+20% aanval, +15% groei" },
-    comm3: { naam: "Vijfjarenplan", icon: "🏗️", tijd: 75, req: ["comm2"], fx: { rate: 0.3, def: 0.1 }, info: "+30% groei, +10% verdediging" }
+  // ---------- focusboom (zoals HOI): algemene takken + een eigen nationale tak per land ----------
+  // F(id, naam, icon, tijd, req, fx, info, extra)   req: alle nodig · extra.any: één van · extra.excl · extra.tag · effecten: pool, annex, ally, core
+  const FOCUS = {}, BRANCH = {};
+  function F(br, k, naam, icon, tijd, req, fx, info, extra) { FOCUS[k] = Object.assign({ k, br, naam, icon, tijd, req, fx: fx || {}, info }, extra || {}); (BRANCH[br] = BRANCH[br] || []).push(k); }
+  // Industrie
+  F("ind", "industrie", "Industrialisatie", "🏭", 35, [], { rate: 0.15 }, "+15% reserve-groei");
+  F("ind", "fabrieken", "Civiele fabrieken", "🏗️", 40, ["industrie"], { rate: 0.12 }, "+12% groei");
+  F("ind", "mijnbouw", "Mijnbouw", "⛏️", 40, ["industrie"], { cap: 0.12 }, "+12% max. reserve");
+  F("ind", "staal", "Staalindustrie", "🔩", 45, ["fabrieken"], { atk: 0.06, def: 0.06 }, "+6% aanval en verdediging");
+  F("ind", "olie", "Olievelden", "🛢️", 45, ["mijnbouw"], { speed: 0.08, rate: 0.08 }, "+8% snelheid, +8% groei");
+  F("ind", "indrev", "Industriële revolutie", "⚙️", 60, ["staal", "olie"], { rate: 0.2, cap: 0.1 }, "+20% groei, +10% reserve");
+  F("ind", "onderzoek", "Onderzoekscentra", "🔬", 55, ["indrev"], { atk: 0.08, def: 0.08, speed: 0.05 }, "+8% aanval/verdediging, +5% snelheid");
+  // Leger
+  F("leger", "leger", "Herbewapening", "🪖", 40, ["industrie"], { cap: 0.15 }, "+15% max. reserve");
+  F("leger", "infanterie", "Infanterie-doctrine", "🎖️", 40, ["leger"], { def: 0.1 }, "+10% verdediging");
+  F("leger", "artillerie", "Artillerie", "💥", 40, ["leger"], { atk: 0.1 }, "+10% aanval");
+  F("leger", "bunkers", "Verdedigingslinies", "🧱", 45, ["infanterie"], { def: 0.15 }, "+15% verdediging");
+  F("leger", "tanks", "Pantserdivisies", "🛡️", 50, ["artillerie"], { atk: 0.1, speed: 0.1 }, "+10% aanval, +10% snelheid");
+  F("leger", "staf", "Generale staf", "🧠", 55, [], { atk: 0.08, def: 0.08 }, "+8% aanval en verdediging", { any: ["bunkers", "tanks"] });
+  F("leger", "mobilisatie", "Algemene mobilisatie", "📯", 50, ["staf"], { cap: 0.2 }, "+20% max. reserve + direct 50% reserve erbij", { pool: 0.5 });
+  // Luchtmacht
+  F("lucht", "lucht", "Luchtmacht", "✈️", 40, ["fabrieken"], { atk: 0.06 }, "+6% aanval");
+  F("lucht", "jagers", "Jachtvliegtuigen", "🛩️", 40, ["lucht"], { def: 0.1 }, "+10% verdediging");
+  F("lucht", "bommen", "Bommenwerpers", "💣", 45, ["lucht"], { atk: 0.1 }, "+10% aanval");
+  F("lucht", "luchtover", "Luchtoverwicht", "🌤️", 55, ["jagers", "bommen"], { atk: 0.08, def: 0.08 }, "+8% aanval en verdediging");
+  F("lucht", "para", "Parachutisten", "🪂", 50, ["luchtover"], { speed: 0.1, sea: 0.2 }, "+10% snelheid, landingen sterker");
+  // Vloot
+  F("vloot", "vloot", "Vlootbouw", "⚓", 40, ["industrie"], { sea: 0.4 }, "schepen 40% sneller");
+  F("vloot", "konvooi", "Konvooien", "🚢", 40, ["vloot"], { sea: 0.2, rate: 0.05 }, "+20% zee, +5% groei");
+  F("vloot", "slagschip", "Slagschepen", "🛳️", 45, ["vloot"], { sea: 0.2, atk: 0.05 }, "landingen sterker, +5% aanval");
+  F("vloot", "marine", "Mariniers", "🎯", 45, [], { sea: 0.3 }, "landingen veel sterker", { any: ["konvooi", "slagschip"] });
+  F("vloot", "zeeheer", "Heerser der zeeën", "🔱", 60, ["konvooi", "slagschip"], { sea: 0.4, def: 0.05 }, "+40% zee, +5% verdediging");
+  // Logistiek
+  F("log", "wegen", "Spoorwegen", "🚂", 40, ["industrie"], { speed: 0.2 }, "legers 20% sneller");
+  F("log", "motor", "Motorisering", "🚚", 45, ["wegen", "olie"], { speed: 0.15 }, "legers 15% sneller");
+  F("log", "bevoorrading", "Bevoorrading", "📦", 45, ["wegen"], { cap: 0.1, def: 0.05 }, "+10% reserve, +5% verdediging");
+  F("log", "radio", "Radionetwerk", "📡", 50, ["motor"], { speed: 0.1, atk: 0.05 }, "+10% snelheid, +5% aanval");
+  // Politiek / ideologie
+  F("pol", "demo", "Democratie", "🔵", 45, ["leger"], { def: 0.15 }, "+15% verdediging, makkelijker bondgenoten", { excl: ["fasc", "comm", "mon"], ideo: "demo" });
+  F("pol", "fasc", "Fascisme", "⚫", 45, ["leger"], { atk: 0.15 }, "+15% aanval", { excl: ["demo", "comm", "mon"], ideo: "fasc" });
+  F("pol", "comm", "Communisme", "🔴", 45, ["leger"], { rate: 0.2 }, "+20% groei", { excl: ["demo", "fasc", "mon"], ideo: "comm" });
+  F("pol", "mon", "Monarchie", "👑", 45, ["leger"], { cap: 0.15, def: 0.05 }, "+15% reserve, +5% verdediging", { excl: ["demo", "fasc", "comm"], ideo: "mon" });
+  F("pol", "demo2", "Arsenaal der democratie", "🏦", 55, ["demo"], { rate: 0.2, cap: 0.1 }, "+20% groei, +10% reserve");
+  F("pol", "fasc2", "Blitzkrieg", "⚡", 55, ["fasc"], { speed: 0.25, atk: 0.08 }, "+25% snelheid, +8% aanval");
+  F("pol", "comm2", "Rode Leger", "☭", 55, ["comm"], { cap: 0.3 }, "+30% max. reserve");
+  F("pol", "mon2", "Koninklijke garde", "⚜️", 55, ["mon"], { def: 0.15, atk: 0.05 }, "+15% verdediging, +5% aanval");
+  F("pol", "demo3", "Vrije wereld", "🗽", 65, ["demo2"], { def: 0.12, atk: 0.08 }, "+12% verdediging, +8% aanval");
+  F("pol", "fasc3", "Totale oorlog", "🔥", 65, ["fasc2"], { atk: 0.15, rate: 0.1 }, "+15% aanval, +10% groei");
+  F("pol", "comm3", "Vijfjarenplan", "🏗️", 65, ["comm2"], { rate: 0.25, def: 0.08 }, "+25% groei, +8% verdediging");
+  F("pol", "mon3", "Keizerlijke ambitie", "🏰", 65, ["mon2"], { atk: 0.1, cap: 0.15 }, "+10% aanval, +15% reserve");
+  F("pol", "demo4", "Verenigde Naties", "🇺🇳", 75, ["demo3"], { rate: 0.1, def: 0.1 }, "+10% groei en verdediging");
+  F("pol", "fasc4", "Wereldrijk", "🦅", 75, ["fasc3"], { atk: 0.15 }, "+15% aanval");
+  F("pol", "comm4", "Wereldrevolutie", "🌍", 75, ["comm3"], { atk: 0.1, rate: 0.1 }, "+10% aanval en groei");
+  F("pol", "mon4", "Dynastie", "🧬", 75, ["mon3"], { cap: 0.15, rate: 0.1 }, "+15% reserve, +10% groei");
+  // Nationale takken: [id, naam, icon, req, fx, info, extra]
+  const NAT = {
+    "Nederland": [["nl1", "Deltawerken", "🌊", [], { def: 0.15 }, "+15% verdediging"], ["nl2", "Handelsvloot", "⛵", ["nl1"], { sea: 0.3, rate: 0.1 }, "+30% zee, +10% groei"], ["nl3", "Hollandse Waterlinie", "💧", ["nl1"], { def: 0.15 }, "+15% verdediging"], ["nl4", "Benelux", "🤝", ["nl2"], { rate: 0.05 }, "bondgenootschap met België en Luxemburg", { ally: ["België", "Luxemburg"] }], ["nl5", "Gouden Eeuw", "🏆", ["nl3", "nl4"], { rate: 0.2, cap: 0.15 }, "+20% groei, +15% reserve"], ["nl6", "Inlijving Vlaanderen", "🦁", ["nl5"], {}, "lijf België in (als het kleiner is)", { annex: ["België", "Luxemburg"] }]],
+    "Duitsland": [["de1", "Autobahnen", "🛣️", [], { speed: 0.15 }, "+15% snelheid"], ["de2", "Anschluss", "🇦🇹", ["de1"], {}, "lijf Oostenrijk in", { annex: ["Oostenrijk", "Liechtenstein"] }], ["de3", "Sudetenland", "🏔️", ["de2"], {}, "lijf Tsjechië in", { annex: ["Tsjechië"] }], ["de4", "Panzerkorps", "🛡️", ["de1"], { atk: 0.15, speed: 0.1 }, "+15% aanval, +10% snelheid"], ["de5", "Mitteleuropa", "🗺️", ["de3", "de4"], { rate: 0.15 }, "+15% groei, bondgenoot Hongarije", { ally: ["Hongarije"] }], ["de6", "Wunderwaffen", "🚀", ["de5"], { atk: 0.15, def: 0.1 }, "+15% aanval, +10% verdediging"]],
+    "Frankrijk": [["fr1", "Maginotlinie", "🧱", [], { def: 0.2 }, "+20% verdediging"], ["fr2", "Vreemdelingenlegioen", "🎖️", ["fr1"], { atk: 0.1, cap: 0.1 }, "+10% aanval, +10% reserve"], ["fr3", "Entente Cordiale", "🤝", ["fr1"], {}, "bondgenoot Verenigd Koninkrijk en België", { ally: ["Verenigd Koninkrijk", "België"] }], ["fr4", "Napoleontische geest", "🎩", ["fr2"], { atk: 0.15, speed: 0.1 }, "+15% aanval, +10% snelheid"], ["fr5", "Gloire", "⚜️", ["fr3", "fr4"], { rate: 0.15, def: 0.1 }, "+15% groei, +10% verdediging"], ["fr6", "Rijnland", "🍷", ["fr5"], {}, "lijf Luxemburg en Monaco in", { annex: ["Luxemburg", "Andorra"] }]],
+    "Verenigd Koninkrijk": [["uk1", "Royal Navy", "⚓", [], { sea: 0.5 }, "+50% zee"], ["uk2", "Gemenebest", "🌐", ["uk1"], { rate: 0.1 }, "bondgenoot Canada, Australië en Nieuw-Zeeland", { ally: ["Canada", "Australië", "Nieuw-Zeeland"] }], ["uk3", "Radar", "📡", ["uk1"], { def: 0.15 }, "+15% verdediging"], ["uk4", "Spitfires", "🛩️", ["uk3"], { def: 0.1, atk: 0.05 }, "+10% verdediging, +5% aanval"], ["uk5", "Het Rijk waar de zon nooit ondergaat", "☀️", ["uk2", "uk4"], { cap: 0.2, rate: 0.15 }, "+20% reserve, +15% groei"], ["uk6", "Ierse kwestie", "🍀", ["uk5"], {}, "lijf Ierland in", { annex: ["Ierland"] }]],
+    "Rusland": [["ru1", "Generaal Winter", "❄️", [], { def: 0.2 }, "+20% verdediging"], ["ru2", "Trans-Siberische spoorlijn", "🚂", ["ru1"], { speed: 0.15 }, "+15% snelheid"], ["ru3", "Massaleger", "👥", ["ru1"], { cap: 0.3 }, "+30% reserve + direct 60% reserve", { pool: 0.6 }], ["ru4", "Wit-Russische unie", "🤝", ["ru3"], {}, "lijf Wit-Rusland in", { annex: ["Wit-Rusland"] }], ["ru5", "Oeral-industrie", "🏭", ["ru2"], { rate: 0.2 }, "+20% groei"], ["ru6", "Moederland roept", "📯", ["ru4", "ru5"], { atk: 0.12, def: 0.1 }, "+12% aanval, +10% verdediging"]],
+    "Italië": [["it1", "Mare Nostrum", "🌊", [], { sea: 0.3 }, "+30% zee"], ["it2", "Romeinse glorie", "🏛️", ["it1"], { atk: 0.1 }, "+10% aanval"], ["it3", "Albanië", "🦅", ["it2"], {}, "lijf Albanië in", { annex: ["Albanië", "San Marino", "Vaticaanstad", "Malta"] }], ["it4", "Alpini", "🏔️", ["it1"], { def: 0.15 }, "+15% verdediging"], ["it5", "Libië", "🏜️", ["it3"], {}, "lijf Libië in", { annex: ["Libië"] }], ["it6", "Nieuw Romeins Rijk", "🦁", ["it4", "it5"], { rate: 0.15, atk: 0.1 }, "+15% groei, +10% aanval"]],
+    "Spanje": [["es1", "Armada", "⛵", [], { sea: 0.3 }, "+30% zee"], ["es2", "Reconquista", "⚔️", ["es1"], { atk: 0.1, def: 0.05 }, "+10% aanval, +5% verdediging"], ["es3", "Iberisch pact", "🤝", ["es1"], {}, "bondgenoot Portugal", { ally: ["Portugal"] }], ["es4", "Gibraltar", "🪨", ["es2"], { def: 0.1, sea: 0.2 }, "+10% verdediging, +20% zee"], ["es5", "Siglo de Oro", "🌞", ["es3", "es4"], { rate: 0.2 }, "+20% groei"], ["es6", "Andorra", "🏔️", ["es5"], {}, "lijf Andorra en Portugal in", { annex: ["Andorra", "Portugal"] }]],
+    "Verenigde Staten": [["us1", "New Deal", "🏗️", [], { rate: 0.2 }, "+20% groei"], ["us2", "Arsenaal van de vrijheid", "🏭", ["us1"], { cap: 0.2 }, "+20% reserve"], ["us3", "Monroe-doctrine", "🌎", ["us1"], {}, "bondgenoot Canada en Mexico", { ally: ["Canada", "Mexico"] }], ["us4", "Pacific-vloot", "⚓", ["us2"], { sea: 0.4 }, "+40% zee"], ["us5", "Manhattan-project", "☢️", ["us4"], { atk: 0.2 }, "+20% aanval"], ["us6", "Supermacht", "🦅", ["us3", "us5"], { rate: 0.15, def: 0.1, atk: 0.05 }, "+15% groei, +10% verdediging, +5% aanval"]],
+    "Japan": [["jp1", "Meiji-hervormingen", "🏯", [], { rate: 0.15 }, "+15% groei"], ["jp2", "Keizerlijke vloot", "⚓", ["jp1"], { sea: 0.4 }, "+40% zee"], ["jp3", "Bushido", "🗡️", ["jp1"], { atk: 0.15 }, "+15% aanval"], ["jp4", "Korea", "🇰🇷", ["jp3"], {}, "lijf Zuid- en Noord-Korea in", { annex: ["Zuid-Korea", "Noord-Korea", "Taiwan"] }], ["jp5", "Welvaartssfeer", "🌏", ["jp2", "jp4"], { rate: 0.15, cap: 0.1 }, "+15% groei, +10% reserve"], ["jp6", "Zonnegodin", "☀️", ["jp5"], { atk: 0.1, def: 0.1 }, "+10% aanval en verdediging"]],
+    "China": [["cn1", "Lange Mars", "🚶", [], { def: 0.15 }, "+15% verdediging"], ["cn2", "Volksleger", "👥", ["cn1"], { cap: 0.3 }, "+30% reserve + direct 50% reserve", { pool: 0.5 }], ["cn3", "Grote Muur", "🧱", ["cn1"], { def: 0.15 }, "+15% verdediging"], ["cn4", "Grote Sprong", "📈", ["cn2"], { rate: 0.25 }, "+25% groei"], ["cn5", "Hereniging", "🐉", ["cn3", "cn4"], {}, "lijf Taiwan en Mongolië in", { annex: ["Taiwan", "Mongolië", "Hong Kong"] }], ["cn6", "Middenrijk", "🏮", ["cn5"], { atk: 0.12, rate: 0.1 }, "+12% aanval, +10% groei"]],
+    "Turkije": [["tr1", "Hervormingen van Atatürk", "🇹🇷", [], { rate: 0.15 }, "+15% groei"], ["tr2", "Bosporus", "🌉", ["tr1"], { def: 0.15, sea: 0.2 }, "+15% verdediging, +20% zee"], ["tr3", "Janitsaren", "⚔️", ["tr1"], { atk: 0.12 }, "+12% aanval"], ["tr4", "Cyprus", "🏝️", ["tr3"], {}, "lijf Cyprus in", { annex: ["Cyprus", "N. Cyprus"] }], ["tr5", "Neo-Ottomanisme", "🌙", ["tr2", "tr4"], { cap: 0.15, atk: 0.08 }, "+15% reserve, +8% aanval"]],
+    "Polen": [["pl1", "Gevleugelde Huzaren", "🪽", [], { atk: 0.15 }, "+15% aanval"], ["pl2", "Intermarium", "🤝", ["pl1"], {}, "bondgenoot Litouwen, Tsjechië en Roemenië", { ally: ["Litouwen", "Tsjechië", "Roemenië"] }], ["pl3", "Oostwal", "🧱", ["pl1"], { def: 0.2 }, "+20% verdediging"], ["pl4", "Gemenebest herstellen", "👑", ["pl2", "pl3"], {}, "lijf Litouwen in", { annex: ["Litouwen"] }], ["pl5", "Wonder aan de Wisła", "✨", ["pl4"], { atk: 0.1, def: 0.1 }, "+10% aanval en verdediging"]],
+    "Zweden": [["se1", "Ijzererts", "⛏️", [], { rate: 0.15 }, "+15% groei"], ["se2", "Bofors", "💥", ["se1"], { atk: 0.12 }, "+12% aanval"], ["se3", "Gewapende neutraliteit", "🛡️", ["se1"], { def: 0.2 }, "+20% verdediging"], ["se4", "Noordse samenwerking", "🤝", ["se3"], {}, "bondgenoot Noorwegen, Denemarken en Finland", { ally: ["Noorwegen", "Denemarken", "Finland"] }], ["se5", "Grootmachtstijd", "👑", ["se2", "se4"], { cap: 0.2, atk: 0.05 }, "+20% reserve, +5% aanval"]],
+    "Brazilië": [["br1", "Rubberhausse", "🌳", [], { rate: 0.2 }, "+20% groei"], ["br2", "Amazone-wegen", "🛣️", ["br1"], { speed: 0.15 }, "+15% snelheid"], ["br3", "Ordem e Progresso", "⭐", ["br1"], { def: 0.1, cap: 0.1 }, "+10% verdediging en reserve"], ["br4", "Rio de la Plata", "🌊", ["br3"], {}, "lijf Uruguay en Paraguay in", { annex: ["Uruguay", "Paraguay"] }], ["br5", "Reus van het zuiden", "🦜", ["br2", "br4"], { atk: 0.12, rate: 0.1 }, "+12% aanval, +10% groei"]],
+    "India": [["in1", "Swadeshi", "🧵", [], { rate: 0.2 }, "+20% groei"], ["in2", "Miljoenenleger", "👥", ["in1"], { cap: 0.3 }, "+30% reserve + direct 50% reserve", { pool: 0.5 }], ["in3", "Himalaya-grens", "🏔️", ["in1"], { def: 0.15 }, "+15% verdediging"], ["in4", "Subcontinent", "🐘", ["in2", "in3"], {}, "lijf Nepal, Bhutan en Sri Lanka in", { annex: ["Nepal", "Bhutan", "Sri Lanka"] }], ["in5", "Mogol-erfenis", "🕌", ["in4"], { atk: 0.12, rate: 0.1 }, "+12% aanval, +10% groei"]],
+    "Canada": [["ca1", "Trans-Canada spoorweg", "🚂", [], { speed: 0.2 }, "+20% snelheid"], ["ca2", "Mounties", "🐴", ["ca1"], { def: 0.15 }, "+15% verdediging"], ["ca3", "Grondstoffen van het noorden", "🌲", ["ca1"], { rate: 0.15, cap: 0.1 }, "+15% groei, +10% reserve"], ["ca4", "Noord-Amerikaans pact", "🤝", ["ca2", "ca3"], {}, "bondgenoot Verenigde Staten", { ally: ["Verenigde Staten"] }]],
+    "Australië": [["au1", "Outback", "🦘", [], { def: 0.15 }, "+15% verdediging"], ["au2", "ANZAC", "🎖️", ["au1"], { atk: 0.12 }, "+12% aanval, bondgenoot Nieuw-Zeeland", { ally: ["Nieuw-Zeeland"] }], ["au3", "Mijnbouwboom", "⛏️", ["au1"], { rate: 0.2 }, "+20% groei"], ["au4", "Pacific-macht", "🌊", ["au2", "au3"], { sea: 0.4 }, "+40% zee"], ["au5", "Oceanië", "🏝️", ["au4"], {}, "lijf Papoea-Nieuw-Guinea en Nieuw-Zeeland in", { annex: ["Papoea-Nieuw-Guinea", "Nieuw-Zeeland", "Fiji", "Salomonseilanden", "Vanuatu"] }]],
+    "Mexico": [["mx1", "Revolución", "🌵", [], { atk: 0.1, cap: 0.1 }, "+10% aanval, +10% reserve"], ["mx2", "Olie-nationalisatie", "🛢️", ["mx1"], { rate: 0.2 }, "+20% groei"], ["mx3", "Azteekse erfenis", "🦅", ["mx1"], { def: 0.15 }, "+15% verdediging"], ["mx4", "Centraal-Amerika", "🌎", ["mx2", "mx3"], {}, "lijf Guatemala en Belize in", { annex: ["Guatemala", "Belize"] }]],
+    "Argentinië": [["ar1", "Pampa-graan", "🌾", [], { rate: 0.2 }, "+20% groei"], ["ar2", "Gaucho-cavalerie", "🐎", ["ar1"], { speed: 0.15, atk: 0.05 }, "+15% snelheid, +5% aanval"], ["ar3", "La Plata", "🌊", ["ar1"], {}, "lijf Uruguay in", { annex: ["Uruguay"] }], ["ar4", "Malvinas", "🏝️", ["ar2", "ar3"], { sea: 0.3 }, "+30% zee, lijf Falklandeilanden in", { annex: ["Falklandeilanden"] }], ["ar5", "Zon van mei", "☀️", ["ar4"], { cap: 0.15, def: 0.1 }, "+15% reserve, +10% verdediging"]],
+    "Egypte": [["eg1", "Nijldelta", "🌾", [], { rate: 0.2 }, "+20% groei"], ["eg2", "Suezkanaal", "🚢", ["eg1"], { sea: 0.4 }, "+40% zee"], ["eg3", "Farao's leger", "🏺", ["eg1"], { atk: 0.12 }, "+12% aanval"], ["eg4", "Nijlunie", "🤝", ["eg2", "eg3"], {}, "lijf Soedan in", { annex: ["Soedan"] }]],
+    "Iran": [["ir1", "Perzische tapijten", "🧶", [], { rate: 0.15 }, "+15% groei"], ["ir2", "Onsterfelijken", "🏹", ["ir1"], { atk: 0.15 }, "+15% aanval"], ["ir3", "Zagros-bergen", "⛰️", ["ir1"], { def: 0.15 }, "+15% verdediging"], ["ir4", "Groot-Perzië", "👑", ["ir2", "ir3"], { cap: 0.15 }, "+15% reserve, lijf Armenië in", { annex: ["Armenië"] }]],
+    "Oekraïne": [["ua1", "Graanschuur van Europa", "🌻", [], { rate: 0.2 }, "+20% groei"], ["ua2", "Kozakken", "🐎", ["ua1"], { atk: 0.1, speed: 0.1 }, "+10% aanval, +10% snelheid"], ["ua3", "Vestingsteden", "🏰", ["ua1"], { def: 0.2 }, "+20% verdediging"], ["ua4", "Kiev-Roes", "⚜️", ["ua2", "ua3"], { cap: 0.15 }, "+15% reserve, lijf Moldavië in", { annex: ["Moldavië"] }]],
+    "Portugal": [["pt1", "Ontdekkingsreizen", "🧭", [], { sea: 0.4 }, "+40% zee"], ["pt2", "Karvelen", "⛵", ["pt1"], { sea: 0.2, rate: 0.1 }, "+20% zee, +10% groei"], ["pt3", "Oudste bondgenootschap", "🤝", ["pt1"], {}, "bondgenoot Verenigd Koninkrijk", { ally: ["Verenigd Koninkrijk"] }], ["pt4", "Wereldrijk", "🌍", ["pt2", "pt3"], { cap: 0.2, atk: 0.05 }, "+20% reserve, +5% aanval"]],
+    "België": [["be1", "Eben-Emael", "🏰", [], { def: 0.2 }, "+20% verdediging"], ["be2", "Congo-rijkdom", "💎", ["be1"], { rate: 0.2 }, "+20% groei"], ["be3", "Benelux", "🤝", ["be1"], {}, "bondgenoot Nederland en Luxemburg", { ally: ["Nederland", "Luxemburg"] }], ["be4", "Bourgondische erfenis", "🍺", ["be2", "be3"], { cap: 0.15, atk: 0.05 }, "+15% reserve, +5% aanval"]],
+    "*": [["xx1", "Nationale eenheid", "🏳️", [], { rate: 0.12 }, "+12% groei"], ["xx2", "Grenswachten", "🧱", ["xx1"], { def: 0.15 }, "+15% verdediging"], ["xx3", "Volksleger", "👥", ["xx1"], { cap: 0.15 }, "+15% reserve + direct 40% reserve", { pool: 0.4 }], ["xx4", "Regionale macht", "⭐", ["xx2", "xx3"], { atk: 0.12 }, "+12% aanval"], ["xx5", "Gouden tijdperk", "🏆", ["xx4"], { rate: 0.15, cap: 0.1 }, "+15% groei, +10% reserve"]]
   };
-  const IDEO = { demo: { naam: "Geallieerden", icon: "🔵" }, fasc: { naam: "Asmogendheden", icon: "⚫" }, comm: { naam: "Komintern", icon: "🔴" } };
+  for (const [tag, list] of Object.entries(NAT)) for (const [k, naam, icon, req, fx, info, extra] of list) F("nat", k, naam, icon, 45, req, fx, info, Object.assign({ tag }, extra || {}));
+  const NAT_TAGS = new Set(Object.keys(NAT));
+  const tagOf = n => n.tag || String(n.name).replace(/\s+(II|III|IV|V|VI|\d+)$/, "");
+  const natTag = n => NAT_TAGS.has(tagOf(n)) ? tagOf(n) : "*";
+  const IDEO = { demo: { naam: "Geallieerden", icon: "🔵" }, fasc: { naam: "Asmogendheden", icon: "⚫" }, comm: { naam: "Komintern", icon: "🔴" }, mon: { naam: "Heilige Alliantie", icon: "👑" } };
   function calcFx(n) {
     const f = { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 }, sc = n.bot ? (n.fxs || 1) : 1;
     for (const k of (n.focus ? n.focus.done : [])) { const F = FOCUS[k]; if (F) for (const e in F.fx) f[e] += F.fx[e] * sc; }
+    if (n.intFx) for (const e in n.intFx) f[e] += n.intFx[e];
     for (const fn of (n.formed || [])) { const F = FORMS.find(x => x.naam === fn); if (F) for (const e in RANK[F.rank].fx) f[e] += RANK[F.rank].fx[e] * sc; }
     n.fx = f; return f;
   }
@@ -254,7 +343,36 @@ const WZ = (() => {
     ["Oost-Afrikaanse Federatie", "federatie", "Kenia,Tanzania,Oeganda,Rwanda,Burundi"],
     ["Zuidelijk-Afrikaanse Unie", "unie", "Zuid-Afrika,Namibië,Botswana,Zimbabwe,Lesotho,Eswatini,Mozambique"],
     ["Afrikaanse Unie", "unie", "Nigeria,Ethiopië,Egypte,Zuid-Afrika,Congo-Kinshasa,Kenia,Algerije"],
-    ["Gemenebest Australazië", "federatie", "Australië,Nieuw-Zeeland,Papoea-Nieuw-Guinea"]
+    ["Gemenebest Australazië", "federatie", "Australië,Nieuw-Zeeland,Papoea-Nieuw-Guinea"],
+    ["Groot-Duitsland", "keizerrijk", "Duitsland,Oostenrijk,Tsjechië,Luxemburg,Liechtenstein"],
+    ["Alpenbond", "federatie", "Zwitserland,Oostenrijk,Liechtenstein"],
+    ["Scandinavië", "unie", "Zweden,Noorwegen,Denemarken"],
+    ["Byzantijnse Rijk", "keizerrijk", "Griekenland,Turkije,Bulgarije,Cyprus,Noord-Macedonië,Albanië"],
+    ["Groot-Roemenië", "koninkrijk", "Roemenië,Moldavië"],
+    ["Groot-Hongarije", "koninkrijk", "Hongarije,Slowakije,Roemenië,Kroatië,Servië"],
+    ["Tsjecho-Slowakije", "federatie", "Tsjechië,Slowakije"],
+    ["Groot-Servië", "koninkrijk", "Servië,Montenegro,Bosnië-Herzegovina,Kosovo,Noord-Macedonië"],
+    ["Sovjet-Unie", "unie", "Rusland,Oekraïne,Wit-Rusland,Kazachstan,Oezbekistan,Georgië,Armenië,Azerbeidzjan"],
+    ["Kievan Roes", "koninkrijk", "Oekraïne,Wit-Rusland,Rusland"],
+    ["Mongoolse Rijk", "keizerrijk", "Mongolië,China,Kazachstan,Rusland,Iran"],
+    ["Turkse Unie", "unie", "Turkije,Azerbeidzjan,Turkmenistan,Oezbekistan,Kazachstan,Kirgizië"],
+    ["Brits Wereldrijk", "keizerrijk", "Verenigd Koninkrijk,Canada,Australië,India,Zuid-Afrika,Egypte,Nieuw-Zeeland"],
+    ["Frans Koloniaal Rijk", "keizerrijk", "Frankrijk,Algerije,Marokko,Tunesië,Senegal,Mali,Vietnam,Madagaskar"],
+    ["Nederlands Wereldrijk", "koninkrijk", "Nederland,Indonesië,Suriname,Zuid-Afrika,Sri Lanka"],
+    ["Portugees Wereldrijk", "koninkrijk", "Portugal,Brazilië,Angola,Mozambique"],
+    ["Spaans Wereldrijk", "keizerrijk", "Spanje,Mexico,Peru,Colombia,Argentinië,Filipijnen,Venezuela,Chili"],
+    ["Azteken-rijk", "keizerrijk", "Mexico,Guatemala,Belize"],
+    ["Mercosur", "unie", "Brazilië,Argentinië,Uruguay,Paraguay"],
+    ["Pan-Amerikaanse Unie", "unie", "Verenigde Staten,Canada,Mexico,Brazilië,Argentinië,Colombia"],
+    ["Caribische Federatie", "federatie", "Cuba,Haïti,Dominicaanse Republiek,Jamaica,Puerto Rico,Bahama's"],
+    ["Verenigde Arabische Republiek", "unie", "Egypte,Syrië,Soedan,Libië"],
+    ["Ethiopisch Keizerrijk", "keizerrijk", "Ethiopië,Eritrea,Somalië,Djibouti"],
+    ["Ghana-rijk", "keizerrijk", "Ghana,Ivoorkust,Togo,Benin,Burkina Faso"],
+    ["Centraal-Afrikaanse Federatie", "federatie", "Congo-Kinshasa,Congo-Brazzaville,Centraal-Afrikaanse Republiek,Gabon,Kameroen"],
+    ["Khmer-rijk", "keizerrijk", "Cambodja,Thailand,Laos,Vietnam"],
+    ["Majapahit", "keizerrijk", "Indonesië,Maleisië,Filipijnen,Brunei,Timor Leste"],
+    ["Groot-India", "unie", "India,Pakistan,Bangladesh,Sri Lanka,Nepal,Myanmar"],
+    ["Wereldregering", "unie", "Verenigde Staten,China,Rusland,India,Brazilië,Duitsland,Frankrijk,Verenigd Koninkrijk,Japan,Australië"]
   ].map(([naam, rank, req]) => ({ naam, rank, req: req.split(",") }));
   const FORM_NEED = 0.7, FORM_EACH = 0.3;
   // welke vormbare rijken passen op deze kaart: minstens 2 van de landen moeten bestaan
@@ -274,9 +392,9 @@ const WZ = (() => {
   function formNation(w, s, id, naam) {
     const n = s.nations[id], f = formsFor(w).find(x => x.naam === naam); if (!n || !f) return { err: "onbekend" };
     if ((n.formed || []).includes(naam)) return { err: "al gevormd" };
-    if (s.formedBy && s.formedBy[naam]) return { err: "al gevormd door " + (s.nations[s.formedBy[naam]] || {}).name };
+    if (s.formedBy && s.formedBy[naam]) return { err: s.formedBy[naam] < 0 ? "bestond al bij de start" : "al gevormd door " + (s.nations[s.formedBy[naam]] || {}).name };
     if (!formProgress(w, s, id, f).ok) return { err: "nog niet genoeg veroverd" };
-    n.formed = (n.formed || []).concat(naam); s.formedBy = s.formedBy || {}; s.formedBy[naam] = id;
+    n.formed = (n.formed || []).concat(naam); s.formedBy = s.formedBy || {}; s.formedBy[naam] = id; n.lastForm = s.t;
     const old = n.name; n.name = naam; n.flag = naam; n.rank = f.rank;
     if (s.core) for (let p = 0; p < w.P; p++) if (s.owner[p] === id && f.ids.includes(w.pCtry[p])) s.core[p] = id;
     n.pool = Math.min(poolCap(w, s, id) * 1.5, n.pool + poolCap(w, s, id) * 0.5);
@@ -287,9 +405,28 @@ const WZ = (() => {
   const FX = n => (n && (n.fx || calcFx(n))) || { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 };
   function focusOk(n, k) {
     const F = FOCUS[k], fo = n && n.focus; if (!F || !fo || fo.cur || fo.done.includes(k)) return false;
+    if (F.tag && F.tag !== natTag(n)) return false;
     if (!F.req.every(r => fo.done.includes(r))) return false;
+    if (F.any && !F.any.some(r => fo.done.includes(r))) return false;
     if (F.excl && F.excl.some(r => fo.done.includes(r))) return false;
     return true;
+  }
+  // focus afronden: bonussen + speciale effecten (reserve, bondgenoten, inlijven)
+  function finishFocus(w, s, n, k) {
+    const F = FOCUS[k]; n.focus.done.push(k); n.focus.cur = null; if (F.ideo) n.ideo = F.ideo; calcFx(n);
+    s.ev.push({ type: "focus", id: n.id, k });
+    if (F.pool) n.pool = Math.min(poolCap(w, s, n.id) * 1.5, n.pool + poolCap(w, s, n.id) * F.pool);
+    const find = names => s.nations.filter(t => t && t.alive && t.id !== n.id && names.includes(tagOf(t)));
+    if (F.ally) for (const t of find(F.ally)) if (!allied(s, n.id, t.id) && t.id !== s.me) { if (!n.allies.includes(t.id)) n.allies.push(t.id); if (!t.allies.includes(n.id)) t.allies.push(n.id); stopFighting(s, n.id, t.id); s.ev.push({ type: "pact", id: n.id, with: t.id }); }
+    if (F.annex) for (const t of find(F.annex)) {
+      if (t.id === s.me || t.provs > Math.max(2, n.provs * 0.8)) { s.ev.push({ type: "annexFail", id: n.id, t: t.id }); continue; }
+      const ps = []; for (let p = 0; p < w.P; p++) if (s.owner[p] === t.id) { s.owner[p] = n.id; if (s.core) s.core[p] = n.id; ps.push(p); }
+      for (const a of s.armies) if (a.o === t.id) { a.o = n.id; a.path = []; a.prog = 0; a.fight = 0; }
+      n.pool += t.pool; t.pool = 0; t.alive = false; t.provs = 0; t.killedBy = n.id; if (t.fac) leaveFac(s, t.id);
+      recountOne(w, s, n.id);
+      s.ev.push({ type: "annex", id: n.id, t: t.id, ps });
+      s.ev.push({ type: "dead", id: t.id, by: n.id });
+    }
   }
   function startFocus(s, id, k) { const n = s.nations[id]; if (!focusOk(n, k)) return false; n.focus.cur = k; n.focus.left = FOCUS[k].tijd * (n.bot ? DIFF[s.diff].ftime : 1); return true; }
 
@@ -407,7 +544,7 @@ const WZ = (() => {
   const pdist = (w, a, b) => { let dx = Math.abs(w.cx[a] - w.cx[b]); if (w.wrap) dx = Math.min(dx, w.W - dx); return Math.hypot(dx, w.cy[a] - w.cy[b]); };
 
   // ---------- nieuw spel ----------
-  const newNation = (s, id, name, i, cap, extra) => Object.assign({ id, name, col: colorFor(name, i), bot: true, alive: true, pool: 0, capital: cap, tiles: 0, provs: 0, val: 0, allies: [], fac: 0, target: 0, mode: "", nextT: 0, think: Math.random() * 2, traitorUntil: -1, killedBy: 0, made: 0, ideo: null, focus: { done: [], cur: null, left: 0 }, fxs: s.diff ? DIFF[s.diff].fxs : 1 }, extra || {});
+  const newNation = (s, id, name, i, cap, extra) => Object.assign({ id, name, col: colorFor(name, i), bot: true, alive: true, pool: 0, capital: cap, tiles: 0, provs: 0, val: 0, allies: [], fac: 0, target: 0, mode: "", nextT: 0, think: Math.random() * 2, traitorUntil: -1, killedBy: 0, made: 0, ideo: null, focus: { done: [], cur: null, left: 0 }, fxs: s.diff ? DIFF[s.diff].fxs : 1, tag: String(name).replace(/\s+(II|III|IV|V|VI|\d+)$/, "") }, extra || {});
   function newGame(w, opts) {
     return opts.mode === "spawn" ? newSpawnGame(w, opts) : newCountryGame(w, opts);
   }
@@ -417,7 +554,7 @@ const WZ = (() => {
     const s = { v: 2, mode: "spawn", t: 0, diff, map: opts.map, size: opts.size, owner: new Int16Array(w.P), mil: new Float32Array(w.P), nations: [null], armies: [], factions: [], seq: 1, over: null, winner: 0, ev: [], me: 0, peaceUntil: PEACE + 35, think: 0 };
     s.core = new Array(w.P).fill(0);
     for (let p = 0; p < w.P; p++) s.mil[p] = milMax(w, s, p);
-    const bots = Math.max(1, Math.min(opts.bots || 20, 80));
+    const bots = Math.max(1, Math.min(opts.bots || 20, 130));
     const cand = []; for (let p = 0; p < w.P; p++) if (w.size[p] >= w.PS * 0.45 && w.adj[p].length) cand.push(p);
     const minD = Math.sqrt(w.PS) * Math.max(2.2, 7 - bots / 10);
     const used = new Map();
@@ -425,7 +562,7 @@ const WZ = (() => {
       const p = cand[(Math.random() * cand.length) | 0];
       if (s.owner[p]) continue;
       if (s.nations.some(n => n && pdist(w, n.capital, p) < minD) && tries < 3000) continue;
-      const base = w.names[w.pCtry[p]] || "Land", c = (used.get(base) || 0) + 1; used.set(base, c);
+      const base = w.names[w.pCtry[p]] || "Land"; if (used.has(base) && tries < 3800) continue; const c = (used.get(base) || 0) + 1; used.set(base, c);
       const id = s.nations.length;
       s.nations.push(newNation(s, id, c > 1 ? base + " " + ["", "", "II", "III", "IV", "V", "VI"][Math.min(c, 6)] : base, id, p));
       spawnAt(w, s, id, p); k++;
@@ -450,23 +587,78 @@ const WZ = (() => {
     s.nations.push(newNation(s, id, name || (w.names[w.pCtry[p]] || "Jouw rijk"), id, p, { col: ME_COL.slice() }));
     // computerlanden die op jouw kleur lijken krijgen een andere kleur
     for (const n of s.nations) if (n && n.id !== id && Math.abs(n.col[0] - ME_COL[0]) + Math.abs(n.col[1] - ME_COL[1]) + Math.abs(n.col[2] - ME_COL[2]) < 170) n.col = hsl((n.id * 67) % 360 < 160 ? (n.id * 67) % 360 : ((n.id * 67) % 160) + 280 > 359 ? 20 : ((n.id * 67) % 160) + 280, 0.6, 0.45);
+    const myName = s.nations[id].name;
+    for (const b of s.nations) if (b && b.id !== id && tagOf(b) === myName) {
+      const usedN = new Set(s.nations.filter(Boolean).map(tagOf)); let bd = Infinity, nn = null;
+      for (let q = 0; q < w.P; q++) { const cn = w.names[w.pCtry[q]]; if (!cn || usedN.has(cn)) continue; const d = pdist(w, q, b.capital); if (d < bd) { bd = d; nn = cn; } }
+      if (nn) { b.name = nn; b.tag = nn; b.col = colorFor(nn, b.id); }
+    }
     spawnAt(w, s, id, p);
     choose(w, s, id);
     s.nations[id].goal = WIN; s.nations[id].immuneUntil = s.t + DIFF[s.diff].protect;
     return { ok: true, id };
   }
+  // ---------- startjaren: historische grenzen door moderne landen samen te voegen ----------
+  const ERAS = {
+    "1836": { naam: "1836 · Tijd van keizers", focus: [], u: [
+      ["Russisch Keizerrijk", "Rusland,Oekraïne,Wit-Rusland,Finland,Estland,Letland,Litouwen,Polen,Georgië,Armenië,Azerbeidzjan,Moldavië"],
+      ["Oostenrijks Keizerrijk", "Oostenrijk,Hongarije,Tsjechië,Slowakije,Slovenië,Kroatië,Liechtenstein"],
+      ["Ottomaanse Rijk", "Turkije,Syrië,Irak,Libanon,Jordanië,Israël,Palestina,Bulgarije,Bosnië-Herzegovina,Albanië,Noord-Macedonië,Kosovo,Libië,Tunesië,Egypte,Cyprus,N. Cyprus,Saudi-Arabië,Jemen"],
+      ["Duitse Bond", "Duitsland,Luxemburg"], ["Verenigd Koninkrijk", "Verenigd Koninkrijk,Ierland,Man Eiland,Jersey,Guernsey"],
+      ["Zweden-Noorwegen", "Zweden,Noorwegen,Åland"], ["Denemarken", "Denemarken,IJsland,Groenland,Faeröer"],
+      ["Brits-Indië", "India,Pakistan,Bangladesh,Sri Lanka"], ["Qing-keizerrijk", "China,Mongolië,Taiwan,Hong Kong"], ["Perzië", "Iran"],
+      ["Italiaanse staten", "Italië,San Marino,Vaticaanstad,Malta"], ["Brits-Noord-Amerika", "Canada"], ["Groot-Colombia", "Colombia,Venezuela,Ecuador,Panama"],
+      ["Verenigde Provinciën van La Plata", "Argentinië"], ["Joseon", "Noord-Korea,Zuid-Korea"], ["Brits Australië", "Australië,Nieuw-Zeeland"]] },
+    "1914": { naam: "1914 · Eerste Wereldoorlog", focus: ["industrie"], u: [
+      ["Duitse Keizerrijk", "Duitsland"], ["Oostenrijk-Hongarije", "Oostenrijk,Hongarije,Tsjechië,Slowakije,Slovenië,Kroatië,Bosnië-Herzegovina"],
+      ["Russisch Keizerrijk", "Rusland,Oekraïne,Wit-Rusland,Finland,Estland,Letland,Litouwen,Polen,Georgië,Armenië,Azerbeidzjan,Moldavië,Kazachstan,Oezbekistan,Turkmenistan,Kirgizië,Tadzjikistan"],
+      ["Ottomaanse Rijk", "Turkije,Syrië,Irak,Libanon,Jordanië,Israël,Palestina,Saudi-Arabië,Jemen"], ["Verenigd Koninkrijk", "Verenigd Koninkrijk,Ierland,Man Eiland,Jersey,Guernsey"],
+      ["Brits-Indië", "India,Pakistan,Bangladesh,Myanmar,Sri Lanka"], ["Frans-Indochina", "Vietnam,Laos,Cambodja"], ["Frans-West-Afrika", "Senegal,Mali,Mauritanië,Guinea,Ivoorkust,Burkina Faso,Niger,Benin"],
+      ["Frans-Noord-Afrika", "Algerije,Tunesië,Marokko"], ["Belgisch-Congo", "Congo-Kinshasa"], ["Japans Keizerrijk", "Japan,Zuid-Korea,Noord-Korea,Taiwan"],
+      ["Republiek China", "China,Hong Kong"], ["Koninkrijk Servië", "Servië,Kosovo,Noord-Macedonië"], ["Koninkrijk Italië", "Italië,Libië,Eritrea,San Marino,Vaticaanstad"],
+      ["Unie van Zuid-Afrika", "Zuid-Afrika,Lesotho,Eswatini"], ["Denemarken", "Denemarken,IJsland,Groenland,Faeröer"], ["Nederlands-Indië", "Indonesië"]] },
+    "1936": { naam: "1936 · Tweede Wereldoorlog", focus: ["industrie", "fabrieken"], u: [
+      ["Sovjet-Unie", "Rusland,Oekraïne,Wit-Rusland,Georgië,Armenië,Azerbeidzjan,Kazachstan,Oezbekistan,Turkmenistan,Kirgizië,Tadzjikistan"],
+      ["Duitse Rijk", "Duitsland"], ["Tsjecho-Slowakije", "Tsjechië,Slowakije"], ["Joegoslavië", "Slovenië,Kroatië,Bosnië-Herzegovina,Servië,Montenegro,Noord-Macedonië,Kosovo"],
+      ["Roemenië", "Roemenië,Moldavië"], ["Brits-Indië", "India,Pakistan,Bangladesh,Myanmar,Sri Lanka"], ["Frans-Indochina", "Vietnam,Laos,Cambodja"], ["Nederlands-Indië", "Indonesië"],
+      ["Japans Keizerrijk", "Japan,Zuid-Korea,Noord-Korea,Taiwan"], ["Koninkrijk Italië", "Italië,Libië,San Marino,Vaticaanstad"], ["Italiaans Oost-Afrika", "Ethiopië,Eritrea,Somalië,Somaliland"],
+      ["Frans-Noord-Afrika", "Algerije,Tunesië,Marokko"], ["Frans-West-Afrika", "Senegal,Mali,Mauritanië,Guinea,Ivoorkust,Burkina Faso,Niger,Benin"], ["Frans Mandaat", "Syrië,Libanon"],
+      ["Belgisch-Congo", "Congo-Kinshasa"], ["Republiek China", "China,Hong Kong"], ["Denemarken", "Denemarken,IJsland,Groenland,Faeröer"], ["Unie van Zuid-Afrika", "Zuid-Afrika,Namibië"]] },
+    "1989": { naam: "1989 · Koude Oorlog", focus: ["industrie", "fabrieken", "mijnbouw"], u: [
+      ["Sovjet-Unie", "Rusland,Oekraïne,Wit-Rusland,Estland,Letland,Litouwen,Moldavië,Georgië,Armenië,Azerbeidzjan,Kazachstan,Oezbekistan,Turkmenistan,Kirgizië,Tadzjikistan"],
+      ["Joegoslavië", "Slovenië,Kroatië,Bosnië-Herzegovina,Servië,Montenegro,Noord-Macedonië,Kosovo"], ["Tsjecho-Slowakije", "Tsjechië,Slowakije"], ["Soedan", "Soedan,Zuid-Soedan"], ["Ethiopië", "Ethiopië,Eritrea"]] },
+    "2026": { naam: "2026 · Nu", focus: ["industrie", "fabrieken", "mijnbouw", "wegen"], u: [] }
+  };
+  const ERA_FLAG = { "Verenigd Koninkrijk": "Verenigd Koninkrijk", "Denemarken": "Denemarken", "Roemenië": "Roemenië", "Soedan": "Soedan", "Ethiopië": "Ethiopië" };
   function newCountryGame(w, opts) {
     const diff = DIFF[opts.diff] ? opts.diff : "standaard";
     const s = { v: 2, mode: "landen", t: 0, diff, map: opts.map, size: opts.size, owner: new Int16Array(w.P), mil: new Float32Array(w.P), nations: [null], armies: [], factions: [], seq: 1, over: null, winner: 0, ev: [], me: 0, peaceUntil: PEACE, think: 0 };
     const byC = new Map();
     for (let p = 0; p < w.P; p++) { const c = w.pCtry[p]; if (!byC.has(c)) byC.set(c, []); byC.get(c).push(p); }
+    // startjaar: landen samenvoegen tot historische rijken
+    const era = ERAS[opts.year] || ERAS["2026"]; s.year = ERAS[opts.year] ? opts.year : "2026";
+    const idx = new Map(); w.names.forEach((n, i) => idx.set(n, i));
+    const groups = new Map(); // hoofdland -> {name, cs}
+    const taken = new Set();
+    for (const [name, list] of era.u) {
+      const cs = list.split(",").map(n => idx.get(n)).filter(c => c !== undefined && byC.has(c) && !taken.has(c));
+      if (!cs.length) continue; cs.forEach(c => taken.add(c));
+      groups.set(cs[0], { name, cs, tag: w.names[cs[0]] });
+    }
     let i = 0;
-    for (const [c, ps] of byC) {
-      const id = s.nations.length, name = w.names[c] || "Land " + id;
-      const cap = ps.reduce((a, b) => w.size[b] > w.size[a] ? b : a, ps[0]);
-      s.nations.push(newNation(s, id, name, i++, cap, { c }));
+    for (const [c, ps0] of byC) {
+      if (taken.has(c) && !groups.has(c)) continue;
+      const g = groups.get(c), ps = g ? g.cs.flatMap(x => byC.get(x)) : ps0;
+      const id = s.nations.length, name = g ? g.name : (w.names[c] || "Land " + id);
+      const cap = ps0.reduce((a, b) => w.size[b] > w.size[a] ? b : a, ps0[0]);
+      s.nations.push(newNation(s, id, name, i++, cap, g ? { c, tag: g.tag } : { c }));
       for (const p of ps) { s.owner[p] = id; }
     }
+    for (const n of s.nations) if (n) for (const k of era.focus) if (!n.focus.done.includes(k)) n.focus.done.push(k);
+    s.formedBy = {}; for (const n of s.nations) if (n && FORMS.some(f => f.naam === n.name)) { s.formedBy[n.name] = n.id; n.formed = [n.name]; }
+    recount(w, s);
+    for (const f of formsFor(w)) if (!s.formedBy[f.naam]) for (const n of s.nations) if (n && formProgress(w, s, n.id, f).ok) { s.formedBy[f.naam] = -1; break; }
+    for (const n of s.nations) if (n) calcFx(n);
     s.core = Array.from(s.owner);
     recount(w, s);
     for (const n of s.nations) if (n) n.goal = Math.min(0.95, Math.max(0.7, n.tiles / w.landN + 0.3));
@@ -502,7 +694,9 @@ const WZ = (() => {
   const facOf = (s, fid) => s.factions.find(f => f.id === fid);
   const members = (s, fid) => s.nations.filter(n => n && n.alive && n.fac && n.fac === fid);
   const allied = (s, a, b) => { if (!a || !b) return false; if (a === b) return true; const A = s.nations[a], B = s.nations[b]; return A.allies.includes(b) || (!!A.fac && A.fac === B.fac); };
-  const hostile = (s, a, b) => !!a && !!b && !allied(s, a, b);
+  const napKey = (a, b) => a < b ? a + "-" + b : b + "-" + a;
+  const nap = (s, a, b) => !!(s.naps && s.naps[napKey(a, b)] > s.t);
+  const hostile = (s, a, b) => !!a && !!b && !allied(s, a, b) && !nap(s, a, b);
 
   function joinFac(s, id, fid) { s.nations[id].fac = fid; s.ev.push({ type: "join", id, fac: fid }); for (const m of members(s, fid)) stopFighting(s, id, m.id); }
   function makeFac(s, id, naam) { const f = { id: s.seq++, naam: String(naam).slice(0, 28), leider: id }; s.factions.push(f); joinFac(s, id, f.id); return f; }
@@ -634,9 +828,15 @@ const WZ = (() => {
     // productie
     for (const n of s.nations) {
       if (!n || !n.alive) continue;
-      const f = FX(n), cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd) * f.rate;
+      const f = FX(n), cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd * stabMul(n)) * f.rate;
       n.pool = Math.min(cap, n.pool + rate * dt);
-      if (n.focus && n.focus.cur) { n.focus.left -= dt; if (n.focus.left <= 0) { const k = n.focus.cur; n.focus.done.push(k); n.focus.cur = null; if (FOCUS[k].ideo) n.ideo = FOCUS[k].ideo; calcFx(n); s.ev.push({ type: "focus", id: n.id, k }); } }
+      if (n.focus && n.focus.cur) { n.focus.left -= dt; if (n.focus.left <= 0) finishFocus(w, s, n, n.focus.cur); }
+    }
+    // stabiliteit van de speler
+    const ME = s.nations[s.me];
+    if (ME && ME.alive && s.mode) {
+      ME.stab = ME.stab ?? 60; ME.stab += (55 - ME.stab) * 0.004 * dt;
+      if (ME.stab < 25 && Math.floor(s.t / 20) !== Math.floor((s.t - dt) / 20) && Math.random() < 0.6 && ME.provs > 2) revolt(w, s, s.me);
     }
     // vormbare rijken (bots vormen zelf; speler krijgt een melding)
     if (Math.floor(s.t / 5) !== Math.floor((s.t - dt) / 5)) {
@@ -644,6 +844,7 @@ const WZ = (() => {
       for (const n of s.nations) if (n && n.alive) for (const f of fs) {
         if ((n.formed || []).includes(f.naam) || (s.formedBy && s.formedBy[f.naam])) continue;
         if (!f.ids.includes(w.pCtry[n.capital]) && n.id !== s.me) continue;
+        if (n.bot && n.lastForm !== undefined && s.t - n.lastForm < 150) continue;
         const pr = formProgress(w, s, n.id, f);
         if (!pr.ok) continue;
         if (n.bot) formNation(w, s, n.id, f.naam);
@@ -705,6 +906,7 @@ const WZ = (() => {
       if (o === s.me || attackers.some(a => a.o === s.me)) s.ev.push({ type: "battle", q, by: attackers[0].o, o });
     } else {
       const m = s.mil[q];
+      if (!s.siege) s.siege = {}; const sg = s.siege[q]; if (!sg || sg.by !== attackers[0].o || s.t - sg.t > 1) s.siege[q] = { by: attackers[0].o, m0: Math.max(m, 1), t: s.t }; else sg.t = s.t;
       s.mil[q] = m - A * K * 1.6 * seaPen * dt;
       for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt * a.n / A;
       if (s.mil[q] <= 0) capture(w, s, q, attackers);
@@ -720,7 +922,8 @@ const WZ = (() => {
     for (const a of attackers) if (a.o === by || allied(s, a.o, by)) { a.fight = 0; if (a.o === by) { a.prog = 0.5; } else { a.path = []; a.prog = 0; } }
     // vreemde legers die nog in deze provincie stonden worden teruggeduwd
     for (const a of s.armies) if (a.p === q && a.o !== by && !allied(s, a.o, by)) { const back = w.adj[q].find(p => s.owner[p] === a.o); if (back !== undefined) { a.p = back; a.path = []; a.prog = 0; } else a.n = 0; }
-    s.ev.push({ type: "capture", q, by, o });
+    s.ev.push({ type: "capture", q, by, o }); if (s.siege) delete s.siege[q];
+    if (O && !O.bot) O.stab = Math.max(0, (O.stab ?? 60) - 2.5); if (B && !B.bot && o) B.stab = Math.min(100, (B.stab ?? 60) + 0.6);
     if (O && O.capital === q) { // nieuwe hoofdstad
       let best = -1; for (let p = 0; p < w.P; p++) if (s.owner[p] === o && (best < 0 || w.size[p] > w.size[best])) best = p;
       if (best >= 0) { O.capital = best; s.ev.push({ type: "capital", o, by }); }
@@ -734,6 +937,81 @@ const WZ = (() => {
     }
   }
 
+  // ---------- binnenland: stabiliteit, besluiten, opstanden ----------
+  const stabMul = n => 0.7 + Math.max(0, Math.min(100, n.stab ?? 60)) / 100 * 0.6;
+  const DECIS = {
+    belasting: { naam: "Belastingen verhogen", icon: "💰", cd: 90, info: "+40% reserve, −15 stabiliteit", run: (w, s, n) => { n.pool += poolCap(w, s, n.id) * 0.4; n.stab -= 15; } },
+    propaganda: { naam: "Propaganda", icon: "📣", cd: 60, cost: 0.15, info: "kost 15% reserve, +12 stabiliteit", run: (w, s, n) => { n.stab += 12; } },
+    dienstplicht: { naam: "Dienstplicht", icon: "🪖", cd: 120, info: "+25% reserve, −8 stabiliteit", run: (w, s, n) => { n.pool += poolCap(w, s, n.id) * 0.25; n.stab -= 8; } },
+    feest: { naam: "Volksfeest", icon: "🎉", cd: 120, cost: 0.25, info: "kost 25% reserve, +20 stabiliteit", run: (w, s, n) => { n.stab += 20; } },
+    infra: { naam: "Infrastructuur bouwen", icon: "🏗️", cd: 150, cost: 0.3, info: "kost 30% reserve, blijvend +5% groei", run: (w, s, n) => { n.intFx = n.intFx || {}; n.intFx.rate = (n.intFx.rate || 0) + 0.05; calcFx(n); } },
+    politie: { naam: "Geheime politie", icon: "🕵️", cd: 180, cost: 0.2, info: "kost 20% reserve, +8 stabiliteit, blijvend +5% verdediging", run: (w, s, n) => { n.stab += 8; n.intFx = n.intFx || {}; n.intFx.def = (n.intFx.def || 0) + 0.05; calcFx(n); } }
+  };
+  function decide(w, s, id, k) {
+    const n = s.nations[id], D = DECIS[k]; if (!n || !D) return { err: "onbekend" };
+    n.cds = n.cds || {}; if ((n.cds[k] || 0) > s.t) return { err: "nog " + Math.ceil(n.cds[k] - s.t) + "s wachten" };
+    const cost = (D.cost || 0) * poolCap(w, s, id); if (n.pool < cost) return { err: "te weinig reserve" };
+    n.pool -= cost; n.stab = n.stab ?? 60; D.run(w, s, n); n.stab = Math.max(0, Math.min(100, n.stab)); n.cds[k] = s.t + D.cd; return { ok: true };
+  }
+  // gebeurtenis-keuze toepassen: fx {pool, stab, atk, rate, def, lose}
+  function applyChoice(w, s, id, fx) {
+    const n = s.nations[id]; n.stab = n.stab ?? 60;
+    if (fx.pool) n.pool = Math.max(0, n.pool + poolCap(w, s, id) * fx.pool);
+    if (fx.stab) n.stab = Math.max(0, Math.min(100, n.stab + fx.stab));
+    for (const e of ["atk", "rate", "def", "cap", "speed"]) if (fx[e]) { n.intFx = n.intFx || {}; n.intFx[e] = (n.intFx[e] || 0) + fx[e]; calcFx(n); }
+    if (fx.lose) revolt(w, s, id);
+  }
+  function revolt(w, s, id) {
+    const n = s.nations[id], c = []; for (let p = 0; p < w.P; p++) if (s.owner[p] === id && p !== n.capital) c.push(p);
+    if (!c.length) return -1; const p = c[(Math.random() * c.length) | 0];
+    s.owner[p] = 0; if (s.core) s.core[p] = 0; s.mil[p] = milMax(w, s, p) * 2; for (const a of s.armies) if (a.p === p && a.o === id) { const b = w.adj[p].find(q => s.owner[q] === id); if (b !== undefined) { a.p = b; a.path = []; a.prog = 0; } }
+    recountOne(w, s, id); s.ev.push({ type: "revolt", id, q: p }); return p;
+  }
+  // ---------- diplomatie: land ruilen voor troepen, niet-aanvalsverdrag, ultimatum ----------
+  const provPrice = (w, s, p) => Math.round(w.val[p] * TUNE.mil * 0.9 + 600);
+  function canTrade(w, s, from, to, p) { return s.owner[p] === from && s.nations[from].capital !== p && w.adj[p].some(q => s.owner[q] === to) && s.nations[from].provs > 1; }
+  function transfer(w, s, from, to, p) {
+    s.owner[p] = to; if (s.core) s.core[p] = to; s.mil[p] = milMax(w, s, p) * 0.5;
+    for (const a of s.armies) if (a.p === p && a.o === from) { const b = w.adj[p].find(q => s.owner[q] === from); if (b !== undefined) { a.p = b; a.path = []; a.prog = 0; } else a.o = to; }
+    recountOne(w, s, from); recountOne(w, s, to); s.ev.push({ type: "capture", q: p, by: to, o: from, trade: true });
+  }
+  function buyProv(w, s, id, p) {
+    const o = s.owner[p], B = s.nations[o], me = s.nations[id], price = provPrice(w, s, p);
+    if (!o || !B || o === id) return { err: "niet te koop" };
+    if (!canTrade(w, s, o, id, p)) return { err: B.capital === p ? "de hoofdstad is niet te koop" : "je moet ernaast liggen" };
+    if (me.pool < price) return { err: "te weinig reserve (" + price + " nodig)" };
+    if (s.armies.some(a => (a.o === o && a.fight === id) || (a.o === id && a.fight === o))) return { err: "jullie zijn in oorlog" };
+    B.refuse = B.refuse || {}; if ((B.refuse[id] || 0) > s.t) return { err: B.name + " wil voorlopig niet onderhandelen" };
+    const want = B.pool < poolCap(w, s, o) * 0.5 || allied(s, id, o) || nap(s, id, o) ? 0.85 : 0.45;
+    if (B.provs < 3 || Math.random() > want) { B.refuse[id] = s.t + 40; return { err: B.name + " weigert" }; }
+    me.pool -= price; B.pool += price; transfer(w, s, o, id, p); return { ok: true, price };
+  }
+  function sellProv(w, s, id, p) {
+    const me = s.nations[id]; if (s.owner[p] !== id) return { err: "niet van jou" };
+    let best = 0, bp = -1; for (const q of w.adj[p]) { const o = s.owner[q]; if (o && o !== id && s.nations[o].pool > bp) { bp = s.nations[o].pool; best = o; } }
+    if (!best) return { err: "geen buurland om aan te verkopen" };
+    if (!canTrade(w, s, id, best, p)) return { err: me.capital === p ? "je hoofdstad verkoop je niet" : "kan niet" };
+    const price = provPrice(w, s, p), B = s.nations[best];
+    if (B.pool < price) return { err: B.name + " heeft te weinig troepen" };
+    B.pool -= price; me.pool += price; transfer(w, s, id, best, p); return { ok: true, price, to: best };
+  }
+  function offerNap(w, s, id, o) {
+    const B = s.nations[o]; if (!B || allied(s, id, o)) return { err: "al bondgenoot" };
+    if (nap(s, id, o)) return { err: "jullie hebben al een verdrag" };
+    B.refuse = B.refuse || {}; if ((B.refuse["n" + id] || 0) > s.t) return { err: B.name + " wil voorlopig niet" };
+    const ratio = power(s, id) / Math.max(1, power(s, o)), want = Math.min(0.9, 0.3 + ratio * 0.35) - (B.target === id ? 0.25 : 0);
+    if (Math.random() > want) { B.refuse["n" + id] = s.t + 45; return { err: B.name + " weigert" }; }
+    s.naps = s.naps || {}; s.naps[napKey(id, o)] = s.t + 240; stopFighting(s, id, o); if (B.target === id) B.target = 0;
+    return { ok: true };
+  }
+  function ultimatum(w, s, id, p) {
+    const o = s.owner[p], B = s.nations[o]; if (!o || o === id) return { err: "kan niet" };
+    if (!canTrade(w, s, o, id, p)) return { err: B.capital === p ? "ze geven hun hoofdstad nooit op" : "je moet ernaast liggen" };
+    const ratio = power(s, id) / Math.max(1, power(s, o));
+    if (ratio < 2.5 || B.provs < 3) { B.target = id; B.nextT = s.t + 60; return { err: B.name + " weigert en wordt boos op je!" }; }
+    transfer(w, s, o, id, p); return { ok: true };
+  }
+
   // ---------- computerlanden ----------
   function neighbours(w, s, id) {
     const m = new Map();
@@ -745,7 +1023,12 @@ const WZ = (() => {
     const mine = s.armies.filter(a => a.o === id);
     if (n.focus && !n.focus.cur) {
       const opts = Object.keys(FOCUS).filter(k => focusOk(n, k));
-      if (opts.length) { if (!n.pref) n.pref = ["demo", "fasc", "comm"][(Math.random() * 3) | 0]; startFocus(s, id, opts.find(k => k.startsWith(n.pref)) || opts.find(k => !FOCUS[k].ideo) || opts[(Math.random() * opts.length) | 0]); }
+      if (opts.length) {
+        if (!n.pref) n.pref = ["demo", "fasc", "comm", "mon"][(Math.random() * 4) | 0];
+        const nat = opts.filter(k => FOCUS[k].tag), ide = opts.filter(k => FOCUS[k].ideo === n.pref || (FOCUS[k].br === "pol" && k.startsWith(n.pref))), gen = opts.filter(k => !FOCUS[k].ideo && !FOCUS[k].tag && FOCUS[k].br !== "pol");
+        const pick = l => l[(Math.random() * l.length) | 0], r = Math.random();
+        startFocus(s, id, (r < 0.4 && nat.length ? pick(nat) : r < 0.65 && ide.length ? pick(ide) : gen.length ? pick(gen) : null) || pick(nat.length ? nat : ide.length ? ide : opts.filter(k => !FOCUS[k].ideo || FOCUS[k].ideo === n.pref).length ? opts.filter(k => !FOCUS[k].ideo || FOCUS[k].ideo === n.pref) : opts));
+      }
     }
     if (n.ideo && !n.fac && Math.random() < 0.05 * D.aggr) {
       const same = s.factions.find(f => f.ideo === n.ideo && members(s, f.id).length < 6);
@@ -765,11 +1048,11 @@ const WZ = (() => {
       if (!n.target) return;
     }
     // doel kiezen
-    if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target))) {
+    if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target) || nap(s, id, n.target))) {
       n.nextT = s.t + 25 + Math.random() * 25;
       const nbs = neighbours(w, s, id); let best = 0, bs = 0; const myP = power(s, id);
       for (const [o, cnt] of nbs) {
-        if (allied(s, id, o) || s.t < (s.nations[o].immuneUntil || 0)) continue;
+        if (allied(s, id, o) || nap(s, id, o) || s.t < (s.nations[o].immuneUntil || 0)) continue;
         // help bondgenoten: wie een bondgenoot aanvalt is extra interessant
         const ally = s.armies.some(a => a.o === o && a.fight && allied(s, id, a.fight)) ? 1.6 : 1;
         const pr = power(s, o) + 1;
@@ -817,10 +1100,10 @@ const WZ = (() => {
 
   // ---------- opslaan ----------
   function serialize(s) { return JSON.stringify(Object.assign({}, s, { owner: Array.from(s.owner), mil: Array.from(s.mil, x => Math.round(x)), ev: [], nations: s.nations.map(n => n && Object.assign({}, n, { fx: undefined })) })); }
-  function deserialize(w, str) { const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
+  function deserialize(w, str) { const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -837,10 +1120,11 @@ let scale = 1, ox = 0, oy = 0;
 let speed = 1, paused = false, frac = 0.5, armyFrac = 1, mode = "cmd";
 let sel = null, card = null, picking = false, dirty = new Set(), fullPaint = false;
 let db = null, uid = null;
-let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: "alle" };
+let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: "alle", year: "2026" };
 try { Object.assign(settings, JSON.parse(localStorage.getItem("wwz2set") || "{}")); } catch (e) { }
+if (!settings.v3) { settings.map = "mega"; settings.v3 = 1; }
 if (settings.flag === true) settings.flag = "alle"; if (settings.flag === false) settings.flag = "uit";
-const MAPS = [["europa", "🇪🇺 Europa"], ["wereld", "🌍 Wereld"], ["mega", "🌐 Megawereld"], ["azie", "🌏 Azië"], ["afrika", "🌍 Afrika"], ["noordamerika", "🌎 Noord-Amerika"], ["zuidamerika", "🌎 Zuid-Amerika"], ["oceanie", "🏝️ Oceanië"]];
+const MAPS = [["europa", "🇪🇺 Europa"], ["wereld", "🌍 Wereld"], ["mega", "🌐 Megawereld · NIEUW"], ["azie", "🌏 Azië"], ["afrika", "🌍 Afrika"], ["noordamerika", "🌎 Noord-Amerika"], ["zuidamerika", "🌎 Zuid-Amerika"], ["oceanie", "🏝️ Oceanië"]];
 const fmt = n => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e4 ? Math.round(n / 1e3) + "K" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : String(Math.max(0, Math.round(n)));
 const E = x => String(x).replace(/[<>&"]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c]));
 const nm = id => !id ? "Niemandsland" : id === s.me ? "Jij" : (s.nations[id] ? s.nations[id].name : "?");
@@ -897,11 +1181,29 @@ Object.assign(FL, {
   "Maghreb-Unie": ["star", "#006233", "#fff"], "Mali-rijk": ["v", ["#14B53A", "#FCD116", "#CE1126"]], "Oost-Afrikaanse Federatie": ["h", ["#3EA8E0", "#000", "#078930"]],
   "Zuidelijk-Afrikaanse Unie": ["ring", "#001489", "#FFB81C"], "Afrikaanse Unie": ["dot", "#078930", "#FCDD09"], "Gemenebest Australazië": ["au"],
 });
+Object.assign(FL, {
+  "Oostenrijks Keizerrijk": ["h", ["#000", "#FFD700"]], "Duitse Bond": ["h", ["#000", "#DD0000", "#FFCE00"]], "Zweden-Noorwegen": ["n", "#006AA7", "#FECC00", "#BA0C2F"],
+  "Brits-Indië": ["hd", ["#C8102E"], "#012169", 1], "Perzië": ["hd", ["#239F40", "#fff", "#DA0000"], "#FFB300"], "Italiaanse staten": ["v", ["#009246", "#fff", "#CE2B37"]],
+  "Brits-Noord-Amerika": ["uk"], "Joseon": ["dot", "#fff", "#CD2E3A"], "Brits Australië": ["au"], "Duitse Keizerrijk": ["h", ["#000", "#fff", "#DD0000"]], "Duitse Rijk": ["h", ["#000", "#fff", "#DD0000"]],
+  "Frans-Indochina": ["hd", ["#FFD700"], "#DA251D"], "Frans-West-Afrika": ["v", ["#0055A4", "#fff", "#EF4135"]], "Frans-Noord-Afrika": ["v", ["#0055A4", "#fff", "#EF4135"]], "Frans Mandaat": ["v", ["#0055A4", "#fff", "#EF4135"]],
+  "Belgisch-Congo": ["star", "#0047AB", "#FFD700"], "Japans Keizerrijk": ["rays", "#fff", "#BC002D"], "Republiek China": ["h", ["#E30000", "#FFD700", "#0000A0", "#fff", "#000"]],
+  "Koninkrijk Servië": ["h", ["#C6363C", "#0C4076", "#fff"]], "Koninkrijk Italië": ["v", ["#009246", "#fff", "#CE2B37"]], "Italiaans Oost-Afrika": ["v", ["#009246", "#fff", "#CE2B37"]],
+  "Unie van Zuid-Afrika": ["h", ["#FF7F00", "#fff", "#002395"]], "Nederlands-Indië": ["h", ["#AE1C28", "#fff", "#21468B"]], "Sovjet-Unie": ["star", "#CC0000", "#FFD700", 1], "Tsjecho-Slowakije": ["cz"],
+  "Groot-Duitsland": ["h", ["#000", "#fff", "#DD0000"]], "Alpenbond": ["ge"], "Scandinavië": ["n", "#C8102E", "#fff", "#006AA7"], "Byzantijnse Rijk": ["dot", "#8B0000", "#FFD700"],
+  "Groot-Roemenië": ["v", ["#002B7F", "#FCD116", "#CE1126"]], "Groot-Hongarije": ["h", ["#CD2A3E", "#fff", "#436F4D"]], "Groot-Servië": ["hd", ["#C6363C", "#0C4076", "#fff"], "#FFD700"],
+  "Kievan Roes": ["hd", ["#0057B7", "#FFD700"], "#FFD700", 1], "Mongoolse Rijk": ["v", ["#C4272F", "#015197", "#C4272F"]], "Turkse Unie": ["tr", "#00B5E2"],
+  "Brits Wereldrijk": ["uk"], "Frans Koloniaal Rijk": ["hd", ["#0055A4", "#fff", "#EF4135"], "#FFD700", 1], "Nederlands Wereldrijk": ["h", ["#FF7F00", "#fff", "#21468B"]],
+  "Portugees Wereldrijk": ["v", ["#fff", "#0047AB"]], "Spaans Wereldrijk": ["ge"], "Azteken-rijk": ["hd", ["#006847", "#fff", "#CE1126"], "#8B4513"], "Mercosur": ["ring", "#fff", "#0047AB"],
+  "Pan-Amerikaanse Unie": ["ring", "#0B3D91", "#fff"], "Caribische Federatie": ["h", ["#00A3DD", "#FFD100", "#00A3DD"]], "Verenigde Arabische Republiek": ["h", ["#CE1126", "#fff", "#000"]],
+  "Ethiopisch Keizerrijk": ["hd", ["#078930", "#FCDD09", "#DA121A"], "#0F47AF", 1], "Ghana-rijk": ["hd", ["#CE1126", "#FCD116", "#006B3F"], "#000", 1], "Centraal-Afrikaanse Federatie": ["hd", ["#003082", "#fff", "#289728", "#FFCE00"], "#D21034", 1],
+  "Khmer-rijk": ["hd", ["#032EA1", "#E00025", "#032EA1"], "#fff"], "Majapahit": ["h", ["#C8102E", "#fff", "#C8102E", "#fff", "#C8102E"]], "Groot-India": ["hd", ["#FF9933", "#fff", "#138808"], "#000080"], "Wereldregering": ["ring", "#4B92DB", "#fff"]
+});
+try { Object.assign(FL, JSON.parse(localStorage.getItem("wwz2flags") || "{}")); } catch (e) { }
 const FKEYS = Object.keys(FL);
 function flagDef(name) {
   if (!name) return ["h", ["#888"]];
   if (FL[name]) return FL[name];
-  const base = name.replace(/\s+\d+$/, ""); if (FL[base]) return FL[base];
+  const base = name.replace(/\s+(II|III|IV|V|VI|\d+)$/, ""); if (FL[base]) return FL[base];
   let x = 0; for (const c of name) x = (x * 31 + c.charCodeAt(0)) >>> 0;
   const P = ["#C8102E", "#fff", "#003DA5", "#009739", "#FFCD00", "#000", "#F77F00", "#5EB6E4", "#7B2D26"];
   const a = P[x % 9], b = P[(x >> 4) % 9] === a ? P[(x + 3) % 9] : P[(x >> 4) % 9], c = P[(x >> 8) % 9];
@@ -922,6 +1224,21 @@ function drawFlag(g, name, W, H) {
     stripes(d[1]); const m = Math.min(W, H);
     if (t === "cz2") { g.fillStyle = d[2]; g.beginPath(); g.moveTo(0, 0); g.lineTo(W * 0.35, H / 2); g.lineTo(0, H); g.fill(); }
     else if (d[3]) fStar(g, W / 2, H / 2, m * 0.3, d[2]); else { g.fillStyle = d[2]; g.beginPath(); g.arc(W / 2, H / 2, m * 0.22, 0, 7); g.fill(); }
+  }
+  else if (t === "cu") {
+    const [, pat, c, em, ec] = d, m = Math.min(W, H); let ex = W / 2, ey = H / 2;
+    if (pat === "h2") stripes([c[0], c[1]]); else if (pat === "h3") stripes(c); else if (pat === "v2") stripes([c[0], c[1]], null, true); else if (pat === "v3") stripes(c, null, true);
+    else if (pat === "effen") { g.fillStyle = c[0]; g.fillRect(0, 0, W, H); }
+    else if (pat === "nordic") { g.fillStyle = c[0]; g.fillRect(0, 0, W, H); const cx = W * 0.36, k = H * 0.2; g.fillStyle = c[1]; g.fillRect(cx - k, 0, k * 2, H); g.fillRect(0, H / 2 - k, W, k * 2); g.fillStyle = c[2]; g.fillRect(cx - k / 2, 0, k, H); g.fillRect(0, H / 2 - k / 2, W, k); ex = cx; }
+    else if (pat === "kruis") { g.fillStyle = c[0]; g.fillRect(0, 0, W, H); const k = H * 0.14; g.fillStyle = c[1]; g.fillRect(W / 2 - k, 0, k * 2, H); g.fillRect(0, H / 2 - k, W, k * 2); }
+    else if (pat === "driehoek") { stripes([c[1], c[2]]); g.fillStyle = c[0]; g.beginPath(); g.moveTo(0, 0); g.lineTo(W * 0.45, H / 2); g.lineTo(0, H); g.fill(); ex = W * 0.16; }
+    else if (pat === "diagonaal") { g.fillStyle = c[0]; g.fillRect(0, 0, W, H); g.fillStyle = c[1]; g.beginPath(); g.moveTo(W, 0); g.lineTo(W, H); g.lineTo(0, H); g.fill(); g.strokeStyle = c[2]; g.lineWidth = H * 0.12; g.beginPath(); g.moveTo(0, H); g.lineTo(W, 0); g.stroke(); }
+    else if (pat === "rand") { g.fillStyle = c[1]; g.fillRect(0, 0, W, H); g.fillStyle = c[0]; const b = m * 0.14; g.fillRect(b, b, W - 2 * b, H - 2 * b); }
+    if (em === "schijf") { g.fillStyle = ec; g.beginPath(); g.arc(ex, ey, m * 0.22, 0, 7); g.fill(); }
+    else if (em === "ster") fStar(g, ex, ey, m * 0.28, ec);
+    else if (em === "maan") { g.fillStyle = ec; g.beginPath(); g.arc(ex, ey, m * 0.24, 0, 7); g.fill(); g.globalCompositeOperation = "destination-out"; g.beginPath(); g.arc(ex + m * 0.08, ey, m * 0.2, 0, 7); g.fill(); g.globalCompositeOperation = "source-over"; fStar(g, ex + m * 0.2, ey, m * 0.08, ec); }
+    else if (em === "sterren") for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * Math.PI * 2 / 5; fStar(g, ex + Math.cos(a) * m * 0.22, ey + Math.sin(a) * m * 0.22, m * 0.08, ec); }
+    else if (em === "kroon") { g.fillStyle = ec; const s2 = m * 0.22; g.beginPath(); g.moveTo(ex - s2, ey + s2 * 0.6); g.lineTo(ex - s2, ey - s2 * 0.5); g.lineTo(ex - s2 * 0.5, ey); g.lineTo(ex, ey - s2 * 0.8); g.lineTo(ex + s2 * 0.5, ey); g.lineTo(ex + s2, ey - s2 * 0.5); g.lineTo(ex + s2, ey + s2 * 0.6); g.fill(); }
   }
   else if (t === "ring") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H); for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; fStar(g, W / 2 + Math.cos(a) * m * 0.33, H / 2 + Math.sin(a) * m * 0.33, m * 0.06, d[2]); } }
   else if (t === "txt") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); g.fillStyle = d[2]; g.font = `900 ${Math.min(H * 0.42, W / d[3].length * 1.25)}px Georgia,serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(d[3], W / 2, H / 2); }
@@ -1030,6 +1347,11 @@ function paintTile(i, tmp) {
   const p = i * 4;
   if (!w.land[i]) { const m = w.nb(i, tmp); let near = false; for (let k = 0; k < m; k++) if (w.land[tmp[k]]) { near = true; break; } if (near) { px[p] = SHALLOW[0]; px[p + 1] = SHALLOW[1]; px[p + 2] = SHALLOW[2]; px[p + 3] = 255; return; } const f = vnoise((i % W) / 40, ((i / W) | 0) / 40); px[p] = DEEP[0] + (SEA[0] - DEEP[0]) * f; px[p + 1] = DEEP[1] + (SEA[1] - DEEP[1]) * f; px[p + 2] = DEEP[2] + (SEA[2] - DEEP[2]) * f; px[p + 3] = 255; return; }
   const pr = w.prov[i], o = s ? s.owner[pr] : 0;
+  const sg = s && s.siege && s.siege[pr];
+  if (sg && s.t - sg.t < 1 && sg.by && s.nations[sg.by] && siegeHit(pr, sg, i)) {
+    const c = col(sg.by), a = T[i * 4 + 3] / 255 * 0.6, f = w.pEdge[i] ? 0.8 : 1;
+    px[p] = (c[0] * (1 - a) + T[i * 4] * a) * f; px[p + 1] = (c[1] * (1 - a) + T[i * 4 + 1] * a) * f; px[p + 2] = (c[2] * (1 - a) + T[i * 4 + 2] * a) * f; px[p + 3] = 255; return;
+  }
   if (!o && s && s.mode === "spawn") {
     const f = w.cEdge[i] ? 0.62 : w.pEdge[i] ? 0.86 : 1;
     px[p] = T[i * 4] * f; px[p + 1] = T[i * 4 + 1] * f; px[p + 2] = T[i * 4 + 2] * f; px[p + 3] = 255; return;
@@ -1045,12 +1367,42 @@ function paintTile(i, tmp) {
   else if (w.coast[i]) { r *= 0.9; g *= 0.9; b *= 0.9; }
   px[p] = r; px[p + 1] = g; px[p + 2] = b; px[p + 3] = 255;
 }
+// pixel-voor-pixel uitbreiden: tegels van een belegerde provincie vullen zich vanaf de grens van de aanvaller
+const sOrd = new Map();
+function siegeHit(pr, sg, i) {
+  let o = sOrd.get(pr);
+  if (!o || o.by !== sg.by) {
+    const tmp = new Int32Array(4), rank = new Map(), q = [];
+    for (let k = w.start[pr]; k < w.start[pr + 1]; k++) { const t = w.list[k], m = w.nb(t, tmp); for (let j = 0; j < m; j++) { const u = tmp[j]; if (w.land[u] && w.prov[u] !== pr && s.owner[w.prov[u]] === sg.by) { rank.set(t, q.length); q.push(t); break; } } }
+    if (!q.length) { const t = w.list[w.start[pr]]; rank.set(t, 0); q.push(t); }
+    for (let h = 0; h < q.length; h++) { const m = w.nb(q[h], tmp); for (let j = 0; j < m; j++) { const u = tmp[j]; if (w.land[u] && w.prov[u] === pr && !rank.has(u)) { rank.set(u, q.length); q.push(u); } } }
+    sOrd.set(pr, o = { by: sg.by, rank, n: q.length });
+  }
+  const fr = Math.max(0, Math.min(1, 1 - s.mil[pr] / sg.m0)), r = o.rank.get(i);
+  return r !== undefined && r < fr * o.n;
+}
+let sieged = new Set(), siegeT = 0;
+const pBox = new Map();
+function provBox(p) { let b = pBox.get(p); if (b) return b; let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1; for (let k = w.start[p]; k < w.start[p + 1]; k++) { const i = w.list[k], x = i % W, y = (i / W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } b = [x0, y0, x1, y1]; pBox.set(p, b); return b; }
+function putBox(set) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, wide = false;
+  for (const p of set) { const b = provBox(p); if (b[2] - b[0] > W / 2) wide = true; x0 = Math.min(x0, b[0]); y0 = Math.min(y0, b[1]); x1 = Math.max(x1, b[2]); y1 = Math.max(y1, b[3]); }
+  if (x1 < 0) return; if (wide || (x1 - x0) * (y1 - y0) > N / 3) { octx.putImageData(img, 0, 0); return; }
+  octx.putImageData(img, 0, 0, x0, y0, x1 - x0 + 1, y1 - y0 + 1);
+}
+function paintSieges() {
+  const now = new Set(); if (s.siege) for (const k in s.siege) { const sg = s.siege[k]; if (s.t - sg.t < 1) now.add(+k); else delete s.siege[k]; }
+  const all = new Set([...now, ...sieged]); if (!all.size) return;
+  const tmp = new Int32Array(4); for (const p of all) for (let k = w.start[p]; k < w.start[p + 1]; k++) paintTile(w.list[k], tmp);
+  for (const p of sieged) if (!now.has(p)) sOrd.delete(p);
+  sieged = now; putBox(all);
+}
 function paintAll() { const tmp = new Int32Array(4); for (let i = 0; i < N; i++) paintTile(i, tmp); octx.putImageData(img, 0, 0); }
 function paintProvs(set) {
   const tmp = new Int32Array(4), all = new Set(set);
   for (const p of set) for (const q of w.adj[p]) all.add(q);
   for (const p of all) for (let k = w.start[p]; k < w.start[p + 1]; k++) paintTile(w.list[k], tmp);
-  octx.putImageData(img, 0, 0);
+  putBox(all);
 }
 
 // ---------- beeld ----------
@@ -1206,7 +1558,14 @@ function tap(cx, cy) {
   const p = a ? a.p : provAt(cx, cy);
   if (p < 0) { sel = null; hideCard(); return; }
   if (sel && s.armies.includes(sel)) { orderTo(sel, p, true); return; }
+  if (!s.owner[p] && s.t >= 0) { autoExpand(p); return; }
   provCard(p);
+}
+function autoExpand(p) {
+  hideCard();
+  const r = WZ.attackWithPool(w, s, s.me, p, frac);
+  if (r.ok) toast(`🌱 ${fmt(r.troops)} troepen breiden uit${r.sea ? " over zee ⛵" : ""}`);
+  else toast(r.err === "te weinig reserve" ? "❌ Te weinig reserve: wacht even of schuif onderin naar meer %" : r.err === "geen route" ? "❌ Daar kun je niet komen" : "❌ " + r.err);
 }
 function orderTo(a, p, part) {
   if (!s.armies.includes(a)) return;
@@ -1252,7 +1611,8 @@ function provCard(p) {
     showCard(`<div class="hd">${fIcon(o)}<div class="ttl">Jouw provincie${regionName(p) && regionName(p) !== me.name ? " · " + E(regionName(p)) : ""}</div><div class="rel">${p === me.capital ? "★ Hoofdstad" : "Eigen"}</div></div>
       <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` · 🪖 ${fmt(defs())} in je legers hier` : ""}</div>
       ${trpRow("pool")}
-      <div class="btns"><button type="button" class="go" data-a="new">➕ Nieuw leger · <span data-amt></span></button><button type="button" data-a="flag">🏳️ Vlag kiezen</button><button type="button" class="wide" data-a="x">✖️ Sluiten</button></div>`, { p });
+      <div class="btns"><button type="button" class="go" data-a="new">➕ Nieuw leger · <span data-amt></span></button><button type="button" data-a="flag">🏳️ Vlag kiezen</button></div>
+      <div class="dip">${p !== me.capital ? `<button type="button" data-a="sell">💰 Verkoop<small>+${fmt(WZ.provPrice(w, s, p))} troepen</small></button>` : `<button type="button" disabled>★ Hoofdstad<small>niet te koop</small></button>`}<button type="button" data-a="int">🏛️ Binnenland<small>stabiliteit ${Math.round(me.stab ?? 60)}</small></button><button type="button" data-a="x">✖️ Sluiten</button></div>`, { p });
   } else if (!o) {
     const nearest0 = nearestArmy(p);
     showCard(`<div class="hd">${fIcon(0)}<div class="ttl">🌱 Niemandsland${regionName(p) ? " · " + E(regionName(p)) : ""}</div><div class="rel">Vrij land</div></div>
@@ -1264,13 +1624,14 @@ function provCard(p) {
     const al = WZ.allied(s, s.me, o), f = n && n.fac ? WZ.facOf(s, n.fac) : null;
     const atkMe = s.armies.some(a => a.o === o && a.fight === s.me);
     const nearest = nearestArmy(p);
-    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${al ? "🤝 Bondgenoot" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
+    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${al ? "🤝 Bondgenoot" : WZ.nap(s, s.me, o) ? "🕊️ Verdrag" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
       <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` + 🪖 ${fmt(defs())} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${al ? "" : ` · <span id="trpW"></span>`}</div>
       ${al ? "" : trpRow("pool")}
       <div class="btns">${al ? `<button type="button" disabled>🤝 Bondgenoot</button><button type="button" data-a="betray">🗡️ Verraad</button>` :
         `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · <span data-amt></span></button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
         ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
-        <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>`, { p });
+        <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>
+      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button></div>` : ""}`, { p });
   }
   card.upd = () => {
     const n2 = amt(), pool = s.nations[s.me].pool, need = s.mil[p] + (o && o !== s.me ? defs() : 0);
@@ -1335,6 +1696,11 @@ $("card").addEventListener("click", e => {
   if (act === "new") { const r = WZ.createArmy(w, s, s.me, p, me.pool * frac); if (r.ok) { toast(`🪖 Nieuw leger van ${fmt(r.a.n)}`); sel = r.a; armyCard(r.a); } else toast("❌ " + r.err); }
   if (act === "atk") { const r = WZ.attackWithPool(w, s, s.me, p, frac); if (r.ok) { toast(o ? `⚔️ ${fmt(r.troops)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🌱 ${fmt(r.troops)} troepen breiden uit${r.sea ? " over zee ⛵" : ""}`); hideCard(); } else toast("❌ " + (r.err === "geen route" ? "daar kun je niet komen" : r.err)); }
   if (act === "flag") { flagPanel(); return; }
+  if (act === "int") { intPanel(); return; }
+  if (act === "buy") { const r = WZ.buyProv(w, s, s.me, p); toast(r.ok ? `💰 Gekocht voor ${fmt(r.price)} troepen!` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
+  if (act === "sell") { const r = WZ.sellProv(w, s, s.me, p); toast(r.ok ? `💰 Verkocht aan ${nm(r.to)} voor ${fmt(r.price)} troepen` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
+  if (act === "nap") { const r = WZ.offerNap(w, s, s.me, o); toast(r.ok ? `🕊️ Niet-aanvalsverdrag met ${nm(o)} (4 minuten)` : "❌ " + r.err); if (r.ok) provCard(p); return; }
+  if (act === "ult") { const r = WZ.ultimatum(w, s, s.me, p); toast(r.ok ? `📜 ${nm(o)} geeft toe! De provincie is van jou` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "send") { const a = nearestArmy(p); if (a) orderTo(a, p); }
   if (act === "ally") { const r = WZ.askAlliance(s, s.me, o); if (r.ok) { toast(r.kind === "join" ? `🤝 Je zit nu in ${r.f.naam}!` : r.kind === "invite" ? `🤝 ${nm(o)} doet mee met ${r.f.naam}!` : `🤝 ${nm(o)} en jij vormen nu ${r.f.naam}!`); provCard(p); } else toast(`❌ ${nm(o)}: ${r.err}`); }
   if (act === "betray") { if (b.dataset.sure) { WZ.betray(s, s.me, o); toast(`🗡️ Je verraadt ${nm(o)}!`); provCard(p); } else { b.dataset.sure = 1; b.textContent = "Zeker?"; } }
@@ -1359,6 +1725,7 @@ function hud() {
   else if (fo && Object.keys(WZ.FOCUS).some(k => WZ.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Kies een nieuwe focus (knop 🎯 Focus)"; $("bFocus").classList.add("glow"); }
   else { fl.className = ""; fl.textContent = me.ideo ? `${WZ.IDEO[me.ideo].icon} ${WZ.IDEO[me.ideo].naam}` : ""; $("bFocus").classList.remove("glow"); }
   $("bForm").classList.toggle("glow", (s.formReady || []).some(k => !(s.formedBy || {})[k]));
+  { const st = Math.round(me.stab ?? 60); $("stab").textContent = (st >= 65 ? "😀 " : st >= 40 ? "😐 " : st >= 25 ? "😠 " : "🔥 ") + st; $("stab").style.color = st < 25 ? "#f87171" : st < 40 ? "#fbbf24" : ""; $("bInt").classList.toggle("glow", st < 35 || Object.keys(WZ.DECIS).some(k => !((me.cds || {})[k] > s.t) && k === "propaganda" && st < 50)); }
   const pz = $("peace");
   if (me.immuneUntil && s.t < me.immuneUntil && s.t >= s.peaceUntil) { pz.textContent = `🛡️ Startbescherming · nog ${Math.ceil(me.immuneUntil - s.t)}s niemand kan je aanvallen`; pz.classList.remove("hidden"); }
   else if (s.t < s.peaceUntil) { pz.textContent = `🕊️ Voorbereiding · ${Math.ceil(s.peaceUntil - s.t)}s · zet je legers klaar`; pz.classList.remove("hidden"); } else pz.classList.add("hidden");
@@ -1381,6 +1748,10 @@ function onEvents(evs) {
     else if (e.type === "join" && e.id !== s.me && s.nations[s.me].fac && e.fac === s.nations[s.me].fac) toast(`🤝 ${nm(e.id)} sluit zich aan bij je alliantie`);
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
+    else if (e.type === "revolt") { dirty.add(e.q); labelT = -9; if (e.id === s.me) toast("🔥 Opstand! Een provincie scheurt zich af. Verhoog je stabiliteit via 🏛️"); }
+    else if (e.type === "annex") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🤝 Je lijft ${s.nations[e.t].name} in!` : `📢 ${nm(e.id)} lijft ${s.nations[e.t].name} in`); }
+    else if (e.type === "annexFail" && e.id === s.me) toast(`❌ ${s.nations[e.t].name} is te groot om in te lijven`);
+    else if (e.type === "pact" && (e.id === s.me || e.with === s.me)) toast(`🤝 Bondgenootschap met ${nm(e.id === s.me ? e.with : e.id)}`);
     else if (e.type === "formReady") toast(`👑 Je kunt nu ${e.naam} vormen! Tik op 👑 Rijken`);
     else if (e.type === "formed") { labelT = -9; if (e.id === s.me) { $("myName").textContent = e.naam; setHudFlag(); } else toast(`📢 ${e.old} heeft ${e.naam} gevormd!`); }
     else if (e.type === "focus" && e.id === s.me) { const F = WZ.FOCUS[e.k]; toast(`🎯 Focus klaar: ${F.icon} ${F.naam} (${F.info})`); }
@@ -1399,7 +1770,8 @@ function loop(ts) {
     if (ts - lastSave > 20000) { lastSave = ts; save(); }
   }
   if (dirty.size) { paintProvs(dirty); dirty.clear(); }
-  if (s && !picking && ts - lastHud > 250) { lastHud = ts; hud(); if (card && card.upd) card.upd(); }
+  if (s && ts - siegeT > 120) { siegeT = ts; paintSieges(); }
+  if (s && !picking && ts - lastHud > 250) { maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
   render();
   requestAnimationFrame(loop);
 }
@@ -1416,14 +1788,16 @@ function menu(resumeData) {
     <p>Kies een land, bouw legers en verover provincie na provincie.</p>
     ${resumeData ? `<button class="big red" id="mRes" type="button">▶ Verder met je spel als ${E(resumeData.naam || "")}</button><div class="lab">Of begin opnieuw</div>` : ""}
     <div class="lab">Spelvorm</div>${opts("oMode", [["spawn", "🌱 Startplek kiezen (RoFront)"], ["landen", "🗺️ Echte landen (HOI)"]], settings.mode)}
+    <div id="yearBox" class="${settings.mode === "spawn" ? "hidden" : ""}"><div class="lab">Startjaar</div>${opts("oYear", Object.entries(WZ.ERAS).map(([k, e]) => [k, e.naam]), settings.year)}</div>
     <div id="botsBox" class="${settings.mode === "spawn" ? "" : "hidden"}"><div class="lab">Tegenstanders</div>${opts("oBots", [["10", "10"], ["20", "20"], ["40", "40"], ["70", "70"], ["120", "120"]], settings.bots)}</div>
     <div class="lab">Kaart</div>${opts("oMap", MAPS, settings.map)}
     <div id="sizeBox" class="${settings.map === "mega" ? "hidden" : ""}"><div class="lab">Grootte</div>${opts("oSize", [["normaal", "Normaal · ~320 provincies"], ["groot", "Groot · ~560 provincies"]], settings.size)}</div><div id="megaNote" class="${settings.map === "mega" ? "" : "hidden"}" style="font-size:12.5px;color:var(--muted);margin-top:6px">🌐 Alle continenten in groot formaat op één wereldkaart · ~2200 provincies · lange potjes</div>
     <div class="lab">Moeilijkheid</div>${opts("oDiff", [["relaxed", "😌 Relaxed"], ["standaard", "⚔️ Standaard"], ["brutaal", "💀 Brutaal"]], settings.diff)}
     <button class="big ${resumeData ? "" : "red"}" id="mGo" type="button">${settings.mode === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"}</button>
     <button class="big" id="mHelp" type="button" style="min-height:44px;font-size:14px">❔ Hoe speel je?</button>`);
-  bindOpts("oMode", v => { settings.mode = v; keepSet(); $("botsBox").classList.toggle("hidden", v !== "spawn"); $("mGo").textContent = v === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"; });
+  bindOpts("oMode", v => { settings.mode = v; keepSet(); $("botsBox").classList.toggle("hidden", v !== "spawn"); $("yearBox").classList.toggle("hidden", v === "spawn"); $("mGo").textContent = v === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"; });
   bindOpts("oBots", v => { settings.bots = v; keepSet(); });
+  bindOpts("oYear", v => { settings.year = v; keepSet(); });
   bindOpts("oMap", v => { settings.map = v; keepSet(); $("sizeBox").classList.toggle("hidden", v === "mega"); $("megaNote").classList.toggle("hidden", v !== "mega"); }); bindOpts("oSize", v => { settings.size = v; keepSet(); }); bindOpts("oDiff", v => { settings.diff = v; keepSet(); });
   $("mGo").onclick = () => { clearSave(); startPick(); };
   $("mHelp").onclick = () => help(() => menu(resumeData));
@@ -1431,6 +1805,9 @@ function menu(resumeData) {
 }
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
+  <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>💰</i><div><b>Politiek:</b> tik op een ander land om een provincie te kopen voor troepen, een verdrag te sluiten of een ultimatum te sturen. Je kunt ook eigen land verkopen.</div></div>
+  <div class="st"><i>🏛️</i><div><b>Binnenland:</b> houd je stabiliteit hoog met besluiten en reageer op gebeurtenissen, anders komen er opstanden.</div></div>
   <div class="st"><i>🏁</i><div><b>Doel:</b> verover genoeg van de kaart. Je doel staat bovenin.</div></div>
   <div class="st"><i>🎯</i><div><b>Focusboom:</b> tik op <b>🎯 Focus</b> en kies doelen voor blijvende bonussen. Na Herbewapening kies je Democratie, Fascisme of Communisme.</div></div>
   <div class="st"><i>🪖</i><div><b>Legers</b> zijn de fiches op de kaart met een getal: het aantal soldaten. Je <b>reserve</b> groeit vanzelf. Hoe meer provincies, hoe sneller.</div></div>
@@ -1444,13 +1821,51 @@ const HELP = `<div class="help">
 function help(back) { ov(`<h2>❔ Hoe speel je?</h2>${HELP}<button class="big red" id="hB" type="button">Snap ik</button>`); $("hB").onclick = back; }
 async function startPick() {
   closeOv(); await loadMap(mapKey());
-  s = WZ.newGame(w, { mode: settings.mode, bots: +settings.bots, diff: settings.diff, map: mapId, size: settings.size }); s.me = 0;
+  s = WZ.newGame(w, { mode: settings.mode, bots: +settings.bots, diff: settings.diff, map: mapId, size: settings.size, year: settings.year }); s.me = 0;
   $("pickHint").textContent = s.mode === "spawn" ? "🌱 Tik op een plek in niemandsland om te beginnen" : "👆 Tik op het land waarmee je wilt spelen";
   fullPaint = true; paintAll(); labelT = -9;
   picking = true; $("pickHint").classList.remove("hidden"); $("hud").classList.add("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.add("hidden"); $("pctLbl").classList.add("hidden");
   scale = minScale(); if (w.wrap) { ox = VW / 2 - W * 0.53 * scale; } clampView();
 }
 function setHudFlag() { const n = s.nations[s.me]; $("myFlag").style.background = `center/cover url(${flagURL(flagOf(n))})`; }
+// ---------- binnenland ----------
+const EVENTS = [
+  ["🏭 Staking in de fabrieken", "Arbeiders leggen het werk neer en eisen hoger loon.", ["Geef toe", { pool: -0.12, stab: 8 }, "−12% reserve, +8 stabiliteit"], ["Sla de staking neer", { stab: -12 }, "−12 stabiliteit"]],
+  ["🌊 Overstroming", "Een rivier treedt buiten haar oevers. Dorpen staan onder water.", ["Stuur hulp", { pool: -0.18, stab: 6 }, "−18% reserve, +6 stabiliteit"], ["Negeer het", { stab: -12 }, "−12 stabiliteit"]],
+  ["🕵️ Spionnen ontdekt", "Buitenlandse spionnen zijn opgepakt in de hoofdstad.", ["Openbaar proces", { stab: 6 }, "+6 stabiliteit"], ["Ruil ze voor goud", { pool: 0.2, stab: -4 }, "+20% reserve, −4 stabiliteit"]],
+  ["🎖️ Ambitieuze generaal", "Een populaire generaal wil meer macht over het leger.", ["Geef hem de macht", { atk: 0.05, stab: -8 }, "blijvend +5% aanval, −8 stabiliteit"], ["Ontsla hem", { stab: 4, pool: -0.08 }, "+4 stabiliteit, −8% reserve"]],
+  ["🌾 Rijke oogst", "De boeren hebben een recordoogst binnengehaald.", ["Groot oogstfeest", { stab: 10 }, "+10 stabiliteit"], ["Voedsel voor het leger", { pool: 0.25 }, "+25% reserve"]],
+  ["🧳 Vluchtelingen", "Duizenden vluchtelingen staan aan de grens.", ["Neem ze op als soldaten", { pool: 0.18, stab: -5 }, "+18% reserve, −5 stabiliteit"], ["Sluit de grens", { stab: 3 }, "+3 stabiliteit"]],
+  ["💡 Uitvinding", "Je wetenschappers hebben iets nieuws uitgevonden. Waar zet je het in?", ["In het leger", { atk: 0.05 }, "blijvend +5% aanval"], ["In de industrie", { rate: 0.05 }, "blijvend +5% groei"]],
+  ["💸 Corruptieschandaal", "Ministers blijken geld te hebben verduisterd.", ["Groot onderzoek", { pool: -0.1, stab: 8 }, "−10% reserve, +8 stabiliteit"], ["Toedekken", { stab: -10 }, "−10 stabiliteit"]],
+  ["📰 Kritische kranten", "Kranten schrijven negatief over de oorlog.", ["Censuur", { stab: 4, def: -0.02 }, "+4 stabiliteit, −2% verdediging"], ["Persvrijheid", { stab: -4, rate: 0.03 }, "−4 stabiliteit, blijvend +3% groei"]],
+  ["🏰 Grensvesting", "Ingenieurs stellen voor een grote vesting te bouwen.", ["Bouwen", { pool: -0.2, def: 0.06 }, "−20% reserve, blijvend +6% verdediging"], ["Niet nodig", {}, "niets"]]
+];
+const REVOLT_EV = ["🔥 Onrust in de provincies", "Opstandelingen grijpen naar de wapens. Je stabiliteit is laag!", ["Stuur troepen", { pool: -0.2, stab: 6 }, "−20% reserve, +6 stabiliteit"], ["Laat ze gaan", { lose: 1, stab: 5 }, "je verliest een provincie, +5 stabiliteit"]];
+let nextEv = 70 + Math.random() * 40;
+function maybeEvent() {
+  if (!s || s.over || picking || paused || !$("ov").classList.contains("hidden") || s.t < nextEv || s.mode === undefined) return;
+  const me = s.nations[s.me]; if (!me || !me.alive) return;
+  nextEv = s.t + 80 + Math.random() * 50;
+  const ev = (me.stab ?? 60) < 35 && Math.random() < 0.6 ? REVOLT_EV : EVENTS[(Math.random() * EVENTS.length) | 0];
+  paused = true; hideCard();
+  ov(`<h2>${ev[0]}</h2><p>${ev[1]}</p><p style="font-size:12.5px">Stabiliteit nu: <b style="color:var(--ink)">${Math.round(me.stab ?? 60)}</b></p>
+    ${[ev[2], ev[3]].map((c, i) => `<button class="big ${i ? "" : "red"}" data-ch="${i}" type="button" style="min-height:54px">${E(c[0])}<br><small style="font-size:12px;font-weight:700;opacity:.85">${E(c[2])}</small></button>`).join("")}`);
+  $("ovc").onclick = e => { const b = e.target.closest("[data-ch]"); if (!b) return; const c = b.dataset.ch === "0" ? ev[2] : ev[3]; WZ.applyChoice(w, s, s.me, c[1]); onEvents(s.ev.splice(0)); toast(`${ev[0].split(" ")[0]} ${c[0]}`); $("ovc").onclick = null; resumePlay(); };
+}
+function intPanel() {
+  if (!s || s.over || picking) return; paused = true; hideCard();
+  const me = s.nations[s.me], st = Math.round(me.stab ?? 60), cd = me.cds || {};
+  ov(`<h2>🏛️ Binnenland</h2>
+    <p>Stabiliteit: <b style="color:var(--ink);font-size:18px">${st}</b> / 100 · productie ×${(0.7 + st / 100 * 0.6).toFixed(2)}</p>
+    <div class="pb" style="height:10px;border-radius:5px;background:#24364f;overflow:hidden"><i style="display:block;height:100%;width:${st}%;background:${st < 25 ? "#ef4444" : st < 40 ? "#f59e0b" : "#22c55e"}"></i></div>
+    <p style="font-size:12.5px">Verlies je provincies, dan daalt je stabiliteit. Onder de 25 komen er opstanden en scheuren provincies af. Hoge stabiliteit geeft meer troepen. Regelmatig gebeurt er iets in je land waarop je moet reageren.</p>
+    <div class="lab">Besluiten</div>
+    ${Object.entries(WZ.DECIS).map(([k, D]) => { const wait = (cd[k] || 0) > s.t; return `<div class="fm ${wait ? "gone" : ""}"><div class="t"><span style="font-size:26px">${D.icon}</span><div><b>${E(D.naam)}</b><small>${E(D.info)}</small></div></div>${wait ? `<small style="display:block;margin-top:6px;color:var(--muted);font-weight:700">⏳ weer mogelijk over ${Math.ceil(cd[k] - s.t)}s</small>` : `<button type="button" data-dc="${k}">${D.icon} Uitvoeren</button>`}</div>`; }).join("")}
+    <button class="big" id="iB" type="button" style="margin-top:12px">Verder spelen</button>`);
+  $("ovc").onclick = e => { const b = e.target.closest("[data-dc]"); if (!b) return; const r = WZ.decide(w, s, s.me, b.dataset.dc); toast(r.ok ? `${WZ.DECIS[b.dataset.dc].icon} ${WZ.DECIS[b.dataset.dc].naam}` : "❌ " + r.err); intPanel(); };
+  $("iB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
+}
 function formPanel() {
   const me = s.nations[s.me]; paused = true; hideCard();
   const list = WZ.formsFor(w).map(f => ({ f, pr: WZ.formProgress(w, s, s.me, f), by: (s.formedBy || {})[f.naam] }));
@@ -1460,7 +1875,7 @@ function formPanel() {
     ${list.length ? "" : "<p>Op deze kaart zijn geen rijken te vormen.</p>"}
     ${list.map(({ f, pr, by }) => { const R = WZ.RANK[f.rank], mine = by === s.me; return `<div class="fm ${pr.ok && !by ? "ok" : by && !mine ? "gone" : ""}">
       <div class="t"><img alt="" src="${flagURL(f.naam)}"><div><b>${R.icon} ${E(f.naam)}</b><small>${R.naam} · ${R.info}</small></div></div>
-      ${mine ? `<div class="pb"><i style="width:100%"></i></div><small style="color:#bbf7d0;font-weight:800">✅ Jij hebt dit rijk gevormd</small>` : by ? `<small style="color:var(--muted);font-weight:700;display:block;margin-top:6px">❌ Al gevormd door ${E(nm(by))}</small>` :
+      ${mine ? `<div class="pb"><i style="width:100%"></i></div><small style="color:#bbf7d0;font-weight:800">✅ Jij hebt dit rijk gevormd</small>` : by ? `<small style="color:var(--muted);font-weight:700;display:block;margin-top:6px">❌ ${by < 0 ? "Bestond al bij de start" : "Al gevormd door " + E(nm(by))}</small>` :
       `<div class="pb"><i style="width:${Math.min(100, pr.all / 0.7 * 100)}%"></i></div>
       <div class="cs">${pr.per.map(c => `<span class="${c.share >= 0.3 ? "g" : ""}">${E(c.name)} ${Math.round(c.share * 100)}%</span>`).join("")}</div>
       <small style="color:var(--muted);font-weight:700;display:block;margin-top:5px">Totaal ${Math.round(pr.all * 100)}% van 70%</small>
@@ -1471,17 +1886,57 @@ function formPanel() {
 }
 function flagPanel() {
   hideCard(); const me = s.nations[s.me], cur = flagOf(me);
-  const names = [...new Set([me.name, ...FKEYS])];
+  const all = Object.keys(FL), mine = all.filter(k => k.startsWith("★ "));
+  const names = [...new Set([...mine, me.name, ...all.filter(k => !k.startsWith("★ "))])];
   ov(`<h2>🏳️ Kies je vlag</h2><p>Je vlag wappert over al je gebied.</p>
+    <button class="big red" id="fMake" type="button">🎨 Eigen vlag maken</button>
     <div class="lab">Vlaggen op de kaart</div>${opts("fMode", [["alle", "🌍 Alle landen"], ["ik", "🙋 Alleen ik"], ["uit", "🎨 Uit (kleuren)"]], settings.flag)}
     <div class="fgrid">${names.map(k => `<button type="button" data-fl="${E(k)}" class="${k === cur ? "on" : ""}"><img alt="" src="${flagURL(k)}">${E(k)}</button>`).join("")}</div>
     <button class="big" id="fB" type="button" style="margin-top:12px">✔️ Klaar</button>`);
   paused = true;
-  $("ovc").onclick = e => { const b = e.target.closest("[data-fl]"); if (!b) return; me.flag = b.dataset.fl; setHudFlag(); updMyFlag(true); $("ovc").querySelectorAll("[data-fl]").forEach(x => x.classList.toggle("on", x === b)); toast("🏳️ Nieuwe vlag: " + me.flag); };
+  $("ovc").onclick = e => { const b = e.target.closest("[data-fl]"); if (!b) return; me.flag = b.dataset.fl; if (me.flag.startsWith("★ ")) me.flagDef = FL[me.flag]; else delete me.flagDef; setHudFlag(); updMyFlag(true); $("ovc").querySelectorAll("[data-fl]").forEach(x => x.classList.toggle("on", x === b)); toast("🏳️ Nieuwe vlag: " + me.flag); };
   bindOpts("fMode", v => { settings.flag = v; keepSet(); paintAll(); });
+  $("fMake").onclick = () => flagMaker();
   $("fB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
 }
+// ---------- vlaggenmaker ----------
+const PAL = ["#fff", "#000", "#C8102E", "#8B0000", "#FF7F00", "#FFD700", "#009739", "#0B5D1E", "#5EB6E4", "#0047AB", "#001F5B", "#7B2D8E", "#8B4513", "#808080"];
+let ed = null;
+function flagMaker() {
+  const me = s.nations[s.me];
+  if (!ed) { const d = me.flagDef && me.flagDef[0] === "cu" ? me.flagDef : null; ed = { pat: d ? d[1] : "h3", c: d ? d[2].slice() : ["#C8102E", "#fff", "#0047AB"], em: d ? d[3] : "geen", ec: d ? d[4] : "#FFD700", slot: 0, name: me.name }; }
+  const def = () => ["cu", ed.pat, ed.c.slice(), ed.em, ed.ec];
+  ov(`<h2>🎨 Eigen vlag maken</h2><p>Kies een patroon, de kleuren en een embleem. Je kunt je land ook een nieuwe naam geven.</p>
+    <div class="fe"><div style="height:180px;display:flex;justify-content:center"><canvas id="feC" width="300" height="200" style="width:270px;height:180px"></canvas></div>
+    <div><div class="lab" style="margin-top:0">Naam van je land</div><input type="text" id="feN" maxlength="32" value="${E(ed.name)}"></div>
+    <div><div class="lab" style="margin-top:0">Patroon</div>${opts("feP", [["h3", "☰ 3 liggend"], ["h2", "▭ 2 liggend"], ["v3", "▥ 3 staand"], ["v2", "◫ 2 staand"], ["nordic", "✚ Noords kruis"], ["kruis", "➕ Kruis"], ["driehoek", "◀ Driehoek"], ["diagonaal", "◩ Diagonaal"], ["rand", "▣ Rand"], ["effen", "■ Effen"]], ed.pat)}</div>
+    <div><div class="lab" style="margin-top:0">Embleem</div>${opts("feE", [["geen", "Geen"], ["ster", "⭐ Ster"], ["sterren", "✨ 5 sterren"], ["schijf", "● Schijf"], ["maan", "☪️ Maan"], ["kroon", "👑 Kroon"]], ed.em)}</div>
+    <div><div class="lab" style="margin-top:0">Kleuren · tik eerst op wat je wilt kleuren</div>
+      <div class="slot">${[0, 1, 2].map(i => `<button type="button" data-sl="${i}" class="${ed.slot === i ? "on" : ""}"><i style="background:${ed.c[i]}"></i>Kleur ${i + 1}</button>`).join("")}<button type="button" data-sl="3" class="${ed.slot === 3 ? "on" : ""}"><i style="background:${ed.ec}"></i>Embleem</button></div>
+      <div class="pal" style="margin-top:8px">${PAL.map(c => `<button type="button" data-c="${c}" style="background:${c}" aria-label="kleur"></button>`).join("")}</div></div>
+    </div>
+    <button class="big red" id="feS" type="button" style="margin-top:12px">✔️ Opslaan en gebruiken</button>
+    <button class="big" id="feX" type="button" style="min-height:44px;font-size:14px">Terug</button>`);
+  const draw = () => { const g = $("feC").getContext("2d"); g.clearRect(0, 0, 300, 200); drawFlag(g, "__ed", 300, 200); };
+  FL["__ed"] = def(); draw();
+  const upd = () => { FL["__ed"] = def(); draw(); };
+  bindOpts("feP", v => { ed.pat = v; upd(); }); bindOpts("feE", v => { ed.em = v; upd(); });
+  $("feN").oninput = e => { ed.name = e.target.value; };
+  $("ovc").onclick = e => {
+    const sl = e.target.closest("[data-sl]"); if (sl) { ed.slot = +sl.dataset.sl; $("ovc").querySelectorAll("[data-sl]").forEach(x => x.classList.toggle("on", x === sl)); return; }
+    const c = e.target.closest("[data-c]"); if (c) { if (ed.slot === 3) ed.ec = c.dataset.c; else ed.c[ed.slot] = c.dataset.c; const b = $("ovc").querySelector(`[data-sl="${ed.slot}"] i`); if (b) b.style.background = c.dataset.c; upd(); }
+  };
+  $("feS").onclick = () => {
+    const nm2 = (ed.name || "").trim().slice(0, 32) || me.name, key = "★ " + nm2, d = def();
+    FL[key] = d; delete flagURLs[key]; delete FL["__ed"];
+    let saved = {}; try { saved = JSON.parse(localStorage.getItem("wwz2flags") || "{}"); } catch (e) { } saved[key] = d; try { localStorage.setItem("wwz2flags", JSON.stringify(saved)); } catch (e) { }
+    me.flag = key; me.flagDef = d; me.name = nm2; labelT = -9; $("myName").textContent = nm2; setHudFlag(); updMyFlag(true); save();
+    toast(`🎨 ${nm2} heeft een nieuwe vlag!`); ed = null; $("ovc").onclick = null; resumePlay();
+  };
+  $("feX").onclick = () => { delete FL["__ed"]; ed = null; flagPanel(); };
+}
 function startAs(id, spawned) {
+  nextEv = (s ? s.t : 0) + 70 + Math.random() * 40;
   picking = false; $("pickHint").classList.add("hidden"); $("bar").classList.remove("hidden"); $("pctLbl").classList.remove("hidden");
   if (!spawned) WZ.choose(w, s, id); hideCard();
   $("myName").textContent = s.nations[id].name; setHudFlag();
@@ -1533,18 +1988,29 @@ function end() {
   $("eN").onclick = () => menu(null);
 }
 $("bPause").onclick = () => { if (!s || s.over) return; paused = !paused; $("bPause").textContent = paused ? "▶" : "⏸"; toast(paused ? "⏸ Gepauzeerd" : "▶ Verder"); };
-$("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel; $("bForm").onclick = formPanel;
-const FROWS = [["", "industrie", ""], ["leger", "", "vloot"], ["demo", "fasc", "comm"], ["demo2", "fasc2", "comm2"], ["demo3", "fasc3", "comm3"], ["", "wegen", ""]];
+$("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel; $("bForm").onclick = formPanel; $("bInt").onclick = intPanel;
+let focusTab = "nat";
+const FTABS = [["nat", "🏳️ Nationaal"], ["ind", "🏭 Industrie"], ["leger", "🪖 Leger"], ["lucht", "✈️ Lucht"], ["vloot", "⚓ Vloot"], ["log", "🚂 Logistiek"], ["pol", "🏛️ Politiek"]];
 function focusPanel() {
-  if (!s || s.over || picking) return; paused = true; $("bPause").textContent = "▶";
-  const me = s.nations[s.me], fo = me.focus;
-  const node = k => { if (!k) return `<div class="fn e"></div>`; const F = WZ.FOCUS[k];
-    const st = fo.done.includes(k) ? "done" : fo.cur === k ? "cur" : WZ.focusOk(me, k) ? "ok" : (F.excl && F.excl.some(x => fo.done.includes(x) || fo.cur === x)) ? "x" : "lock";
-    return `<button type="button" class="fn ${st}" data-k="${k}"><i>${F.icon}</i>${E(F.naam)}<small>${st === "cur" ? "⏳ nog " + Math.ceil(fo.left) + "s" : st === "done" ? "✓ klaar" : E(F.info)}</small></button>`; };
-  ov(`<h2>🎯 Focusboom</h2><p>Kies één doel tegelijk; elk doel geeft een blijvende bonus. Na <b>Herbewapening</b> kies je een ideologie. Die keuze is definitief en bepaalt bij welke alliantie je hoort: ${WZ.IDEO.demo.icon} Geallieerden, ${WZ.IDEO.fasc.icon} Asmogendheden of ${WZ.IDEO.comm.icon} Komintern.</p>
-    <div class="ftree">${FROWS.map((r, i) => (i === 2 ? `<div class="frow">IDEOLOGIE · KIES ER ÉÉN</div>` : i === 5 ? `<div class="frow">NA VLOOTBOUW</div>` : "") + r.map(node).join("")).join("")}</div>
+  if (!s || s.over || picking) return; paused = true; $("bPause").textContent = "▶"; hideCard();
+  const me = s.nations[s.me], fo = me.focus, tag = WZ.natTag(me);
+  const keys = br => WZ.BRANCH[br].filter(k => br !== "nat" || WZ.FOCUS[k].tag === tag);
+  const depth = {}; const dep = k => { if (depth[k] !== undefined) return depth[k]; const F = WZ.FOCUS[k]; const rs = [...F.req, ...(F.any || [])].filter(r => WZ.FOCUS[r].br === F.br); return depth[k] = rs.length ? 1 + Math.max(...rs.map(dep)) : 0; };
+  const st = k => { const F = WZ.FOCUS[k]; return fo.done.includes(k) ? "done" : fo.cur === k ? "cur" : WZ.focusOk(me, k) ? "ok" : (F.excl && F.excl.some(x => fo.done.includes(x) || fo.cur === x)) ? "x" : "lock"; };
+  const node = k => { const F = WZ.FOCUS[k], t = st(k), need = [...F.req.filter(r => !fo.done.includes(r))].map(r => WZ.FOCUS[r].naam), any = F.any && !F.any.some(r => fo.done.includes(r)) ? [F.any.map(r => WZ.FOCUS[r].naam).join(" of ")] : [];
+    return `<button type="button" class="fn ${t}" data-k="${k}"><i>${F.icon}</i>${E(F.naam)}<small>${t === "cur" ? "⏳ nog " + Math.ceil(fo.left) + "s" : t === "done" ? "✓ klaar" : E(F.info)}</small>${t === "lock" && need.concat(any).length ? `<span class="rq">🔒 na ${E(need.concat(any).join(", "))}</span>` : ""}</button>`; };
+  const cnt = br => keys(br).filter(k => st(k) === "ok").length;
+  const ks = keys(focusTab), rows = {}; for (const k of ks) (rows[dep(k)] = rows[dep(k)] || []).push(k);
+  const done = Object.values(WZ.FOCUS).filter(F => fo.done.includes(F.k)).length, tot = FTABS.reduce((a, [b]) => a + keys(b).length, 0);
+  ov(`<h2>🎯 Focusboom</h2><p>${done} van ${tot} focussen klaar${fo.cur ? ` · nu: ${WZ.FOCUS[fo.cur].icon} ${E(WZ.FOCUS[fo.cur].naam)} (nog ${Math.ceil(fo.left)}s)` : ""}. Eén tegelijk; elke focus geeft een blijvende bonus.</p>
+    <div class="ftabs">${FTABS.map(([b, l]) => `<button type="button" data-tab="${b}" class="${b === focusTab ? "on" : ""}">${l}${cnt(b) ? `<b>${cnt(b)}</b>` : ""}</button>`).join("")}</div>
+    ${focusTab === "nat" ? `<p style="font-size:12.5px">${tag === "*" ? "Algemene nationale tak (" + E(me.name) + " heeft nog geen eigen tak)." : "Eigen tak van " + E(tag) + ": speciale bonussen, bondgenoten en landen inlijven."} Inlijven lukt alleen als dat land kleiner is dan jij.</p>` : focusTab === "pol" ? `<p style="font-size:12.5px">Kies één ideologie, definitief. Die bepaalt je alliantie: 🔵 Geallieerden, ⚫ Asmogendheden, 🔴 Komintern of 👑 Heilige Alliantie.</p>` : ""}
+    <div class="ftree">${Object.keys(rows).sort((a, b) => a - b).map(d => `<div class="frow">${+d === 0 ? "START" : "NIVEAU " + (+d + 1)}</div>` + rows[d].map(node).join("")).join("")}</div>
     <button class="big red" id="fB" type="button">Verder spelen</button>`);
-  $("ovc").onclick = e => { const b = e.target.closest(".fn.ok"); if (!b) return; if (WZ.startFocus(s, s.me, b.dataset.k)) { toast(`🎯 Focus gestart: ${WZ.FOCUS[b.dataset.k].naam}`); focusPanel(); } };
+  $("ovc").onclick = e => {
+    const t = e.target.closest("[data-tab]"); if (t) { focusTab = t.dataset.tab; focusPanel(); return; }
+    const b = e.target.closest(".fn.ok"); if (!b) return; if (WZ.startFocus(s, s.me, b.dataset.k)) { toast(`🎯 Focus gestart: ${WZ.FOCUS[b.dataset.k].naam}`); focusPanel(); }
+  };
   $("fB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
 }
 
@@ -1554,7 +2020,7 @@ const mapKey = () => settings.map === "mega" ? "wereld-mega" : settings.map + "-
 async function loadMap(id) {
   $("loading").classList.remove("hidden");
   if (!mapCache[id]) { const G = await (await fetch("maps/" + id + ".json")).json(); mapCache[id] = WZ.makeWorld(G, id.split("-")[1]); }
-  w = mapCache[id]; mapId = id; W = w.W; H = w.H; N = w.N;
+  w = mapCache[id]; mapId = id; W = w.W; H = w.H; N = w.N; pBox.clear(); sOrd.clear(); sieged = new Set();
   off = document.createElement("canvas"); off.width = W; off.height = H; octx = off.getContext("2d"); img = octx.createImageData(W, H); px = img.data;
   makeTerrain(); $("loading").classList.add("hidden");
 }
@@ -1570,8 +2036,8 @@ async function clearSave() { try { localStorage.removeItem("wwz2"); } catch (e) 
 async function resume(d) {
   closeOv(); await loadMap(d.map); const sv = WZ.deserialize(w, d.json);
   if (!sv || sv.over) { toast("Dit spel kon niet geladen worden"); menu(null); return; }
-  s = sv; picking = false; paintAll(); labelT = -9;
-  $("myName").textContent = s.nations[s.me].name; $("myFlag").style.background = css(col(s.me));
+  s = sv; picking = false; nextEv = s.t + 60; for (const n of s.nations) if (n && n.flagDef) { FL[n.flag] = n.flagDef; delete flagURLs[n.flag]; } paintAll(); labelT = -9;
+  $("myName").textContent = s.nations[s.me].name; setHudFlag();
   $("hud").classList.remove("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.remove("hidden"); $("pctLbl").classList.remove("hidden");
   focusProv(s.nations[s.me].capital, Math.max(minScale() * 2.2, 3 / w.L)); paused = false; $("bPause").textContent = "⏸";
 }
