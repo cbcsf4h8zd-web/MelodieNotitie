@@ -534,7 +534,7 @@ const WZ = (() => {
       n.pool += t.pool; t.pool = 0; t.alive = false; t.provs = 0; t.killedBy = n.id; if (t.fac) leaveFac(s, t.id);
       recountOne(w, s, n.id);
       s.ev.push({ type: "annex", id: n.id, t: t.id, ps });
-      s.ev.push({ type: "dead", id: t.id, by: n.id });
+      s.ev.push({ type: "dead", id: t.id, by: n.id, quiet: true });
     }
   }
   // wachtrij: focussen alvast inplannen; ze starten vanzelf na elkaar
@@ -984,6 +984,8 @@ const WZ = (() => {
         let sc = (nb ? 1 : 0.35) * (0.5 + Math.min(2, ratio)) * (n.ideo && n.ideo === me.ideo ? 1.8 : 1) * (n.target === s.me ? 0.2 : 1) * (0.5 + Math.random());
         if (sc > bs) { bs = sc; best = n; }
       }
+      let uni = null; for (const n of s.nations) if (n && n.alive && n.id !== s.me && allied(s, s.me, n.id) && n.provs <= me.provs * 0.35 && power(s, s.me) > 3 * power(s, n.id) && !(n.refuse && (n.refuse["r" + s.me] || 0) > s.t) && Math.random() < 0.35) { uni = n; break; }
+      if (uni) { s.pendReq = { id: uni.id, kind: "unie" }; s.ev.push({ type: "friendReq", id: uni.id, kind: "unie" }); s.nextReq = s.t + 75 + Math.random() * 60; best = null; }
       if (best && bs > 0.9) { const kind = bs > 1.8 && !nap(s, s.me, best.id) ? "ally" : nap(s, s.me, best.id) ? "ally" : "nap"; s.pendReq = { id: best.id, kind }; s.ev.push({ type: "friendReq", id: best.id, kind }); }
       s.nextReq = s.t + 75 + Math.random() * 60;
     }
@@ -1154,9 +1156,37 @@ const WZ = (() => {
     if (B.pool < price) return { err: B.name + " heeft te weinig troepen" };
     B.pool -= price; me.pool += price; transfer(w, s, id, best, p); return { ok: true, price, to: best };
   }
+  // ---------- unificatie: een land sluit zich vrijwillig bij je aan ----------
+  function unionChance(w, s, id, o) {
+    const A = s.nations[id], B = s.nations[o]; if (!B || !B.alive || o === id) return 0;
+    if (B.provs > A.provs * 0.6) return 0;
+    if (s.armies.some(a => (a.o === o && a.fight === id) || (a.o === id && a.fight === o))) return 0;
+    const ratio = power(s, id) / Math.max(1, power(s, o));
+    let c = 0.08 + (allied(s, id, o) ? 0.35 : 0) + (nap(s, id, o) ? 0.12 : 0) + (A.ideo && A.ideo === B.ideo ? 0.15 : 0) + Math.max(0, Math.min(0.3, (ratio - 1.5) * 0.08));
+    if (B.target === id) c *= 0.3;
+    return Math.max(0, Math.min(0.9, c));
+  }
+  function mergeInto(w, s, id, o) {
+    const A = s.nations[id], B = s.nations[o], ps = [];
+    for (let p = 0; p < w.P; p++) if (s.owner[p] === o) { s.owner[p] = id; if (s.core) s.core[p] = id; ps.push(p); }
+    for (const a of s.armies) if (a.o === o) { a.o = id; a.path = []; a.prog = 0; a.fight = 0; }
+    A.pool += B.pool; B.pool = 0; B.alive = false; B.provs = 0; B.killedBy = id; if (B.fac) leaveFac(s, o);
+    for (const n of s.nations) if (n && n.allies) n.allies = n.allies.filter(x => x !== o);
+    recountOne(w, s, id); s.ev.push({ type: "union", id, t: o, ps }); s.ev.push({ type: "dead", id: o, by: id, quiet: true });
+    return ps;
+  }
+  function askUnion(w, s, id, o) {
+    const B = s.nations[o]; if (!B || !B.alive || o === id) return { err: "kan niet" };
+    if (B.provs > s.nations[id].provs * 0.6) return { err: B.name + " is te groot; het moet duidelijk kleiner zijn dan jij" };
+    B.refuse = B.refuse || {}; if ((B.refuse["u" + id] || 0) > s.t) return { err: B.name + " wil er nu niet over praten (nog " + Math.ceil(B.refuse["u" + id] - s.t) + "s)" };
+    const c = unionChance(w, s, id, o); if (!c) return { err: "jullie zijn in oorlog" };
+    if (Math.random() > c) { B.refuse["u" + id] = s.t + 90; return { err: B.name + " weigert de unificatie" }; }
+    mergeInto(w, s, id, o); return { ok: true };
+  }
   function answerReq(w, s, choice) {
     const r = s.pendReq; s.pendReq = null; if (!r) return { err: "geen verzoek" };
     const B = s.nations[r.id]; if (!B || !B.alive) return { err: "dat land bestaat niet meer" };
+    if (r.kind === "unie") { if (choice === "unie") { mergeInto(w, s, s.me, B.id); return { ok: true, kind: "unie" }; } B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 240; return { ok: true, kind: "no" }; }
     if (choice === "ally") { if (!B.allies.includes(s.me)) B.allies.push(s.me); const me = s.nations[s.me]; if (!me.allies.includes(B.id)) me.allies.push(B.id); stopFighting(s, s.me, B.id); if (B.target === s.me) B.target = 0; return { ok: true, kind: "ally" }; }
     if (choice === "nap") { s.naps = s.naps || {}; s.naps[napKey(s.me, B.id)] = s.t + 300; stopFighting(s, s.me, B.id); if (B.target === s.me) B.target = 0; return { ok: true, kind: "nap" }; }
     B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 240; if (Math.random() < 0.25) { B.target = s.me; B.nextT = s.t + 60; return { ok: true, kind: "angry" }; }
@@ -1273,7 +1303,7 @@ const WZ = (() => {
   function deserialize(w, str) { ensureClaims(w); const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -1833,7 +1863,7 @@ function provCard(p) {
         `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · <span data-amt></span></button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
         ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
         <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>
-      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button></div>` : ""}`, { p });
+      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button><button type="button" data-a="unie" style="grid-column:1/-1">🫱🏻‍🫲🏽 Unificatie vragen<small>${(() => { const c = WZ.unionChance(w, s, s.me, o); return n.provs > me.provs * 0.6 ? "kan alleen met een land dat duidelijk kleiner is" : c ? "heel " + E(n.name) + " sluit zich bij je aan · kans ~" + Math.round(c * 100) + "%" : "niet tijdens een oorlog"; })()}</small></button></div>` : ""}`, { p });
   }
   card.upd = () => {
     const n2 = amt(), pool = s.nations[s.me].pool, need = s.mil[p] + (o && o !== s.me ? defs() : 0);
@@ -1902,6 +1932,7 @@ $("card").addEventListener("click", e => {
   if (act === "buy") { const r = WZ.buyProv(w, s, s.me, p); toast(r.ok ? `💰 Gekocht voor ${fmt(r.price)} troepen!` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "sell") { const r = WZ.sellProv(w, s, s.me, p); toast(r.ok ? `💰 Verkocht aan ${nm(r.to)} voor ${fmt(r.price)} troepen` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "nap") { const r = WZ.offerNap(w, s, s.me, o); toast(r.ok ? `🕊️ Niet-aanvalsverdrag met ${nm(o)} (4 minuten)` : "❌ " + r.err); if (r.ok) provCard(p); return; }
+  if (act === "unie") { const r = WZ.askUnion(w, s, s.me, o); if (r.ok) { onEvents(s.ev.splice(0)); hideCard(); } else toast("❌ " + r.err); return; }
   if (act === "ult") { const r = WZ.ultimatum(w, s, s.me, p); toast(r.ok ? `📜 ${nm(o)} geeft toe! De provincie is van jou` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "send") { const a = nearestArmy(p); if (a) orderTo(a, p); }
   if (act === "ally") { const r = WZ.askAlliance(s, s.me, o); if (r.ok) { toast(r.kind === "join" ? `🤝 Je zit nu in ${r.f.naam}!` : r.kind === "invite" ? `🤝 ${nm(o)} doet mee met ${r.f.naam}!` : `🤝 ${nm(o)} en jij vormen nu ${r.f.naam}!`); provCard(p); } else toast(`❌ ${nm(o)}: ${r.err}`); }
@@ -1945,12 +1976,13 @@ $("alert").onclick = () => { const p = $("alert")._p; if (p >= 0) { focusProv(p,
 function onEvents(evs) {
   for (const e of evs) {
     if (e.type === "capture") { dirty.add(e.q); labelT = -9; if (e.o === s.me && s.t - lastLossToast > 8) { lastLossToast = s.t; toast(`⚠️ ${nm(e.by)} verovert een provincie van je!`); } }
-    else if (e.type === "dead") { if (e.id === s.me) { } else if (e.by === s.me) toast(`💀 Je hebt ${s.nations[e.id].name} verslagen!`); }
+    else if (e.type === "dead") { if (e.id === s.me || e.quiet) { } else if (e.by === s.me) toast(`💀 Je hebt ${s.nations[e.id].name} verslagen!`); }
     else if (e.type === "capital" && e.o === s.me) toast("⚠️ Je hoofdstad is gevallen! Er is een nieuwe gekozen.");
     else if (e.type === "join" && e.id !== s.me && s.nations[s.me].fac && e.fac === s.nations[s.me].fac) toast(`🤝 ${nm(e.id)} sluit zich aan bij je alliantie`);
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
     else if (e.type === "revolt") { dirty.add(e.q); labelT = -9; if (e.id === s.me) toast("🔥 Opstand! Een provincie scheurt zich af. Verhoog je stabiliteit via 🏛️"); }
+    else if (e.type === "union") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🫱🏻‍🫲🏽 ${s.nations[e.t].name} sluit zich bij je aan! +${e.ps.length} provincie${e.ps.length === 1 ? "" : "s"}` : `📢 ${s.nations[e.t].name} gaat op in ${nm(e.id)}`); }
     else if (e.type === "annex") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🤝 Je lijft ${s.nations[e.t].name} in!` : `📢 ${nm(e.id)} lijft ${s.nations[e.t].name} in`); }
     else if (e.type === "annexFail" && e.id === s.me) toast(`❌ ${s.nations[e.t].name} is te groot om in te lijven`);
     else if (e.type === "pact" && (e.id === s.me || e.with === s.me)) toast(`🤝 Bondgenootschap met ${nm(e.id === s.me ? e.with : e.id)}`);
@@ -2008,6 +2040,7 @@ function menu(resumeData) {
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
   <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>🫱🏻‍🫲🏽</i><div><b>Unificatie:</b> tik op een kleiner land en vraag of het zich bij jou aansluit. Bondgenoten en landen met dezelfde ideologie zeggen sneller ja. Kleine bondgenoten vragen het soms zelf.</div></div>
   <div class="st"><i>✉️</i><div><b>Vriendschapsverzoeken:</b> andere landen vragen je soms om bondgenoot te worden of een verdrag te sluiten. Weiger je, dan kan een land beledigd raken.</div></div>
   <div class="st"><i>💰</i><div><b>Politiek:</b> tik op een ander land om een provincie te kopen voor troepen, een verdrag te sluiten of een ultimatum te sturen. Je kunt ook eigen land verkopen.</div></div>
   <div class="st"><i>🏛️</i><div><b>Binnenland:</b> houd je stabiliteit hoog met besluiten en reageer op gebeurtenissen, anders komen er opstanden.</div></div>
@@ -2052,13 +2085,14 @@ function maybeReq() {
   const r = s.pendReq, B = s.nations[r.id]; if (!B || !B.alive) { s.pendReq = null; return; }
   paused = true; hideCard();
   const f = B.fac ? WZ.facOf(s, B.fac) : null, ratio = WZ.power(s, B.id) / Math.max(1, WZ.power(s, s.me));
-  ov(`<h2>✉️ Vriendschapsverzoek</h2>
+  ov(`<h2>${r.kind === "unie" ? "🫱🏻‍🫲🏽 Verzoek tot unificatie" : "✉️ Vriendschapsverzoek"}</h2>
     <div class="fm" style="margin-top:8px"><div class="t"><img alt="" src="${flagURL(flagOf(B))}"><div><b>${E(B.name)}</b><small>${B.ideo ? WZ.IDEO[B.ideo].icon + " " + WZ.IDEO[B.ideo].naam + " · " : ""}${f ? E(f.naam) + " · " : ""}${ratio > 1.2 ? "sterker dan jij" : ratio < 0.8 ? "zwakker dan jij" : "even sterk"}</small></div></div></div>
-    <p>${r.kind === "ally" ? `${E(B.name)} wil je <b style="color:var(--ink)">bondgenoot</b> worden. Bondgenoten vallen elkaar niet aan en helpen elkaar tegen vijanden.` : `${E(B.name)} stelt een <b style="color:var(--ink)">niet-aanvalsverdrag</b> voor: 5 minuten geen oorlog tussen jullie.`}</p>
-    <button class="big red" data-rq="ally" type="button">🤝 Bondgenoot worden</button>
-    <button class="big" data-rq="nap" type="button" style="min-height:48px">🕊️ Alleen een verdrag (5 min)</button>
+    <p>${r.kind === "unie" ? `${E(B.name)} wil zich <b style="color:var(--ink)">bij jou aansluiten</b>. Alle provincies, legers en reserve van ${E(B.name)} worden van jou.` : r.kind === "ally" ? `${E(B.name)} wil je <b style="color:var(--ink)">bondgenoot</b> worden. Bondgenoten vallen elkaar niet aan en helpen elkaar tegen vijanden.` : `${E(B.name)} stelt een <b style="color:var(--ink)">niet-aanvalsverdrag</b> voor: 5 minuten geen oorlog tussen jullie.`}</p>
+    ${r.kind === "unie" ? `<button class="big red" data-rq="unie" type="button">🫱🏻‍🫲🏽 Ja, unificatie!</button>` : `<button class="big red" data-rq="ally" type="button">🤝 Bondgenoot worden</button>
+    <button class="big" data-rq="nap" type="button" style="min-height:48px">🕊️ Alleen een verdrag (5 min)</button>`}
     <button class="big" data-rq="no" type="button" style="min-height:44px;font-size:14px">❌ Weigeren</button>`);
   $("ovc").onclick = e => { const b = e.target.closest("[data-rq]"); if (!b) return; const res = WZ.answerReq(w, s, b.dataset.rq);
+    if (res.kind === "unie") onEvents(s.ev.splice(0)); else
     toast(res.kind === "ally" ? `🤝 ${B.name} is nu je bondgenoot!` : res.kind === "nap" ? `🕊️ Verdrag met ${B.name} (5 minuten)` : res.kind === "angry" ? `😠 ${B.name} is beledigd en wordt je vijand!` : `❌ Je weigert ${B.name}`);
     $("ovc").onclick = null; resumePlay(); };
 }
