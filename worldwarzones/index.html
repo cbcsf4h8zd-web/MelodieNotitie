@@ -895,6 +895,98 @@ const WZ = (() => {
     "2026": { naam: "2026 · Nu", focus: ["industrie", "fabrieken", "mijnbouw", "wegen"], u: [] }
   };
   const ERA_FLAG = { "Verenigd Koninkrijk": "Verenigd Koninkrijk", "Denemarken": "Denemarken", "Roemenië": "Roemenië", "Soedan": "Soedan", "Ethiopië": "Ethiopië" };
+  // ---------- wereldoorlog-scenario's: historisch of willekeurig verloop ----------
+  // gebeurtenis: [tijd(s), soort, wie, doel(en), datum, tekst]
+  const SCEN = {
+    "1914": {
+      facs: [["Entente", "Frankrijk", ["Verenigd Koninkrijk", "Russisch Keizerrijk", "Koninkrijk Servië", "België", "Montenegro"]], ["Centrale Mogendheden", "Duitse Keizerrijk", ["Oostenrijk-Hongarije"]]],
+      vass: [],
+      ev: [
+        [28, "war", "Oostenrijk-Hongarije", ["Koninkrijk Servië"], "28 juli 1914", "Oostenrijk-Hongarije verklaart Servië de oorlog. De Eerste Wereldoorlog begint!"],
+        [34, "war", "Duitse Keizerrijk", ["België", "Frankrijk"], "4 aug 1914", "Het Schlieffenplan: Duitsland valt België en Frankrijk binnen."],
+        [36, "war", "Russisch Keizerrijk", ["Duitse Keizerrijk", "Oostenrijk-Hongarije"], "17 aug 1914", "Rusland valt Oost-Pruisen en Galicië aan."],
+        [38, "war", "Verenigd Koninkrijk", ["Duitse Keizerrijk"], "4 aug 1914", "Groot-Brittannië verklaart Duitsland de oorlog."],
+        [38, "war", "Frankrijk", ["Duitse Keizerrijk"], "6 sep 1914", "Slag aan de Marne: Frankrijk slaat terug."],
+        [60, "join", "Ottomaanse Rijk", "Centrale Mogendheden", "29 okt 1914", "Het Ottomaanse Rijk sluit zich aan bij de Centrale Mogendheden."],
+        [62, "war", "Ottomaanse Rijk", ["Russisch Keizerrijk"], "nov 1914", "Het Ottomaanse Rijk valt Rusland aan in de Kaukasus."],
+        [100, "join", "Koninkrijk Italië", "Entente", "23 mei 1915", "Italië kiest de kant van de Entente."],
+        [102, "war", "Koninkrijk Italië", ["Oostenrijk-Hongarije"], "juni 1915", "Italië valt Oostenrijk-Hongarije aan bij de Isonzo."],
+        [120, "join", "Bulgarije", "Centrale Mogendheden", "14 okt 1915", "Bulgarije sluit zich aan bij de Centrale Mogendheden."],
+        [122, "war", "Bulgarije", ["Koninkrijk Servië"], "okt 1915", "Bulgarije valt Servië aan."],
+        [160, "join", "Roemenië", "Entente", "27 aug 1916", "Roemenië kiest de kant van de Entente."],
+        [162, "war", "Roemenië", ["Oostenrijk-Hongarije"], "aug 1916", "Roemenië valt Transsylvanië binnen."],
+        [220, "join", "Verenigde Staten", "Entente", "6 apr 1917", "De Verenigde Staten verklaren Duitsland de oorlog!"],
+        [222, "war", "Verenigde Staten", ["Duitse Keizerrijk"], "1917", "Amerikaanse troepen steken de oceaan over."],
+        [250, "rev", "Russisch Keizerrijk", "Sovjet-Unie", "nov 1917", "Russische Revolutie! Rusland wordt de Sovjet-Unie en stopt met de oorlog."],
+        [320, "war", "Frankrijk", ["Duitse Keizerrijk"], "aug 1918", "Het Honderddagenoffensief begint."],
+        [320, "war", "Verenigd Koninkrijk", ["Duitse Keizerrijk"], "aug 1918", ""],
+        [320, "war", "Verenigde Staten", ["Duitse Keizerrijk"], "aug 1918", ""]
+      ]
+    },
+    "1936": {
+      facs: [["Asmogendheden", "Duitse Rijk", ["Koninkrijk Italië", "Japans Keizerrijk"], "fasc"], ["Geallieerden", "Verenigd Koninkrijk", ["Frankrijk", "Polen"], "demo"], ["Komintern", "Sovjet-Unie", [], "comm"]],
+      vass: [["Koninkrijk Italië", ["Italiaans Oost-Afrika"]], ["Frankrijk", ["Frans-Noord-Afrika", "Frans-West-Afrika", "Frans-Indochina", "Frans Mandaat"]], ["Verenigd Koninkrijk", ["Brits-Indië"]], ["Nederland", ["Nederlands-Indië"]], ["België", ["Belgisch-Congo"]]],
+      ev: [
+        [30, "war", "Japans Keizerrijk", ["Republiek China"], "7 juli 1937", "Japan valt China binnen."],
+        [42, "annex", "Duitse Rijk", ["Oostenrijk"], "12 mrt 1938", "De Anschluss: Duitsland lijft Oostenrijk in."],
+        [60, "annex", "Duitse Rijk", ["Tsjecho-Slowakije"], "mrt 1939", "Na de Sudetencrisis neemt Duitsland Tsjecho-Slowakije in."],
+        [72, "annex", "Koninkrijk Italië", ["Albanië"], "7 apr 1939", "Italië lijft Albanië in."],
+        [85, "nap", "Duitse Rijk", ["Sovjet-Unie"], "23 aug 1939", "Het Molotov-Ribbentroppact: Duitsland en de Sovjet-Unie beloven elkaar niet aan te vallen."],
+        [90, "war", "Duitse Rijk", ["Polen"], "1 sep 1939", "Duitsland valt Polen binnen. De Tweede Wereldoorlog begint!"],
+        [92, "war", "Verenigd Koninkrijk", ["Duitse Rijk"], "3 sep 1939", "Groot-Brittannië en Frankrijk verklaren Duitsland de oorlog."],
+        [92, "war", "Frankrijk", ["Duitse Rijk"], "3 sep 1939", ""],
+        [96, "war", "Sovjet-Unie", ["Polen"], "17 sep 1939", "De Sovjet-Unie valt Oost-Polen binnen."],
+        [110, "war", "Sovjet-Unie", ["Finland"], "30 nov 1939", "De Winteroorlog: de Sovjet-Unie valt Finland aan."],
+        [130, "war", "Duitse Rijk", ["Denemarken", "Noorwegen"], "9 apr 1940", "Duitsland valt Denemarken en Noorwegen binnen."],
+        [145, "war", "Duitse Rijk", ["Nederland", "België", "Frankrijk"], "10 mei 1940", "Blitzkrieg in het westen: Duitsland valt Nederland, België en Frankrijk binnen."],
+        [150, "war", "Koninkrijk Italië", ["Frankrijk"], "10 juni 1940", "Italië verklaart Frankrijk de oorlog."],
+        [175, "join", "Hongarije", "Asmogendheden", "nov 1940", "Hongarije, Roemenië en Bulgarije sluiten zich aan bij de As."],
+        [175, "join", "Roemenië", "Asmogendheden", "nov 1940", ""],
+        [176, "join", "Bulgarije", "Asmogendheden", "mrt 1941", ""],
+        [190, "war", "Duitse Rijk", ["Joegoslavië", "Griekenland"], "6 apr 1941", "De Balkanveldtocht: Duitsland valt Joegoslavië en Griekenland binnen."],
+        [215, "endnap", "Duitse Rijk", ["Sovjet-Unie"], "22 juni 1941", "Operatie Barbarossa: Duitsland valt de Sovjet-Unie aan!"],
+        [216, "war", "Duitse Rijk", ["Sovjet-Unie"], "22 juni 1941", ""],
+        [217, "join", "Sovjet-Unie", "Geallieerden", "juli 1941", "De Sovjet-Unie sluit zich aan bij de Geallieerden."],
+        [240, "join", "Verenigde Staten", "Geallieerden", "7 dec 1941", "Pearl Harbor! Japan valt de Verenigde Staten aan, die nu meedoen met de Geallieerden."],
+        [241, "war", "Japans Keizerrijk", ["Verenigde Staten", "Nederlands-Indië", "Brits-Indië"], "dec 1941", ""],
+        [242, "war", "Verenigde Staten", ["Japans Keizerrijk", "Duitse Rijk"], "dec 1941", ""],
+        [300, "war", "Verenigd Koninkrijk", ["Koninkrijk Italië"], "juli 1943", "De Geallieerden landen op Sicilië."],
+        [340, "war", "Verenigd Koninkrijk", ["Duitse Rijk"], "6 juni 1944", "D-Day: de Geallieerden landen in Normandië!"],
+        [340, "war", "Verenigde Staten", ["Duitse Rijk"], "6 juni 1944", ""],
+        [341, "war", "Sovjet-Unie", ["Duitse Rijk"], "juni 1944", "Operatie Bagration: het Rode Leger rukt op naar Berlijn."]
+      ]
+    }
+  };
+  const byName = (s, name) => { const id = s.scen && s.scen.ids && s.scen.ids[name]; const n = id ? s.nations[id] : s.nations.find(n => n && n.alive && n.name === name); return n && n.alive ? n : null; };
+  function setupScen(w, s, year, hist) {
+    const sc = SCEN[year]; if (!sc) return; s.scen = { y: year, hist: !!hist, i: 0, ids: {} }; for (const n of s.nations) if (n) s.scen.ids[n.name] = n.id;
+    for (const [naam, lead, rest, ideo] of sc.facs) { const L = byName(s, lead); if (!L) continue; const f = makeFac(s, L.id, naam); if (ideo) { f.ideo = ideo; L.ideo = ideo; L.pref = ideo; } for (const r of rest) { const n = byName(s, r); if (n && !n.fac) { joinFac(s, n.id, f.id); if (ideo) { n.ideo = ideo; n.pref = ideo; } } } }
+    for (const [lord, list] of sc.vass) { const L = byName(s, lord); if (!L) continue; for (const v of list) { const n = byName(s, v); if (n) { n.overlord = L.id; n.vassalSince = -999; n.allies = [L.id]; } } }
+    s.ev = [];
+  }
+  function scenTick(w, s) {
+    const sc = s.scen && SCEN[s.scen.y]; if (!sc || !s.scen.hist) return;
+    while (s.scen.i < sc.ev.length && sc.ev[s.scen.i][0] <= s.t) {
+      const [, kind, who, what, datum, tekst] = sc.ev[s.scen.i++]; const A = byName(s, who); if (!A) continue;
+      const targets = Array.isArray(what) ? what.map(n => byName(s, n)).filter(Boolean) : [];
+      if (A.id === s.me) { (s.histPend = s.histPend || []).push({ kind, who, what, datum, tekst }); continue; }
+      applyHist(w, s, A, kind, what, targets);
+      if (tekst) s.ev.push({ type: "hist", datum, tekst, id: A.id });
+    }
+  }
+  function applyHist(w, s, A, kind, what, targets) {
+    if (kind === "war") for (const T of targets) { if (allied(s, A.id, T.id) && A.fac && A.fac === T.fac) continue; A.allies = A.allies.filter(x => x !== T.id); T.allies = T.allies.filter(x => x !== A.id); if (s.naps) delete s.naps[napKey(A.id, T.id)]; A.lockT = T.id; A.lockUntil = s.t + 160; A.target = T.id; if (T.bot) { T.lockT = A.id; T.lockUntil = s.t + 120; T.target = A.id; } }
+    else if (kind === "annex") for (const T of targets) { if (T.id === s.me || T.provs > A.provs * 0.8) { if (T.id !== s.me && !T.overlord) makeVassal(w, s, A.id, T.id); else { A.lockT = T.id; A.lockUntil = s.t + 160; A.target = T.id; } } else mergeInto(w, s, A.id, T.id); }
+    else if (kind === "join") { const f = s.factions.find(f => f.naam === what); if (f && A.fac !== f.id) { if (A.fac) leaveFac(s, A.id); joinFac(s, A.id, f.id); if (f.ideo) A.ideo = f.ideo; } }
+    else if (kind === "nap") for (const T of targets) { s.naps = s.naps || {}; s.naps[napKey(A.id, T.id)] = s.t + 600; stopFighting(s, A.id, T.id); }
+    else if (kind === "endnap") for (const T of targets) { if (s.naps) delete s.naps[napKey(A.id, T.id)]; }
+    else if (kind === "rev") { A.name = what; A.flag = what; A.ideo = "comm"; if (A.fac) leaveFac(s, A.id); for (const n of s.nations) if (n && n.alive && n.id !== A.id && hostile(s, A.id, n.id) && n.fac) { s.naps = s.naps || {}; s.naps[napKey(A.id, n.id)] = s.t + 400; stopFighting(s, A.id, n.id); } A.lockT = 0; }
+  }
+  function answerHist(w, s, yes) {
+    const h = (s.histPend || []).shift(); if (!h || !yes) return h;
+    const A = byName(s, h.who) || s.nations[s.me]; const targets = Array.isArray(h.what) ? h.what.map(n => byName(s, n)).filter(Boolean) : [];
+    applyHist(w, s, A, h.kind, h.what, targets); return h;
+  }
   function newCountryGame(w, opts) {
     const diff = DIFF[opts.diff] ? opts.diff : "standaard";
     const s = { v: 2, mode: "landen", t: 0, diff, map: opts.map, size: opts.size, owner: new Int16Array(w.P), mil: new Float32Array(w.P), nations: [null], armies: [], factions: [], seq: 1, over: null, winner: 0, ev: [], me: 0, peaceUntil: PEACE, think: 0 };
@@ -923,6 +1015,7 @@ const WZ = (() => {
     s.formedBy = {}; for (const n of s.nations) if (n && FORMS.some(f => f.naam === n.name)) { s.formedBy[n.name] = n.id; n.formed = [n.name]; }
     recount(w, s);
     for (const f of formsFor(w)) if (!s.formedBy[f.naam]) for (const n of s.nations) if (n && formProgress(w, s, n.id, f).ok) { s.formedBy[f.naam] = -1; break; }
+    setupScen(w, s, s.year, opts.hist !== false && opts.hist !== "rand");
     for (const n of s.nations) if (n) calcFx(n);
     s.core = Array.from(s.owner);
     recount(w, s);
@@ -1146,6 +1239,7 @@ const WZ = (() => {
       if (!s.pendReq && best && bs > 0.9) { const kind = bs > 1.8 && !nap(s, s.me, best.id) ? "ally" : nap(s, s.me, best.id) ? "ally" : "nap"; s.pendReq = { id: best.id, kind }; s.ev.push({ type: "friendReq", id: best.id, kind }); }
       s.nextReq = s.t + 75 + Math.random() * 60;
     }
+    scenTick(w, s);
     // stabiliteit van de speler
     const ME = s.nations[s.me];
     if (ME && ME.alive && s.mode) {
@@ -1158,6 +1252,7 @@ const WZ = (() => {
       for (const n of s.nations) if (n && n.alive) for (const f of fs) {
         if ((n.formed || []).includes(f.naam) || (s.formedBy && s.formedBy[f.naam] && (s.formedBy[f.naam] > 0 || n.bot))) continue;
         if (!f.ids.includes(w.pCtry[n.capital]) && n.id !== s.me) continue;
+        if (n.bot && s.scen && s.scen.hist && s.scen.i < (SCEN[s.scen.y] || { ev: [] }).ev.length) continue; // geen rijken vormen tijdens het historische verloop
         if (n.bot && n.lastForm !== undefined && s.t - n.lastForm < 150) continue;
         const pr = formProgress(w, s, n.id, f);
         if (!pr.ok) continue;
@@ -1513,7 +1608,9 @@ const WZ = (() => {
       if (!n.target) return;
     }
     // doel kiezen
-    if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target) || nap(s, id, n.target))) {
+    const lk = n.lockT && s.t < (n.lockUntil || 0) && s.nations[n.lockT] && s.nations[n.lockT].alive && !allied(s, id, n.lockT) && !nap(s, id, n.lockT);
+    if (lk) n.target = n.lockT;
+    else if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target) || nap(s, id, n.target))) {
       n.nextT = s.t + 25 + Math.random() * 25;
       if (n.overlord) { const ov = s.nations[n.overlord]; if (ov && ov.alive && ov.target && !allied(s, id, ov.target)) { n.target = ov.target; return; } }
       if (!n.overlord && Math.random() < 0.06) { for (const q of (n.nbTags || [])) { const t = s.nations.find(x => x && x.alive && x.bot && tagOf(x) === q && x.id !== id && !x.overlord && x.provs <= 3); if (t && t.id !== s.me && power(s, id) > 4 * power(s, t.id) && !s.nations.some(v => v && v.overlord === t.id)) { makeVassal(w, s, id, t.id); break; } } }
@@ -1572,7 +1669,7 @@ const WZ = (() => {
   const realTiles = (s, id) => { const n = s.nations[id]; if (!n) return 0; let t = n.tiles; for (const v of s.nations) if (v && v.alive && v.overlord === id) t += v.tiles; return t; };
   const share = (w, s, id) => s.nations[id] ? realTiles(s, id) / w.landN : 0;
 
-  return { vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -1589,7 +1686,7 @@ let scale = 1, ox = 0, oy = 0, hlProv = null;
 let speed = 1, paused = false, frac = 0.5, armyFrac = 1, mode = "cmd";
 let sel = null, card = null, picking = false, dirty = new Set(), fullPaint = false;
 let db = null, uid = null;
-let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: "alle", year: "2026" };
+let settings = { map: "europa", size: "normaal", diff: "standaard", mode: "spawn", bots: "20", flag: "alle", year: "2026", hist: "hist" };
 try { Object.assign(settings, JSON.parse(localStorage.getItem("wwz2set") || "{}")); } catch (e) { }
 if (!settings.v3) { settings.map = "mega"; settings.v3 = 1; }
 if (settings.flag === true) settings.flag = "alle"; if (settings.flag === false) settings.flag = "uit";
@@ -2348,6 +2445,7 @@ function onEvents(evs) {
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
     else if (e.type === "revolt") { dirty.add(e.q); labelT = -9; if (e.id === s.me) toast("🔥 Opstand! Een provincie scheurt zich af. Verhoog je stabiliteit via 🏛️"); }
+    else if (e.type === "hist") { labelT = -9; toast(`📰 ${e.datum} · ${e.tekst}`); }
     else if (e.type === "vassal") { labelT = -9; toast(e.id === s.me ? `👑 ${nm(e.t)} is nu jouw vazal!` : `📢 ${nm(e.t)} wordt vazal van ${nm(e.id)}`); }
     else if (e.type === "split") {
       for (const k of [e.p, e.q]) { pBox.delete(k); sOrd.delete(k); dirty.add(k); for (const r of w.adj[k]) dirty.add(r); } labelT = -9;
@@ -2376,7 +2474,7 @@ function loop(ts) {
   }
   if (dirty.size) { paintProvs(dirty); dirty.clear(); }
   if (s && ts - siegeT > 120) { siegeT = ts; paintSieges(); }
-  if (s && !picking && ts - lastHud > 250) { maybeReq(); maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
+  if (s && !picking && ts - lastHud > 250) { maybeHist(); maybeReq(); maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
   // tekenvlak moet precies even groot zijn als het scherm, anders wordt de kaart uitgerekt (iPad na draaien)
   if (cv.clientWidth && (cv.clientWidth !== VW || cv.clientHeight !== VH)) resize();
   render();
@@ -2396,15 +2494,18 @@ function menu(resumeData) {
     ${resumeData ? `<button class="big red" id="mRes" type="button">▶ Verder met je spel als ${E(resumeData.naam || "")}</button><div class="lab">Of begin opnieuw</div>` : ""}
     <div class="lab">Spelvorm</div>${opts("oMode", [["spawn", "🌱 Startplek kiezen (RoFront)"], ["landen", "🗺️ Echte landen (HOI)"]], settings.mode)}
     <div id="yearBox" class="${settings.mode === "spawn" ? "hidden" : ""}"><div class="lab">Startjaar</div>${opts("oYear", Object.entries(WZ.ERAS).map(([k, e]) => [k, e.naam]), settings.year)}</div>
+    <div id="histBox" class="${settings.mode !== "spawn" && (settings.year === "1914" || settings.year === "1936") ? "" : "hidden"}"><div class="lab">Verloop van de oorlog</div>${opts("oHist", [["hist", "📜 Historisch"], ["rand", "🎲 Willekeurig"]], settings.hist)}<div style="font-size:12.5px;color:var(--muted);margin-top:6px">📜 Echte gebeurtenissen op hun moment: Anschluss, Polen 1939, Barbarossa, Pearl Harbor, D-Day … · 🎲 Zelfde allianties, maar alles kan anders lopen.</div></div>
     <div id="botsBox" class="${settings.mode === "spawn" ? "" : "hidden"}"><div class="lab">Tegenstanders</div>${opts("oBots", [["10", "10"], ["20", "20"], ["40", "40"], ["70", "70"], ["120", "120"]], settings.bots)}</div>
     <div class="lab">Kaart</div>${opts("oMap", MAPS, settings.map)}
     <div id="sizeBox" class="${settings.map === "mega" ? "hidden" : ""}"><div class="lab">Grootte</div>${opts("oSize", [["normaal", "Normaal · ~320 provincies"], ["groot", "Groot · ~560 provincies"]], settings.size)}</div><div id="megaNote" class="${settings.map === "mega" ? "" : "hidden"}" style="font-size:12.5px;color:var(--muted);margin-top:6px">🌐 Alle continenten in groot formaat op één wereldkaart · ~2200 provincies · lange potjes</div>
     <div class="lab">Moeilijkheid</div>${opts("oDiff", [["relaxed", "😌 Relaxed"], ["standaard", "⚔️ Standaard"], ["brutaal", "💀 Brutaal"]], settings.diff)}
     <button class="big ${resumeData ? "" : "red"}" id="mGo" type="button">${settings.mode === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"}</button>
     <button class="big" id="mHelp" type="button" style="min-height:44px;font-size:14px">❔ Hoe speel je?</button>`);
-  bindOpts("oMode", v => { settings.mode = v; keepSet(); $("botsBox").classList.toggle("hidden", v !== "spawn"); $("yearBox").classList.toggle("hidden", v === "spawn"); $("mGo").textContent = v === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"; });
+  bindOpts("oMode", v => { settings.mode = v; keepSet(); $("botsBox").classList.toggle("hidden", v !== "spawn"); $("yearBox").classList.toggle("hidden", v === "spawn"); $("histBox").classList.toggle("hidden", v === "spawn" || !(settings.year === "1914" || settings.year === "1936")); $("mGo").textContent = v === "spawn" ? "🌱 Kies je startplek" : "🌍 Kies je land"; });
   bindOpts("oBots", v => { settings.bots = v; keepSet(); });
-  bindOpts("oYear", v => { settings.year = v; keepSet(); });
+  const histVis = () => $("histBox").classList.toggle("hidden", settings.mode === "spawn" || !(settings.year === "1914" || settings.year === "1936"));
+  bindOpts("oYear", v => { settings.year = v; keepSet(); histVis(); });
+  bindOpts("oHist", v => { settings.hist = v; keepSet(); });
   bindOpts("oMap", v => { settings.map = v; keepSet(); $("sizeBox").classList.toggle("hidden", v === "mega"); $("megaNote").classList.toggle("hidden", v !== "mega"); }); bindOpts("oSize", v => { settings.size = v; keepSet(); }); bindOpts("oDiff", v => { settings.diff = v; keepSet(); });
   $("mGo").onclick = () => { clearSave(); startPick(); };
   $("mHelp").onclick = () => help(() => menu(resumeData));
@@ -2433,7 +2534,7 @@ const HELP = `<div class="help">
 function help(back) { ov(`<h2>❔ Hoe speel je?</h2>${HELP}<button class="big red" id="hB" type="button">Snap ik</button>`); $("hB").onclick = back; }
 async function startPick() {
   closeOv(); await loadMap(mapKey());
-  s = WZ.newGame(w, { mode: settings.mode, bots: +settings.bots, diff: settings.diff, map: mapId, size: settings.size, year: settings.year }); s.me = 0;
+  s = WZ.newGame(w, { mode: settings.mode, bots: +settings.bots, diff: settings.diff, map: mapId, size: settings.size, year: settings.year, hist: settings.hist }); s.me = 0;
   $("pickHint").textContent = s.mode === "spawn" ? "🌱 Tik op een plek in niemandsland om te beginnen" : "👆 Tik op het land waarmee je wilt spelen";
   fullPaint = true; paintAll(); labelT = -9;
   picking = true; $("pickHint").classList.remove("hidden"); $("hud").classList.add("hidden"); $("bottom").classList.remove("hidden"); $("bar").classList.add("hidden"); $("pctLbl").classList.add("hidden");
@@ -2456,6 +2557,16 @@ const EVENTS = [
 ];
 const REVOLT_EV = ["🔥 Onrust in de provincies", "Opstandelingen grijpen naar de wapens. Je stabiliteit is laag!", ["Stuur troepen", { pool: -0.2, stab: 6 }, "−20% reserve, +6 stabiliteit"], ["Laat ze gaan", { lose: 1, stab: 5 }, "je verliest een provincie, +5 stabiliteit"]];
 let nextEv = 70 + Math.random() * 40;
+function maybeHist() {
+  if (!s || s.over || picking || !s.histPend || !s.histPend.length || !$("ov").classList.contains("hidden")) return;
+  const h = s.histPend[0]; paused = true; hideCard();
+  ov(`<h2>📜 Historisch moment</h2><p style="font-size:13px;color:var(--gold);font-weight:800">${E(h.datum)}</p>
+    <p>${E(h.tekst || "")}</p><p style="font-size:12.5px">In de echte geschiedenis deed ${E(h.who)} dit nu. Volg jij de geschiedenis, of kies je je eigen weg?</p>
+    <button class="big red" data-hs="1" type="button">📜 Ja, zoals in de geschiedenis</button>
+    <button class="big" data-hs="0" type="button" style="min-height:48px">🎲 Nee, ik kies zelf</button>`);
+  $("ovc").onclick = e => { const b = e.target.closest("[data-hs]"); if (!b) return; const h2 = WZ.answerHist(w, s, b.dataset.hs === "1"); onEvents(s.ev.splice(0)); labelT = -9;
+    toast(b.dataset.hs === "1" ? "📜 " + (h2 && h2.kind === "war" ? "Oorlog! Val nu aan." : "Uitgevoerd.") : "🎲 Je schrijft je eigen geschiedenis."); $("ovc").onclick = null; resumePlay(); };
+}
 function maybeReq() {
   if (!s || s.over || picking || !s.pendReq || !$("ov").classList.contains("hidden")) return;
   const r = s.pendReq, B = s.nations[r.id]; if (!B || !B.alive) { s.pendReq = null; return; }
