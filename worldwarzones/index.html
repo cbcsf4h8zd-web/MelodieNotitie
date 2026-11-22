@@ -151,14 +151,6 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 #pickHint{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top));z-index:5;background:var(--gold);color:#1b1206;font-weight:900;border-radius:12px;padding:10px 14px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.5);text-align:center}
 #loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;background:#07101d;font-weight:800;color:var(--muted)}
 </style>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="WorldWarZones">
-<meta name="application-name" content="WorldWarZones">
-<meta name="theme-color" content="#050505">
-<link rel="apple-touch-icon" href="icon-180.png?v=3">
-<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
 <canvas id="cv"></canvas>
@@ -168,7 +160,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
   <div id="me">
     <div class="nm"><span class="flag" id="myFlag"></span><span id="myName"></span></div>
     <div class="bar"><i id="poolBar"></i></div>
-    <div class="row"><span>🪖 <b id="pool">0</b></span><span>🗺️ <b id="share">0%</b> / <span id="goal">60%</span></span><span id="stab">😐 60</span><span id="clock">0:00</span></div>
+    <div class="row"><span>🪖 <b id="pool">0</b></span><span>🗺️ <b id="share">0%</b> / <span id="goal">60%</span></span><span id="stab">😐 60</span><span id="pp" title="Politieke macht">⚜️ 0</span><span id="clock">0:00</span></div>
     <div id="focusLine"></div>
   </div>
   <div id="tr">
@@ -200,9 +192,9 @@ const WZ = (() => {
   "use strict";
   const WIN = 0.5;
   const DIFF = {
-    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, meAtk: 2.2, prod: 0.75, aggr: 0.42, think: 1.9, meBonus: 1.3, focusMe: 0.45, meProd: 1.5, coalMe: 0.15 },
-    standaard: { naam: "Standaard", capMe: 2.2, protect: 150, ftime: 1.4, fxs: 0.7, meAtk: 1.8, prod: 0.85, aggr: 0.62, think: 1.4, meBonus: 1.1, focusMe: 0.6, meProd: 1.35, coalMe: 0.45 },
-    brutaal: { naam: "Brutaal", capMe: 1.4, protect: 75, ftime: 1, fxs: 1, meAtk: 1.25, prod: 1.35, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
+    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, meAtk: 1.7, prod: 0.75, aggr: 0.42, think: 1.9, meBonus: 1.3, focusMe: 0.45, meProd: 1.5, coalMe: 0.15 },
+    standaard: { naam: "Standaard", capMe: 1.8, protect: 150, ftime: 1.4, fxs: 0.75, meAtk: 1.45, prod: 0.9, aggr: 0.7, think: 1.3, meBonus: 1.1, focusMe: 0.75, meProd: 1.2, coalMe: 0.6 },
+    brutaal: { naam: "Brutaal", capMe: 1.4, protect: 75, ftime: 1, fxs: 1, meAtk: 1.0, prod: 1.4, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
   };
   const K = 0.07;               // gevechtskracht per seconde
   const PEACE = 25;             // seconden voorbereiding
@@ -404,10 +396,102 @@ const WZ = (() => {
     const f = { rate: 1, cap: 1, atk: 1, def: 1, speed: 1, sea: 1 }, sc = n.bot ? (n.fxs || 1) : 1;
     for (const k of (n.focus ? n.focus.done : [])) { const F = FOCUS[k]; if (F) for (const e in F.fx) f[e] += F.fx[e] * sc; }
     if (n.intFx) for (const e in n.intFx) f[e] += n.intFx[e];
+    if (n.leader && LEADERS[n.leader.type]) for (const e in LEADERS[n.leader.type].fx) f[e] += LEADERS[n.leader.type].fx[e];
+    for (const k of (n.adv || [])) { const A = ADVISORS[k]; if (A) for (const e in A.fx) f[e] += A.fx[e]; }
+    if (n.havens) f.sea += Math.min(0.5, n.havens * 0.1);
     for (const fn of (n.formed || [])) { const F = FORMS.find(x => x.naam === fn); if (F) for (const e in RANK[F.rank].fx) f[e] += RANK[F.rank].fx[e] * sc; }
     n.fx = f; return f;
   }
 
+  // ---------- HOI: leiders, adviseurs, generaals, gebouwen, politieke macht ----------
+  const LEADERS = {
+    president: { naam: "President", icon: "🗳️", fx: { rate: 0.1, def: 0.04 }, stab: 10, info: "+10% groei, +4% verdediging, +10 stabiliteit" },
+    generaal: { naam: "Generaal", icon: "🎖️", fx: { atk: 0.12, speed: 0.05 }, stab: -5, info: "+12% aanval, +5% snelheid, −5 stabiliteit" },
+    koning: { naam: "Koning", icon: "👑", fx: { def: 0.1, cap: 0.08 }, stab: 6, info: "+10% verdediging, +8% reserve, +6 stabiliteit" },
+    revolutionair: { naam: "Revolutionair", icon: "✊", fx: { cap: 0.18, atk: 0.04 }, stab: -10, info: "+18% reserve, +4% aanval, −10 stabiliteit" },
+    technocraat: { naam: "Technocraat", icon: "🧪", fx: { rate: 0.07, speed: 0.08 }, stab: 3, info: "+7% groei, +8% snelheid, focussen 15% sneller", focus: 0.15 },
+    keizer: { naam: "Keizer", icon: "🏰", fx: { atk: 0.07, cap: 0.1, def: 0.03 }, stab: 0, info: "+7% aanval, +10% reserve, +3% verdediging" }
+  };
+  const ADVISORS = {
+    industrieel: { naam: "Industrieel", icon: "🏭", kost: 100, fx: { rate: 0.1 }, info: "+10% groei" },
+    wapen: { naam: "Wapenfabrikant", icon: "🔫", kost: 100, fx: { cap: 0.12 }, info: "+12% max. reserve" },
+    theoreticus: { naam: "Militair theoreticus", icon: "📚", kost: 125, fx: { atk: 0.08 }, info: "+8% aanval" },
+    verdediging: { naam: "Verdedigingsexpert", icon: "🧱", kost: 125, fx: { def: 0.1 }, info: "+10% verdediging" },
+    logistiek: { naam: "Minister van Logistiek", icon: "🚚", kost: 100, fx: { speed: 0.1 }, info: "+10% snelheid" },
+    vloot: { naam: "Vlootvoogd", icon: "⚓", kost: 75, fx: { sea: 0.35 }, info: "landingen 35% sterker" },
+    propaganda: { naam: "Propagandaminister", icon: "📣", kost: 100, fx: {}, pp: 0.25, stab: 0.02, info: "+0,25 politieke macht/s, stabiliteit stijgt sneller" },
+    diplomaat: { naam: "Diplomaat", icon: "🎩", kost: 75, fx: {}, dip: 0.15, info: "+15% kans bij unificatie, vazal en verdrag" },
+    spion: { naam: "Spionnenchef", icon: "🕵️", kost: 75, fx: { def: 0.04, atk: 0.03 }, info: "+4% verdediging, +3% aanval" }
+  };
+  const GTRAITS = {
+    aanval: { naam: "Aanvaller", icon: "⚔️", atk: 0.25, info: "+25% aanval" },
+    verdediging: { naam: "Verdediger", icon: "🛡️", def: 0.3, info: "+30% verdediging" },
+    bliksem: { naam: "Bliksemgeneraal", icon: "⚡", speed: 0.35, atk: 0.08, info: "+35% snelheid, +8% aanval" },
+    organisator: { naam: "Organisator", icon: "📦", loss: 0.3, info: "30% minder verliezen" },
+    admiraal: { naam: "Admiraal", icon: "⚓", sea: 0.6, info: "landingen 60% sterker" },
+    held: { naam: "Volksheld", icon: "🎖️", atk: 0.12, def: 0.12, info: "+12% aanval en verdediging" }
+  };
+  const NAMES = {
+    nl: [["Willem", "Jan", "Pieter", "Hendrik", "Johan", "Maurits", "Frederik", "Juliana", "Wilhelmina", "Anna"], ["de Vries", "van Dijk", "Bakker", "Visser", "van Oranje", "de Witt", "Tromp", "de Ruyter"]],
+    de: [["Otto", "Friedrich", "Wilhelm", "Karl", "Heinrich", "Ludwig", "Konrad", "Helmut", "Sophie", "Augusta"], ["von Bismarck", "Schmidt", "Müller", "Weber", "von Moltke", "Brandt", "Adler", "Krause"]],
+    fr: [["Louis", "Charles", "Henri", "Jean", "Philippe", "Marie", "Jeanne", "Émile", "Pierre", "Camille"], ["Dubois", "Martin", "Bernard", "Leclerc", "Moreau", "Lafayette", "Durand", "Valois"]],
+    en: [["George", "William", "Edward", "Victoria", "Elizabeth", "Arthur", "Henry", "John", "Margaret", "Thomas"], ["Smith", "Wellington", "Johnson", "Windsor", "Taylor", "Nelson", "Walker", "Clark"]],
+    es: [["Carlos", "Felipe", "Juan", "Isabel", "Fernando", "Diego", "Pablo", "Miguel", "Simón", "Rosa"], ["García", "Bolívar", "Fernández", "López", "Martínez", "San Martín", "Ruiz", "Herrera"]],
+    it: [["Giuseppe", "Vittorio", "Marco", "Giulio", "Lorenzo", "Umberto", "Francesca", "Cesare", "Luca", "Sofia"], ["Garibaldi", "Rossi", "Bianchi", "Ferrari", "Colombo", "Romano", "Cavour", "Esposito"]],
+    ru: [["Pjotr", "Ivan", "Nikolaj", "Aleksandr", "Jekaterina", "Dmitri", "Boris", "Michail", "Olga", "Sergej"], ["Romanov", "Ivanov", "Petrov", "Koetoezov", "Smirnov", "Volkov", "Sokolov", "Novak"]],
+    ar: [["Saladin", "Ahmed", "Omar", "Ali", "Hassan", "Faisal", "Fatima", "Khalid", "Yusuf", "Leila"], ["al-Rashid", "Hussein", "al-Mansur", "Nasser", "al-Hakim", "Farouk", "Abbas", "Haddad"]],
+    tr: [["Osman", "Mehmed", "Süleyman", "Selim", "Murad", "Ayşe", "Kemal", "Orhan", "Ahmet", "Fatma"], ["Yilmaz", "Demir", "Öztürk", "Kaya", "Şahin", "Çelik", "Aydın", "Arslan"]],
+    zh: [["Wei", "Li", "Jian", "Mei", "Xiu", "Hong", "Ming", "Lan", "Bo", "Yan"], ["Wang", "Zhao", "Sun", "Huang", "Zhou", "Wu", "Xu", "Lin"]],
+    ja: [["Hiroshi", "Takeshi", "Kenji", "Yuki", "Akira", "Haruto", "Sakura", "Hana", "Ren", "Daichi"], ["Tanaka", "Yamamoto", "Sato", "Oda", "Suzuki", "Takeda", "Watanabe", "Mori"]],
+    af: [["Kwame", "Shaka", "Mansa", "Amina", "Kofi", "Thabo", "Zara", "Sundiata", "Menelik", "Nia"], ["Mensah", "Keita", "Okafor", "Diallo", "Haile", "Nkosi", "Touré", "Banda"]],
+    in: [["Ashoka", "Akbar", "Rajendra", "Shivaji", "Lakshmi", "Arjun", "Priya", "Ravi", "Anil", "Devi"], ["Maurya", "Singh", "Gupta", "Sharma", "Patel", "Rao", "Khan", "Das"]],
+    nordic: [["Gustav", "Erik", "Olaf", "Harald", "Kristina", "Magnus", "Ingrid", "Knut", "Sigrid", "Leif"], ["Vasa", "Andersson", "Larsen", "Hansen", "Nielsen", "Johansson", "Berg", "Lund"]],
+    pl: [["Jan", "Józef", "Kazimierz", "Władysław", "Jadwiga", "Tadeusz", "Stanisław", "Maria", "Piotr", "Zofia"], ["Sobieski", "Kowalski", "Nowak", "Piłsudski", "Wiśniewski", "Lewandowski", "Zieliński", "Kościuszko"]]
+  };
+  const NAMEMAP = { nl: "Nederland,België,Suriname", de: "Duitsland,Oostenrijk,Zwitserland,Luxemburg,Liechtenstein", fr: "Frankrijk,Monaco,Algerije,Senegal,Ivoorkust,Mali,Madagaskar,Tunesië,Kameroen,Haïti", en: "Verenigd Koninkrijk,Ierland,Verenigde Staten,Canada,Australië,Nieuw-Zeeland,Jamaica",
+    es: "Spanje,Mexico,Argentinië,Colombia,Peru,Chili,Venezuela,Cuba,Bolivië,Ecuador,Uruguay,Paraguay,Guatemala,Honduras,Nicaragua,El Salvador,Costa Rica,Panama,Dominicaanse Republiek,Filipijnen,Portugal,Brazilië", it: "Italië,San Marino,Malta", ru: "Rusland,Oekraïne,Wit-Rusland,Kazachstan,Bulgarije,Servië,Kroatië,Slovenië,Bosnië-Herzegovina,Montenegro,Noord-Macedonië,Tsjechië,Slowakije,Moldavië,Kirgizië,Tadzjikistan",
+    ar: "Egypte,Saudi-Arabië,Irak,Syrië,Jordanië,Libanon,Jemen,Oman,Verenigde Arabische Emiraten,Qatar,Koeweit,Bahrein,Libië,Marokko,Soedan,Palestina,Iran,Afghanistan", tr: "Turkije,Azerbeidzjan,Turkmenistan,Oezbekistan", zh: "China,Taiwan,Mongolië,Vietnam,Hong Kong,Singapore,Noord-Korea,Zuid-Korea", ja: "Japan",
+    in: "India,Pakistan,Bangladesh,Nepal,Sri Lanka,Bhutan,Myanmar", nordic: "Zweden,Noorwegen,Denemarken,Finland,IJsland,Estland,Letland,Groenland", pl: "Polen,Litouwen,Hongarije,Roemenië" };
+  const POOLOF = {}; for (const [k, l] of Object.entries(NAMEMAP)) for (const c of l.split(",")) POOLOF[c] = k;
+  const hashS = str => { let x = 7; for (const c of String(str)) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; };
+  function leaderName(n, k) {
+    const pk = POOLOF[tagOf(n)] || (Object.keys(NAMES)[hashS(tagOf(n)) % Object.keys(NAMES).length]); const [F, L] = NAMES[pk];
+    const h = hashS(tagOf(n) + k) >>> 0; return pk === "zh" ? L[h % L.length] + " " + F[(h >>> 5) % F.length] : F[h % F.length] + " " + L[(h >>> 7) % L.length];
+  }
+  // vier leiders om uit te kiezen, vast per land
+  function leaderOptions(n) { const ks = Object.keys(LEADERS), h = hashS(tagOf(n)) >>> 0; const out = []; for (let i = 0; out.length < 4; i++) { const k = ks[(h + i * 7) % ks.length]; if (!out.includes(k)) out.push(k); } return out.map(k => ({ type: k, naam: leaderName(n, k) })); }
+  function setLeader(s, id, type, free) {
+    const n = s.nations[id], L = LEADERS[type]; if (!n || !L) return { err: "onbekend" };
+    if (!free) { if ((n.leaderCd || 0) > s.t) return { err: "pas over " + Math.ceil(n.leaderCd - s.t) + "s" }; if ((n.pp || 0) < 150) return { err: "150 politieke macht nodig" }; n.pp -= 150; n.stab = Math.max(0, (n.stab ?? 60) - 5); }
+    n.leader = { type, naam: (leaderOptions(n).find(o => o.type === type) || { naam: leaderName(n, type) }).naam };
+    n.stab = Math.max(0, Math.min(100, (n.stab ?? 60) + L.stab)); n.leaderCd = s.t + 180; calcFx(n); return { ok: true };
+  }
+  function hireAdvisor(s, id, k) {
+    const n = s.nations[id], A = ADVISORS[k]; n.adv = n.adv || [];
+    if (n.adv.includes(k)) return { err: "al in dienst" }; if (n.adv.length >= 3) return { err: "maximaal 3 adviseurs; ontsla er eerst een" };
+    if ((n.pp || 0) < A.kost) return { err: A.kost + " politieke macht nodig" }; n.pp -= A.kost; n.adv.push(k); calcFx(n); return { ok: true };
+  }
+  function fireAdvisor(s, id, k) { const n = s.nations[id]; n.adv = (n.adv || []).filter(x => x !== k); calcFx(n); return { ok: true }; }
+  const GEN_COST = 50;
+  function hireGeneral(s, id, trait) {
+    const n = s.nations[id]; n.gens = n.gens || []; if (n.gens.length >= 6) return { err: "maximaal 6 generaals" };
+    if ((n.pp || 0) < GEN_COST) return { err: GEN_COST + " politieke macht nodig" }; n.pp -= GEN_COST;
+    const g = { id: s.seq++, trait, naam: leaderName(n, "g" + n.gens.length + trait) }; n.gens.push(g); return { ok: true, g };
+  }
+  function assignGeneral(s, id, gid, a) { const n = s.nations[id]; for (const x of s.armies) if (x.gen === gid) x.gen = 0; if (a) { if (a.o !== id) return { err: "niet jouw leger" }; a.gen = gid; } return { ok: true }; }
+  const genOf = (s, a) => { if (a.gt) return GTRAITS[a.gt]; if (!a.gen) return null; const n = s.nations[a.o], g = n && n.gens && n.gens.find(g => g.id === a.gen); return g ? GTRAITS[g.trait] : null; };
+  // gebouwen in provincies
+  const BLD = { fab: { naam: "Fabriek", icon: "🏭", kost: 0.25, max: 3, info: "+6% groei van je hele land per fabriek" }, bunker: { naam: "Bunker", icon: "🧱", kost: 0.12, max: 3, info: "provincie +50% verdediging per bunker" }, haven: { naam: "Marinebasis", icon: "⚓", kost: 0.15, max: 2, info: "+10% zee voor je hele land", kust: true } };
+  function build(w, s, id, p, k) {
+    const n = s.nations[id], B = BLD[k]; if (s.owner[p] !== id) return { err: "niet jouw provincie" };
+    if (B.kust && !w.coastP[p]) return { err: "alleen aan de kust" };
+    s.bld = s.bld || {}; const b = s.bld[p] = s.bld[p] || {}; if ((b[k] || 0) >= B.max) return { err: "maximaal " + B.max };
+    const cost = poolCap(w, s, id) * B.kost; if (n.pool < cost) return { err: "te weinig reserve (" + Math.round(cost) + " nodig)" };
+    n.pool -= cost; b[k] = (b[k] || 0) + 1; countBld(w, s); if (k === "bunker") s.mil[p] = Math.max(s.mil[p], milMax(w, s, p) * 0.8); return { ok: true, cost };
+  }
+  function countBld(w, s) { for (const n of s.nations) if (n) { n.fabs = 0; n.havens = 0; } if (s.bld) for (const p in s.bld) { const n = s.nations[s.owner[p]]; if (!n) continue; n.fabs += s.bld[p].fab || 0; n.havens += s.bld[p].haven || 0; } for (const n of s.nations) if (n && n.fx) calcFx(n); }
+  const bunk = (s, p) => (s.bld && s.bld[p] && s.bld[p].bunker) || 0;
+  function hoiInit(w, s) { for (const n of s.nations) if (n && !n.leader) { const o = leaderOptions(n); const pick = o[hashS(n.name + "L") % o.length]; n.leader = { type: pick.type, naam: pick.naam }; n.pp = 30; calcFx(n); } }
   // ---------- vormbare rijken ----------
   const RANK = {
     keizerrijk: { naam: "Keizerrijk", icon: "👑", fx: { atk: 0.15, cap: 0.15 }, info: "+15% aanval, +15% max. reserve" },
@@ -1045,7 +1129,7 @@ const WZ = (() => {
   const provVal = (w, s, p, id) => w.val[p] * (s.nations[id] && s.nations[id].capital === p ? 2 : 1) * (!s.core || s.core[p] === id ? 1 : TUNE.core);
   function recountOne(w, s, id) { const n = s.nations[id]; n.tiles = 0; n.provs = 0; n.val = 0; for (let p = 0; p < w.P; p++) if (s.owner[p] === id) { n.tiles += w.size[p]; n.provs++; n.val += provVal(w, s, p, id); } }
   const poolCap = (w, s, id) => (1500 + pval(s.nations[id]) * TUNE.cap) * FX(s.nations[id]).cap;
-  const milMax = (w, s, p) => { if (!s.owner[p]) return w.val[p] * TUNE.neutral; const n = s.nations[s.owner[p]]; return w.val[p] * TUNE.mil * (n && n.capital === p ? 2.2 * (n.id === s.me ? DIFF[s.diff].capMe : 1) : 1) * (n ? 1 + 0.8 / Math.max(1, n.provs) : 1); };
+  const milMax = (w, s, p) => { if (!s.owner[p]) return w.val[p] * TUNE.neutral; const n = s.nations[s.owner[p]]; return (1 + 0.5 * ((s.bld && s.bld[p] && s.bld[p].bunker) || 0)) * w.val[p] * TUNE.mil * (n && n.capital === p ? 2.2 * (n.id === s.me ? DIFF[s.diff].capMe : 1) : 1) * (n ? 1 + 0.8 / Math.max(1, n.provs) : 1); };
   const border = (w, s, p) => { let b = 0; for (const q of w.adj[p]) if (s.owner[q] !== s.owner[p]) b++; return b; };
 
   // ---------- relaties ----------
@@ -1100,7 +1184,7 @@ const WZ = (() => {
     n.pool -= amount;
     const idle = s.armies.find(a => a.o === id && a.p === p && !a.path.length);
     if (idle) { idle.n += amount; return { ok: true, a: idle, merged: true }; }
-    return { ok: true, a: addArmy(s, id, p, amount) };
+    const na = addArmy(s, id, p, amount); if (n.bot && Math.random() < 0.25) { const ks = Object.keys(GTRAITS); na.gt = ks[(Math.random() * ks.length) | 0]; } return { ok: true, a: na };
   }
   // route mag door vijandelijk land: herhaaldelijk naar de volgende stap rekenen
   function routeDeep(w, s, a, goal) {
@@ -1186,11 +1270,12 @@ const WZ = (() => {
     // productie
     for (const n of s.nations) {
       if (!n || !n.alive) continue;
-      const f = FX(n), cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd * stabMul(n)) * f.rate;
+      const f = FX(n), cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd * stabMul(n)) * f.rate * (1 + 0.06 * (n.fabs || 0));
+      if (!n.bot) { let ppr = 0.6; for (const k of (n.adv || [])) ppr += (ADVISORS[k] && ADVISORS[k].pp) || 0; n.pp = Math.min(999, (n.pp || 0) + ppr * dt); }
       { let gain = rate * dt; const ov = n.overlord && s.nations[n.overlord];
         if (ov && ov.alive) { const tr = gain * 0.3; gain -= tr; ov.pool = Math.min(poolCap(w, s, ov.id) * 1.2, ov.pool + tr); } else if (n.overlord) n.overlord = 0;
         n.pool = Math.min(cap, n.pool + gain); }
-      if (n.focus && n.focus.cur) { n.focus.left -= dt; if (n.focus.left <= 0) finishFocus(w, s, n, n.focus.cur); }
+      if (n.focus && n.focus.cur) { n.focus.left -= dt * (n.leader && LEADERS[n.leader.type] && LEADERS[n.leader.type].focus ? 1 + LEADERS[n.leader.type].focus : 1); if (n.focus.left <= 0) finishFocus(w, s, n, n.focus.cur); }
     }
     if (Math.floor(s.t / 5) !== Math.floor((s.t - dt) / 5) || !s._nb) {
       s._nb = 1; const sets = new Map();
@@ -1240,6 +1325,7 @@ const WZ = (() => {
       s.nextReq = s.t + 75 + Math.random() * 60;
     }
     scenTick(w, s);
+    if (!s._hoi) { s._hoi = 1; hoiInit(w, s); countBld(w, s); }
     // stabiliteit van de speler
     const ME = s.nations[s.me];
     if (ME && ME.alive && s.mode) {
@@ -1265,7 +1351,7 @@ const WZ = (() => {
     for (const a of s.armies) {
       if (!a.path.length) { a.fight = 0; continue; }
       const step = a.path[0], qv = step.q, len = Math.max(1, step.sea ? (w.seaAdj[a.p].find(e => e.q === qv) || { d: pdist(w, a.p, qv) }).d + 4 : pdist(w, a.p, qv));
-      const fA = FX(s.nations[a.o]), speed = (step.sea ? 10 * fA.sea : 8) * w.L * TUNE.speed * fA.speed;
+      const fA = FX(s.nations[a.o]), gm = genOf(s, a), speed = (step.sea ? 10 * fA.sea : 8) * w.L * TUNE.speed * fA.speed * (1 + ((gm && gm.speed) || 0));
       const ownQ = s.owner[qv], hostileQ = ownQ === 0 || hostile(s, a.o, ownQ);
       if (ownQ && ownQ !== a.o && nap(s, a.o, ownQ) && !allied(s, a.o, ownQ)) { a.path = []; a.prog = 0; a.fight = 0; continue; }
       if (hostileQ && ownQ !== 0 && (s.t < s.peaceUntil || s.t < (s.nations[ownQ].immuneUntil || 0))) { a.prog = Math.min(a.prog, 0.45); continue; }
@@ -1304,14 +1390,15 @@ const WZ = (() => {
     const defs = s.armies.filter(a => a.p === q && a.prog < 0.5 && (a.o === o || allied(s, a.o, o)) && a.n > 0);
     const A = attackers.reduce((x, a) => x + a.n, 0); if (A <= 0) return;
     const fa = FX(s.nations[attackers[0].o]), fd = FX(s.nations[o]);
-    const meA = attackers[0].o === s.me ? (DIFF[s.diff].meAtk || 1) : 1;
-    const seaPen = (attackers.every(a => a.path[0] && a.path[0].sea) ? 0.7 * Math.min(1.3, fa.sea) : 1) * fa.atk * meA;
-    const capBonus = s.nations[o] && s.nations[o].capital === q ? 1.25 : 1;
+    let gA = 0, gL = 0, gS = 0, gD = 0; for (const a of attackers) { const g = genOf(s, a); if (g) { gA = Math.max(gA, g.atk || 0); gL = Math.max(gL, g.loss || 0); gS = Math.max(gS, g.sea || 0); } }
+    const meA = (attackers[0].o === s.me ? (DIFF[s.diff].meAtk || 1) : 1) * (1 + gA), meL = meA / (1 - gL);
+    const seaPen = (attackers.every(a => a.path[0] && a.path[0].sea) ? 0.7 * Math.min(1.3, fa.sea) * (1 + gS) : 1) * fa.atk * meA;
+    const capBonus = (s.nations[o] && s.nations[o].capital === q ? 1.25 : 1) * (1 + 0.25 * bunk(s, q));
     if (defs.length) {
-      const Dn = defs.reduce((x, a) => x + a.n, 0);
-      const toDef = A * K * seaPen * dt * (0.85 + Math.random() * 0.3), toAtt = Dn * K * 1.2 * capBonus * fd.def * dt * (0.85 + Math.random() * 0.3);
+      const Dn = defs.reduce((x, a) => x + a.n, 0); for (const d of defs) { const g = genOf(s, d); if (g) gD = Math.max(gD, g.def || 0); }
+      const toDef = A * K * seaPen * dt * (0.85 + Math.random() * 0.3), toAtt = Dn * K * 1.2 * capBonus * fd.def * (1 + gD) * dt * (0.85 + Math.random() * 0.3);
       for (const d of defs) d.n -= toDef * d.n / Dn;
-      for (const a of attackers) a.n -= toAtt / meA * a.n / A;
+      for (const a of attackers) a.n -= toAtt / meL * a.n / A;
       if (!s.battles) s.battles = {};
       s.battles[q] = s.t;
       if (o === s.me || attackers.some(a => a.o === s.me)) s.ev.push({ type: "battle", q, by: attackers[0].o, o });
@@ -1320,8 +1407,8 @@ const WZ = (() => {
       if (!s.siege) s.siege = {}; const sg = s.siege[q]; if (!sg || sg.by !== attackers[0].o || s.t - sg.t > 1) s.siege[q] = { by: attackers[0].o, m0: Math.max(m, 1), t: s.t }; else sg.t = s.t;
       s.mil[q] = m - A * K * 1.6 * seaPen * dt;
       // reserve schiet automatisch te hulp bij een aanval op eigen land
-      const Od = s.nations[o]; if (Od && Od.pool > 0) { const give = Math.min(Od.pool, poolCap(w, s, o) * (o === s.me ? 0.05 : 0.01) * dt, Math.max(0, milMax(w, s, q) - s.mil[q])); Od.pool -= give; s.mil[q] += give; }
-      for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt / meA * a.n / A;
+      const Od = s.nations[o]; if (Od && Od.pool > 0) { const give = Math.min(Od.pool, poolCap(w, s, o) * (o === s.me ? 0.03 : 0.012) * dt, Math.max(0, milMax(w, s, q) - s.mil[q])); Od.pool -= give; s.mil[q] += give; }
+      for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt / meL * a.n / A;
       if (s.mil[q] <= 0) capture(w, s, q, attackers);
     }
   }
@@ -1404,6 +1491,7 @@ const WZ = (() => {
     // vreemde legers die nog in deze provincie stonden worden teruggeduwd
     for (const a of s.armies) if (a.p === q && a.o !== by && !allied(s, a.o, by)) { const back = w.adj[q].find(p => s.owner[p] === a.o); if (back !== undefined) { a.p = back; a.path = []; a.prog = 0; } else a.n = 0; }
     s.ev.push({ type: "capture", q, by, o }); if (s.siege) delete s.siege[q];
+    if (s.bld && s.bld[q]) { if (s.bld[q].bunker) s.bld[q].bunker--; countBld(w, s); }
     if (O && !O.bot) O.stab = Math.max(0, (O.stab ?? 60) - 2.5); if (B && !B.bot && o) B.stab = Math.min(100, (B.stab ?? 60) + 0.6);
     if (O && O.capital === q) { // nieuwe hoofdstad
       let best = -1; for (let p = 0; p < w.P; p++) if (s.owner[p] === o && (best < 0 || w.size[p] > w.size[best])) best = p;
@@ -1484,7 +1572,7 @@ const WZ = (() => {
     const ratio = power(s, id) / Math.max(1, power(s, o));
     let c = 0.08 + (allied(s, id, o) ? 0.35 : 0) + (nap(s, id, o) ? 0.12 : 0) + (A.ideo && A.ideo === B.ideo ? 0.15 : 0) + Math.max(0, Math.min(0.3, (ratio - 1.5) * 0.08));
     if (B.target === id) c *= 0.3;
-    return Math.max(0, Math.min(0.9, c));
+    return Math.max(0, Math.min(0.9, c + ((s.nations[id].adv || []).includes("diplomaat") ? 0.15 : 0)));
   }
   function mergeInto(w, s, id, o) {
     const A = s.nations[id], B = s.nations[o], ps = [];
@@ -1509,7 +1597,7 @@ const WZ = (() => {
     if (s.nations.some(v => v && v.alive && v.overlord === o)) return 0;
     const r = power(s, id) / Math.max(1, power(s, o));
     if (r < 1.8) return 0;
-    return Math.max(0, Math.min(0.92, (r - 1.8) * 0.35 + (allied(s, id, o) ? 0.15 : 0) + (B.provs <= 3 ? 0.1 : 0)));
+    return Math.max(0, Math.min(0.92, (r - 1.8) * 0.35 + (allied(s, id, o) ? 0.15 : 0) + (B.provs <= 3 ? 0.1 : 0) + ((s.nations[id].adv || []).includes("diplomaat") ? 0.15 : 0)));
   }
   function makeVassal(w, s, id, o) {
     const B = s.nations[o]; B.overlord = id; B.vassalSince = s.t; B.target = 0;
@@ -1630,6 +1718,7 @@ const WZ = (() => {
       const myS = n.tiles / w.landN;
       n.target = bs > 1.25 / (D.aggr / (1 + myS * TUNE.giant)) ? best : 0;
     }
+    if (Math.random() < 0.02 * D.aggr && n.pool > poolCap(w, s, id) * 0.5) { const own = []; for (let p = 0; p < w.P; p++) if (s.owner[p] === id) own.push(p); const p = own[(Math.random() * own.length) | 0]; if (p !== undefined) build(w, s, id, p, Math.random() < 0.6 ? "fab" : "bunker"); }
     // reserve omzetten in legers
     const maxA = Math.max(2, Math.min(14, Math.round(n.provs / 3) + 1));
     if (n.pool > poolCap(w, s, id) * 0.3 && mine.length < maxA) {
@@ -1669,7 +1758,7 @@ const WZ = (() => {
   const realTiles = (s, id) => { const n = s.nations[id]; if (!n) return 0; let t = n.tiles; for (const v of s.nations) if (v && v.alive && v.overlord === id) t += v.tiles; return t; };
   const share = (w, s, id) => s.nations[id] ? realTiles(s, id) / w.landN : 0;
 
-  return { SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { LEADERS, ADVISORS, GTRAITS, BLD, GEN_COST, leaderOptions, setLeader, hireAdvisor, fireAdvisor, hireGeneral, assignGeneral, genOf, build, countBld, hoiInit, SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -2125,6 +2214,7 @@ function counter(x, y, a, selected) {
   ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineWidth = 2.5; ctx.strokeStyle = "rgba(0,0,0,.7)";
   ctx.strokeText(txt, X + 12 + (tw - 12) / 2, y + 0.5); ctx.fillText(txt, X + 12 + (tw - 12) / 2, y + 0.5);
   if (a.sea) { ctx.font = "13px sans-serif"; ctx.fillText("⛵", x, Y - 8); }
+  const g = WZ.genOf(s, a); if (g) { ctx.font = "11px sans-serif"; ctx.fillText(g.icon, X + tw + 5, Y + 2); }
 }
 function arrowLine(pts, color, width, dash) {
   if (pts.length < 2) return;
@@ -2193,6 +2283,7 @@ function render() {
   if (drag && drag.to >= 0) { const [x, y] = armyPos(drag.a); arrowLine([[scrX(x), scrY(y)], [scrX(w.cx[drag.to]), scrY(w.cy[drag.to])]], "#f5b531", 4); }
   if (frontPts && frontPts.length > 1) { ctx.save(); ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); frontPts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); ctx.strokeStyle = "#f5b531"; ctx.lineWidth = 5; ctx.setLineDash([10, 7]); ctx.stroke(); ctx.restore(); }
   // geselecteerde provincie
+  if (s.bld && scale > 2.2) { ctx.font = "12px sans-serif"; ctx.textAlign = "center"; for (const p in s.bld) { const b = s.bld[p], t = (b.fab ? "🏭" : "") + (b.bunker ? "🧱" : "") + (b.haven ? "⚓" : ""); if (!t || p >= w.P) continue; const x = scrX(w.cx[p]), y = scrY(w.cy[p]) + 16; if (x < -20 || x > VW + 20 || y < -20 || y > VH + 20) continue; ctx.fillText(t, x, y); } }
   if (hlProv && performance.now() < hlProv.until && s.owner[hlProv.p] !== undefined) { const x = scrX(w.cx[hlProv.p]), y = scrY(w.cy[hlProv.p]); ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(x, y, 18 + pulse * 8, 0, 7); ctx.stroke(); ctx.font = "22px sans-serif"; ctx.fillText("📜", x - 11, y - 26); }
   if (card && card.p >= 0 && !card.army) { const x = scrX(w.cx[card.p]), y = scrY(w.cy[card.p]); ctx.strokeStyle = "#f5b531"; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, y, 14 + pulse * 5, 0, 7); ctx.stroke(); }
 }
@@ -2290,6 +2381,7 @@ function setFrac(v, kind) {
   const r = $("trpR"); if (r && document.activeElement !== r) r.value = Math.round(v * 100);
   if (card && card.upd) card.upd();
 }
+const bunkTxt = p => { const b = s.bld && s.bld[p] && s.bld[p].bunker; return b ? " · 🧱×" + b : ""; };
 function provCard(p) {
   sel = null; const o = s.owner[p], me = s.nations[s.me], n = s.nations[o];
   const defs = () => WZ.armiesIn(s, p).filter(a => a.o === o).reduce((x, a) => x + a.n, 0);
@@ -2299,7 +2391,9 @@ function provCard(p) {
       <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` · 🪖 ${fmt(defs())} in je legers hier` : ""}</div>
       ${trpRow("pool")}
       <div class="btns"><button type="button" class="go" data-a="new">➕ Nieuw leger · <span data-amt></span></button><button type="button" data-a="flag">🏳️ Vlag kiezen</button></div>
-      <div class="dip">${p !== me.capital ? `<button type="button" data-a="sell">💰 Verkoop<small>+${fmt(WZ.provPrice(w, s, p))} troepen</small></button>` : `<button type="button" disabled>★ Hoofdstad<small>niet te koop</small></button>`}<button type="button" data-a="int">🏛️ Binnenland<small>stabiliteit ${Math.round(me.stab ?? 60)}</small></button><button type="button" data-a="x">✖️ Sluiten</button></div>`, { p });
+      <div class="dip">${p !== me.capital ? `<button type="button" data-a="sell">💰 Verkoop<small>+${fmt(WZ.provPrice(w, s, p))} troepen</small></button>` : `<button type="button" disabled>★ Hoofdstad<small>niet te koop</small></button>`}<button type="button" data-a="int">🏛️ Regering<small>⚜️ ${Math.floor(me.pp || 0)} macht</small></button><button type="button" data-a="x">✖️ Sluiten</button></div>
+      <div class="dip">${Object.entries(WZ.BLD).map(([k, B]) => { const have = (s.bld && s.bld[p] && s.bld[p][k]) || 0, cost = WZ.poolCap(w, s, s.me) * B.kost, kust = B.kust && !w.coastP[p];
+        return `<button type="button" data-b="${k}" ${have >= B.max || kust ? "disabled" : ""}>${B.icon} ${E(B.naam)} ${have}/${B.max}<small>${kust ? "alleen aan kust" : have >= B.max ? "vol" : fmt(cost) + " troepen"}</small></button>`; }).join("")}</div>`, { p });
   } else if (!o) {
     const nearest0 = nearestArmy(p);
     showCard(`<div class="hd">${fIcon(0)}<div class="ttl">🌱 Niemandsland${regionName(p) ? " · " + E(regionName(p)) : ""}</div><div class="rel">Vrij land</div></div>
@@ -2317,7 +2411,7 @@ function provCard(p) {
     const atkMe = s.armies.some(a => a.o === o && a.fight === s.me);
     const nearest = nearestArmy(p);
     showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${n && n.overlord ? "👑 Vazal van " + E(nm(n.overlord)) : al ? "🤝 Bondgenoot" : WZ.nap(s, s.me, o) ? "🕊️ Verdrag" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
-      <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` + 🪖 ${fmt(defs())} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${al ? "" : ` · <span id="trpW"></span>`}</div>
+      <div class="info">${n && n.leader ? WZ.LEADERS[n.leader.type].icon + " " + E(WZ.LEADERS[n.leader.type].naam) + " " + E(n.leader.naam) + " · " : ""}🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` + 🪖 ${fmt(defs())} soldaten` : ""}${bunkTxt(p)} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${al ? "" : ` · <span id="trpW"></span>`}</div>
       ${al ? "" : trpRow("pool")}
       <div class="btns">${al ? `<button type="button" disabled>🤝 Bondgenoot</button><button type="button" data-a="betray">🗡️ Verraad</button>` :
         `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · <span data-amt></span></button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
@@ -2334,12 +2428,19 @@ function provCard(p) {
   card.upd();
 }
 function nearestArmy(p) { let best = null, bd = Infinity; for (const a of s.armies) if (a.o === s.me) { const d = WZ.pdist(w, a.p, p) + (a.path.length ? 30 : 0); if (d < bd) { bd = d; best = a; } } return best; }
+function genRow(a) {
+  const me = s.nations[s.me], gens = me.gens || [], g = gens.find(x => x.id === a.gen), T = g && WZ.GTRAITS[g.trait];
+  const free = gens.filter(x => !s.armies.some(y => y.gen === x.id));
+  return `<div class="trp" style="margin-top:8px"><div class="tl"><b>${T ? T.icon + " Generaal " + E(g.naam) : "🎖️ Geen generaal"}</b><span>${T ? E(T.naam) + " · " + E(T.info) : free.length ? free.length + " vrij" : "huur er een via 🏛️"}</span></div>
+    <div class="qk">${T ? `<button type="button" data-g="0">Weghalen</button>` : ""}${free.slice(0, 3).map(x => `<button type="button" data-g="${x.id}">${WZ.GTRAITS[x.trait].icon} ${E(x.naam.split(" ").slice(-1)[0])}</button>`).join("")}${!gens.length ? `<button type="button" data-a="int">🏛️ Generaal huren</button>` : ""}</div></div>`;
+}
 function armyCard(a, keep) {
   if (!keep) armyFrac = 1;
   showCard(`<div class="hd">${fIcon(a.o)}<div class="ttl" id="aT"></div><div class="rel" id="aS"></div></div>
     ${trpRow("army")}
     <div class="btns" style="margin-top:9px"><button type="button" data-a="split">✂️ Halveren</button><button type="button" data-a="stop">⛔ Stoppen</button>
     <button type="button" class="go" data-a="reinf">➕ Versterken · <span id="rA"></span></button><button type="button" data-a="x">✖️ Sluiten</button></div>
+    ${a.o === s.me ? genRow(a) : ""}
     <div class="hint">👉 Kies hierboven hoeveel er meegaan, en tik dan op een provincie.</div>`, { army: a, p: a.p });
   card.upd = () => {
     if (!s.armies.includes(a)) return;
@@ -2371,6 +2472,8 @@ function pickCard(o, p) {
     <div class="btns"><button type="button" class="go wide" data-a="play">▶ Speel als ${E(n.name)}</button></div>`, { pick: o, p });
 }
 $("card").addEventListener("click", e => {
+  const bq = e.target.closest("[data-b]"); if (bq && card && card.p >= 0) { const r = WZ.build(w, s, s.me, card.p, bq.dataset.b); toast(r.ok ? `${WZ.BLD[bq.dataset.b].icon} ${WZ.BLD[bq.dataset.b].naam} gebouwd` : "❌ " + r.err); if (r.ok) { dirty.add(card.p); provCard(card.p); } return; }
+  const gq = e.target.closest("[data-g]"); if (gq && card && card.army) { const gid = +gq.dataset.g; if (gid) WZ.assignGeneral(s, s.me, gid, card.army); else { card.army.gen = 0; } armyCard(card.army, true); return; }
   const q = e.target.closest("[data-q]"); if (q && card) { const k = q.closest(".trp").dataset.k; setFrac(+q.dataset.q / 100, k); return; }
   const b = e.target.closest("[data-a]"); if (!b || !card) return; const act = b.dataset.a, c = card;
   if (act === "x") { sel = null; hideCard(); return; }
@@ -2421,6 +2524,7 @@ function hud() {
   else if (fo && Object.keys(WZ.FOCUS).some(k => WZ.focusOk(me, k))) { fl.className = "pick"; fl.textContent = "🎯 Geen focus bezig · tik op 🎯 Focus"; $("bFocus").classList.toggle("glow", !(focusSnooze > s.t)); }
   else { fl.className = ""; fl.textContent = me.ideo ? `${WZ.IDEO[me.ideo].icon} ${WZ.IDEO[me.ideo].naam}` : ""; $("bFocus").classList.remove("glow"); }
   $("bForm").classList.toggle("glow", (s.formReady || []).some(k => !(s.formedBy || {})[k]));
+  $("pp").textContent = "⚜️ " + Math.floor(me.pp || 0);
   { const st = Math.round(me.stab ?? 60); $("stab").textContent = (st >= 65 ? "😀 " : st >= 40 ? "😐 " : st >= 25 ? "😠 " : "🔥 ") + st; $("stab").style.color = st < 25 ? "#f87171" : st < 40 ? "#fbbf24" : ""; $("bInt").classList.toggle("glow", st < 35 || Object.keys(WZ.DECIS).some(k => !((me.cds || {})[k] > s.t) && k === "propaganda" && st < 50)); }
   const pz = $("peace");
   if (me.immuneUntil && s.t < me.immuneUntil && s.t >= s.peaceUntil) { pz.textContent = `🛡️ Startbescherming · nog ${Math.ceil(me.immuneUntil - s.t)}s niemand kan je aanvallen`; pz.classList.remove("hidden"); }
@@ -2474,7 +2578,7 @@ function loop(ts) {
   }
   if (dirty.size) { paintProvs(dirty); dirty.clear(); }
   if (s && ts - siegeT > 120) { siegeT = ts; paintSieges(); }
-  if (s && !picking && ts - lastHud > 250) { maybeHist(); maybeReq(); maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
+  if (s && !picking && ts - lastHud > 250) { leaderPick(); maybeHist(); maybeReq(); maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
   // tekenvlak moet precies even groot zijn als het scherm, anders wordt de kaart uitgerekt (iPad na draaien)
   if (cv.clientWidth && (cv.clientWidth !== VW || cv.clientHeight !== VH)) resize();
   render();
@@ -2514,6 +2618,7 @@ function menu(resumeData) {
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
   <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>⚜️</i><div><b>Regering (🏛️):</b> met politieke macht kies je een leider, huur je adviseurs en generaals. Koppel een generaal aan een leger via het legerkaartje. Op je eigen provincies bouw je fabrieken, bunkers en marinebases.</div></div>
   <div class="st"><i>👑</i><div><b>Vazallen:</b> eis van een zwakker land dat het jouw vazal wordt. Het bestaat door, maar telt mee voor jouw deel van de kaart, betaalt je troepen en vecht met je mee. Later kun je het inlijven.</div></div>
   <div class="st"><i>✂️</i><div><b>Delen:</b> val je een provincie aan terwijl een ander land dat ook doet, dan wordt hij verdeeld. Ieder krijgt het stuk aan zijn eigen kant.</div></div>
   <div class="st"><i>📜</i><div><b>Ultimatums:</b> een veel sterker buurland kan een provincie van je eisen. Geef toe, of weiger en vecht.</div></div>
@@ -2618,19 +2723,56 @@ function maybeEvent() {
     ${[ev[2], ev[3]].map((c, i) => `<button class="big ${i ? "" : "red"}" data-ch="${i}" type="button" style="min-height:54px">${E(c[0])}<br><small style="font-size:12px;font-weight:700;opacity:.85">${E(c[2])}</small></button>`).join("")}`);
   $("ovc").onclick = e => { const b = e.target.closest("[data-ch]"); if (!b) return; const c = b.dataset.ch === "0" ? ev[2] : ev[3]; WZ.applyChoice(w, s, s.me, c[1]); onEvents(s.ev.splice(0)); toast(`${ev[0].split(" ")[0]} ${c[0]}`); $("ovc").onclick = null; resumePlay(); };
 }
-function intPanel() {
-  if (!s || s.over || picking) return; paused = true; hideCard();
-  const me = s.nations[s.me], st = Math.round(me.stab ?? 60), cd = me.cds || {};
-  ov(`<h2>🏛️ Binnenland</h2>
-    <p>Stabiliteit: <b style="color:var(--ink);font-size:18px">${st}</b> / 100 · productie ×${(0.7 + st / 100 * 0.6).toFixed(2)}</p>
+let govTab = "leider";
+function intPanel(tab) {
+  if (!s || s.over || picking) return; paused = true; hideCard(); if (tab) govTab = tab;
+  const me = s.nations[s.me], st = Math.round(me.stab ?? 60), cd = me.cds || {}, pp = Math.floor(me.pp || 0);
+  const tabs = `<div class="ftabs">${[["leider", "👤 Leider"], ["adv", "🧑‍💼 Adviseurs"], ["gen", "🎖️ Generaals"], ["bes", "📜 Besluiten"]].map(([k, l]) => `<button type="button" data-gt="${k}" class="${govTab === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+  let body = "";
+  if (govTab === "leider") {
+    const L = me.leader && WZ.LEADERS[me.leader.type], wait = Math.max(0, Math.ceil((me.leaderCd || 0) - s.t));
+    body = `<div class="fm ok"><div class="t"><span style="font-size:30px">${L ? L.icon : "👤"}</span><div><b>${L ? E(L.naam) + " " + E(me.leader.naam) : "Nog geen leider"}</b><small>${L ? E(L.info) : ""}</small></div></div></div>
+      <p style="font-size:12.5px">Een nieuwe leider kost <b style="color:var(--ink)">150 ⚜️</b> en 5 stabiliteit${wait ? ` · kan weer over ${wait}s` : ""}.</p>
+      ${WZ.leaderOptions(me).filter(o => !me.leader || o.type !== me.leader.type).map(o => { const X = WZ.LEADERS[o.type]; return `<div class="fm"><div class="t"><span style="font-size:26px">${X.icon}</span><div><b>${E(X.naam)} ${E(o.naam)}</b><small>${E(X.info)}</small></div></div><button type="button" data-ld="${o.type}" ${pp < 150 || wait ? "disabled" : ""}>👤 Aan de macht · 150 ⚜️</button></div>`; }).join("")}`;
+  } else if (govTab === "adv") {
+    const adv = me.adv || [];
+    body = `<p style="font-size:12.5px">Je hebt plek voor 3 adviseurs (${adv.length}/3). Ze kosten politieke macht en geven een blijvende bonus.</p>
+      ${Object.entries(WZ.ADVISORS).map(([k, A]) => { const has = adv.includes(k); return `<div class="fm ${has ? "ok" : ""}"><div class="t"><span style="font-size:26px">${A.icon}</span><div><b>${E(A.naam)}</b><small>${E(A.info)}</small></div></div>${has ? `<button type="button" data-af="${k}" style="background:#1c2a3f;color:var(--ink);border-color:var(--line)">❌ Ontslaan</button>` : `<button type="button" data-ah="${k}" ${pp < A.kost || adv.length >= 3 ? "disabled" : ""}>Inhuren · ${A.kost} ⚜️</button>`}</div>`; }).join("")}`;
+  } else if (govTab === "gen") {
+    const gens = me.gens || [];
+    body = `<p style="font-size:12.5px">Een generaal kost <b style="color:var(--ink)">${WZ.GEN_COST} ⚜️</b>. Koppel hem aan een leger via het kaartje van dat leger: zijn bonus geldt voor dat leger.</p>
+      ${gens.map(g => { const T = WZ.GTRAITS[g.trait], a = s.armies.find(x => x.gen === g.id); return `<div class="fm"><div class="t"><span style="font-size:26px">${T.icon}</span><div><b>Generaal ${E(g.naam)}</b><small>${E(T.naam)} · ${E(T.info)} · ${a ? "leidt een leger van " + fmt(a.n) : "zonder leger"}</small></div></div></div>`; }).join("")}
+      <div class="lab">Nieuwe generaal huren (${gens.length}/6)</div>
+      ${Object.entries(WZ.GTRAITS).map(([k, T]) => `<div class="fm"><div class="t"><span style="font-size:26px">${T.icon}</span><div><b>${E(T.naam)}</b><small>${E(T.info)}</small></div></div><button type="button" data-gh="${k}" ${pp < WZ.GEN_COST || gens.length >= 6 ? "disabled" : ""}>Huren · ${WZ.GEN_COST} ⚜️</button></div>`).join("")}`;
+  } else {
+    body = `<p>Stabiliteit: <b style="color:var(--ink);font-size:18px">${st}</b> / 100 · productie ×${(0.7 + st / 100 * 0.6).toFixed(2)}</p>
     <div class="pb" style="height:10px;border-radius:5px;background:#24364f;overflow:hidden"><i style="display:block;height:100%;width:${st}%;background:${st < 25 ? "#ef4444" : st < 40 ? "#f59e0b" : "#22c55e"}"></i></div>
-    <p style="font-size:12.5px">Verlies je provincies, dan daalt je stabiliteit. Onder de 25 komen er opstanden en scheuren provincies af. Hoge stabiliteit geeft meer troepen. Regelmatig gebeurt er iets in je land waarop je moet reageren.</p>
-    <div class="lab">Besluiten</div>
-    ${Object.entries(WZ.DECIS).map(([k, D]) => { const wait = (cd[k] || 0) > s.t; return `<div class="fm ${wait ? "gone" : ""}"><div class="t"><span style="font-size:26px">${D.icon}</span><div><b>${E(D.naam)}</b><small>${E(D.info)}</small></div></div>${wait ? `<small style="display:block;margin-top:6px;color:var(--muted);font-weight:700">⏳ weer mogelijk over ${Math.ceil(cd[k] - s.t)}s</small>` : `<button type="button" data-dc="${k}">${D.icon} Uitvoeren</button>`}</div>`; }).join("")}
+    <p style="font-size:12.5px">Verlies je provincies, dan daalt je stabiliteit. Onder de 25 komen er opstanden. Regelmatig gebeurt er iets in je land waarop je moet reageren.</p>
+    ${Object.entries(WZ.DECIS).map(([k, D]) => { const wait = (cd[k] || 0) > s.t; return `<div class="fm ${wait ? "gone" : ""}"><div class="t"><span style="font-size:26px">${D.icon}</span><div><b>${E(D.naam)}</b><small>${E(D.info)}</small></div></div>${wait ? `<small style="display:block;margin-top:6px;color:var(--muted);font-weight:700">⏳ weer mogelijk over ${Math.ceil(cd[k] - s.t)}s</small>` : `<button type="button" data-dc="${k}">${D.icon} Uitvoeren</button>`}</div>`; }).join("")}`;
+  }
+  ov(`<h2>🏛️ Regering</h2><p>⚜️ Politieke macht: <b style="color:var(--ink);font-size:18px">${pp}</b> · je krijgt er ${(0.6 + (me.adv || []).reduce((x, k) => x + (WZ.ADVISORS[k].pp || 0), 0)).toFixed(2).replace(".", ",")} per seconde bij</p>${tabs}${body}
     <button class="big" id="iB" type="button" style="margin-top:12px">Verder spelen</button>`);
-  $("ovc").onclick = e => { const b = e.target.closest("[data-dc]"); if (!b) return; const r = WZ.decide(w, s, s.me, b.dataset.dc); toast(r.ok ? `${WZ.DECIS[b.dataset.dc].icon} ${WZ.DECIS[b.dataset.dc].naam}` : "❌ " + r.err); intPanel(); };
+  $("ovc").onclick = e => {
+    const t = e.target.closest("[data-gt]"); if (t) { govTab = t.dataset.gt; intPanel(); return; }
+    const b = e.target.closest("[data-dc],[data-ld],[data-ah],[data-af],[data-gh]"); if (!b) return; let r;
+    if (b.dataset.dc) { r = WZ.decide(w, s, s.me, b.dataset.dc); toast(r.ok ? `${WZ.DECIS[b.dataset.dc].icon} ${WZ.DECIS[b.dataset.dc].naam}` : "❌ " + r.err); }
+    if (b.dataset.ld) { r = WZ.setLeader(s, s.me, b.dataset.ld); toast(r.ok ? `👤 Nieuwe leider: ${me.leader.naam}` : "❌ " + r.err); }
+    if (b.dataset.ah) { r = WZ.hireAdvisor(s, s.me, b.dataset.ah); toast(r.ok ? `🧑‍💼 ${WZ.ADVISORS[b.dataset.ah].naam} ingehuurd` : "❌ " + r.err); }
+    if (b.dataset.af) { WZ.fireAdvisor(s, s.me, b.dataset.af); toast(`${WZ.ADVISORS[b.dataset.af].naam} ontslagen`); }
+    if (b.dataset.gh) { r = WZ.hireGeneral(s, s.me, b.dataset.gh); toast(r.ok ? `🎖️ Generaal ${r.g.naam} in dienst · koppel hem aan een leger` : "❌ " + r.err); }
+    intPanel();
+  };
   $("iB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
 }
+// leider kiezen bij de start (gratis)
+function leaderPick() {
+  if (!s || s.over || picking || !$("ov").classList.contains("hidden")) return;
+  const me = s.nations[s.me]; if (!me || !me.alive || me.leaderChosen) return; paused = true; hideCard();
+  ov(`<h2>👤 Kies je leider</h2><p>Wie gaat ${E(me.name)} leiden? Elke leider geeft een eigen bonus. Later wisselen kost politieke macht.</p>
+    ${WZ.leaderOptions(me).map(o => { const X = WZ.LEADERS[o.type]; return `<div class="fm"><div class="t"><span style="font-size:30px">${X.icon}</span><div><b>${E(X.naam)} ${E(o.naam)}</b><small>${E(X.info)}</small></div></div><button type="button" data-lp="${o.type}">Kies deze leider</button></div>`; }).join("")}`);
+  $("ovc").onclick = e => { const b = e.target.closest("[data-lp]"); if (!b) return; WZ.setLeader(s, s.me, b.dataset.lp, true); me.leaderChosen = true; toast(`👤 ${WZ.LEADERS[b.dataset.lp].naam} ${me.leader.naam} leidt nu ${me.name}`); $("ovc").onclick = null; resumePlay(); };
+}
+
 let formTab = "fam", formQ = "";
 function formPanel() {
   const me = s.nations[s.me]; paused = true; hideCard();
