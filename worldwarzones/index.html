@@ -479,7 +479,106 @@ const WZ = (() => {
     ["Khmer-rijk", "keizerrijk", "Cambodja,Thailand,Laos,Vietnam"],
     ["Majapahit", "keizerrijk", "Indonesië,Maleisië,Filipijnen,Brunei,Timor Leste"],
     ["Groot-India", "unie", "India,Pakistan,Bangladesh,Sri Lanka,Nepal,Myanmar"],
-    ["Wereldregering", "unie", "Verenigde Staten,China,Rusland,India,Brazilië,Duitsland,Frankrijk,Verenigd Koninkrijk,Japan,Australië"]
+    ["Wereldregering", "unie", "Verenigde Staten,China,Rusland,India,Brazilië,Duitsland,Frankrijk,Verenigd Koninkrijk,Japan,Australië"],
+    ["Akkadisch Rijk", "keizerrijk", "Irak,Syrië"],
+    ["Assyrisch Rijk", "keizerrijk", "Irak,Syrië,Turkije,Libanon,Israël,Jordanië"],
+    ["Babylonisch Rijk", "keizerrijk", "Irak,Koeweit,Syrië"],
+    ["Achaemenidisch Rijk", "keizerrijk", "Iran,Irak,Turkije,Egypte,Afghanistan,Pakistan,Syrië"],
+    ["Rijk van Alexander de Grote", "keizerrijk", "Griekenland,Noord-Macedonië,Turkije,Egypte,Iran,Irak,Afghanistan"],
+    ["Parthische Rijk", "keizerrijk", "Iran,Irak,Turkmenistan,Afghanistan"],
+    ["Sassanidische Rijk", "keizerrijk", "Iran,Irak,Afghanistan,Azerbeidzjan,Armenië"],
+    ["Kalifaat der Omajjaden", "keizerrijk", "Saudi-Arabië,Syrië,Irak,Egypte,Libië,Tunesië,Algerije,Marokko,Spanje,Iran"],
+    ["Abbasidisch Kalifaat", "keizerrijk", "Irak,Iran,Syrië,Saudi-Arabië,Egypte"],
+    ["Fatimidisch Kalifaat", "keizerrijk", "Egypte,Libië,Tunesië,Algerije,Syrië"],
+    ["Seltsjoekenrijk", "keizerrijk", "Turkije,Iran,Irak,Syrië,Turkmenistan"],
+    ["Timuridisch Rijk", "keizerrijk", "Oezbekistan,Iran,Afghanistan,Turkmenistan,Tadzjikistan"],
+    ["Safavidisch Rijk", "keizerrijk", "Iran,Azerbeidzjan,Armenië,Irak,Afghanistan"],
+    ["Gouden Horde", "keizerrijk", "Rusland,Kazachstan,Oekraïne"],
+    ["Durrani-rijk", "keizerrijk", "Afghanistan,Pakistan,Iran"],
+    ["Maurya-rijk", "keizerrijk", "India,Pakistan,Bangladesh,Afghanistan,Nepal"],
+    ["Gupta-rijk", "keizerrijk", "India,Bangladesh,Nepal"],
+    ["Chola-rijk", "keizerrijk", "India,Sri Lanka,Maldiven"],
+    ["Han-dynastie", "keizerrijk", "China,Vietnam,Noord-Korea,Zuid-Korea,Mongolië"],
+    ["Tang-dynastie", "keizerrijk", "China,Mongolië,Kazachstan,Kirgizië,Vietnam"],
+    ["Ming-dynastie", "keizerrijk", "China,Taiwan,Vietnam"],
+    ["Yuan-dynastie", "keizerrijk", "China,Mongolië,Zuid-Korea,Noord-Korea"],
+    ["Goguryeo", "koninkrijk", "Noord-Korea,Zuid-Korea,China"],
+    ["Songhai-rijk", "keizerrijk", "Mali,Niger,Nigeria,Mauritanië,Burkina Faso"],
+    ["Kanem-Bornu", "keizerrijk", "Tsjaad,Niger,Nigeria,Kameroen,Libië"],
+    ["Aksum-rijk", "koninkrijk", "Ethiopië,Eritrea,Soedan,Jemen,Djibouti"],
+    ["Zoeloe-rijk", "koninkrijk", "Zuid-Afrika,Eswatini,Lesotho"],
+    ["Rijk van Monomotapa", "koninkrijk", "Zimbabwe,Mozambique,Zambia"],
+    ["Kongo-rijk", "koninkrijk", "Congo-Kinshasa,Congo-Brazzaville,Angola,Gabon"],
+    ["Rijk der Farao's", "keizerrijk", "Egypte,Soedan,Libië,Israël"],
+    ["Carthaags Rijk", "keizerrijk", "Tunesië,Algerije,Libië,Spanje,Malta"],
+    ["Koninkrijk Kush", "koninkrijk", "Soedan,Egypte,Zuid-Soedan"],
+    ["Ashanti-rijk", "koninkrijk", "Ghana,Ivoorkust,Togo"],
+    ["Benin-rijk", "koninkrijk", "Nigeria,Benin"],
+    ["Sultanaat Oman-Zanzibar", "koninkrijk", "Oman,Tanzania,Kenia,Somalië"],
+    ["Almohaden-rijk", "keizerrijk", "Marokko,Algerije,Tunesië,Spanje,Portugal,Libië"],
+    ["Maya-rijk", "keizerrijk", "Mexico,Guatemala,Belize,Honduras,El Salvador"],
+    ["Keizerrijk Brazilië", "keizerrijk", "Brazilië,Uruguay,Paraguay"],
+    ["Keizerrijk Mexico", "keizerrijk", "Mexico,Guatemala,Honduras,El Salvador,Nicaragua,Costa Rica"],
+    ["Haïtiaans Keizerrijk", "keizerrijk", "Haïti,Dominicaanse Republiek"],
+    ["Duitse Keizerrijk", "keizerrijk", "Duitsland,Polen,Tsjechië,Litouwen"],
+    ["Habsburgse Rijk", "keizerrijk", "Oostenrijk,Spanje,Nederland,België,Italië,Hongarije,Tsjechië"],
+    ["Napoleontisch Keizerrijk", "keizerrijk", "Frankrijk,België,Nederland,Italië,Duitsland,Spanje,Zwitserland,Luxemburg,Polen"],
+    ["Angevijnse Rijk", "keizerrijk", "Frankrijk,Verenigd Koninkrijk,Ierland"],
+    ["Noordzeerijk", "koninkrijk", "Denemarken,Noorwegen,Verenigd Koninkrijk,Zweden"],
+    ["Vikingrijk", "koninkrijk", "Noorwegen,Denemarken,IJsland,Zweden,Ierland,Groenland"],
+    ["Bulgaars Keizerrijk", "keizerrijk", "Bulgarije,Roemenië,Servië,Noord-Macedonië,Griekenland"],
+    ["Servisch Keizerrijk", "keizerrijk", "Servië,Montenegro,Noord-Macedonië,Albanië,Griekenland,Kosovo,Bosnië-Herzegovina"],
+    ["Groot-Moravië", "koninkrijk", "Tsjechië,Slowakije,Hongarije,Oostenrijk,Polen"],
+    ["Koninkrijk Bohemen", "koninkrijk", "Tsjechië,Oostenrijk,Slowakije"],
+    ["Koninkrijk Jeruzalem", "koninkrijk", "Israël,Palestina,Libanon,Jordanië"],
+    ["Groot-Armenië", "koninkrijk", "Armenië,Azerbeidzjan,Georgië,Turkije,Iran"],
+    ["Kroon van Aragon", "koninkrijk", "Spanje,Italië,Malta,Griekenland"],
+    ["Groot-Siam", "koninkrijk", "Thailand,Laos,Cambodja,Maleisië"],
+    ["Birmees Rijk", "keizerrijk", "Myanmar,Thailand,Laos,Bangladesh"],
+    ["Dai Viet", "koninkrijk", "Vietnam,Laos,Cambodja"],
+    ["Srivijaya-rijk", "koninkrijk", "Indonesië,Maleisië,Singapore,Thailand,Brunei"],
+    ["Sultanaat Brunei", "koninkrijk", "Brunei,Maleisië,Filipijnen"],
+    ["Gorkha-rijk", "koninkrijk", "Nepal,Bhutan,Bangladesh"],
+    ["Tibetaans Rijk", "keizerrijk", "China,Nepal,Bhutan,India,Pakistan"],
+    ["Tonga-rijk", "koninkrijk", "Fiji,Samoa,Tonga,Frans-Polynesië,Nieuw-Zeeland,Cookeilanden"],
+    ["Brits-Amerika", "koninkrijk", "Verenigde Staten,Canada,Bahama's,Jamaica"],
+    ["Peru-Boliviaanse Confederatie", "federatie", "Peru,Bolivië"],
+    ["Hunnenrijk", "keizerrijk", "Hongarije,Roemenië,Oekraïne,Kazachstan,Oostenrijk"],
+    ["Dacisch Rijk", "koninkrijk", "Roemenië,Moldavië,Bulgarije,Hongarije"],
+    ["Pontisch Rijk", "koninkrijk", "Turkije,Georgië,Oekraïne"],
+    ["Ptolemeïsch Rijk", "koninkrijk", "Egypte,Libië,Israël,Cyprus"],
+    ["Golfunie", "unie", "Oman,Jemen,Verenigde Arabische Emiraten,Qatar,Bahrein,Koeweit"],
+    ["Koninkrijk Hejaz", "koninkrijk", "Saudi-Arabië,Jemen,Jordanië"],
+    ["Sokoto-kalifaat", "keizerrijk", "Nigeria,Niger,Kameroen,Burkina Faso"],
+    ["Oyo-rijk", "koninkrijk", "Nigeria,Benin,Togo"],
+    ["Merina-koninkrijk", "koninkrijk", "Madagaskar,Comoren,Mauritius,Seychellen"],
+    ["Koninkrijk Buganda", "koninkrijk", "Oeganda,Rwanda,Burundi,Kenia"],
+    ["Lunda-rijk", "koninkrijk", "Congo-Kinshasa,Angola,Zambia"],
+    ["Australaziatisch Keizerrijk", "keizerrijk", "Australië,Papoea-Nieuw-Guinea,Indonesië,Nieuw-Zeeland"],
+    ["Groot-Japans Keizerrijk", "keizerrijk", "Japan,China,Filipijnen,Indonesië,Vietnam,Thailand"],
+    ["Centraal-Afrikaans Keizerrijk", "keizerrijk", "Centraal-Afrikaanse Republiek,Tsjaad,Kameroen"],
+    ["Senoessi-koninkrijk", "koninkrijk", "Libië,Tsjaad,Niger"],
+    ["Koninkrijk Egypte en Soedan", "koninkrijk", "Egypte,Soedan,Zuid-Soedan"],
+    ["Ajjoebidisch Rijk", "keizerrijk", "Egypte,Syrië,Irak,Jemen,Saudi-Arabië"],
+    ["Mamelukken-sultanaat", "keizerrijk", "Egypte,Syrië,Libanon,Israël,Palestina,Jordanië"],
+    ["Koninkrijk der Beide Siciliën", "koninkrijk", "Italië,Malta"],
+    ["Venetiaanse Republiek", "federatie", "Italië,Kroatië,Cyprus,Griekenland,Montenegro"],
+    ["Hanzebond", "federatie", "Duitsland,Polen,Letland,Estland,Zweden,Litouwen"],
+    ["Bourgondische Nederlanden", "koninkrijk", "Nederland,België,Luxemburg,Frankrijk"],
+    ["Zweeds Rijk", "keizerrijk", "Zweden,Finland,Estland,Letland,Noorwegen"],
+    ["Deens-Noors Rijk", "koninkrijk", "Denemarken,Noorwegen,IJsland,Groenland,Faeröer"],
+    ["Groothertogdom Litouwen", "koninkrijk", "Litouwen,Wit-Rusland,Oekraïne"],
+    ["Keizerrijk India", "keizerrijk", "India,Pakistan,Bangladesh,Myanmar,Sri Lanka"],
+    ["Trans-Atlantische Unie", "unie", "Verenigde Staten,Canada,Verenigd Koninkrijk,Frankrijk,Duitsland"],
+    ["Euraziatische Unie", "unie", "Rusland,Kazachstan,Wit-Rusland,Armenië,Kirgizië"],
+    ["Sahel-federatie", "federatie", "Mali,Niger,Burkina Faso,Tsjaad"],
+    ["Keizerrijk Ethiopië-Somalië", "keizerrijk", "Ethiopië,Somalië,Somaliland,Djibouti,Kenia"],
+    ["Koninkrijk Afghanistan", "koninkrijk", "Afghanistan,Tadzjikistan,Turkmenistan,Oezbekistan"],
+    ["Koninkrijk Hawaï-Polynesië", "koninkrijk", "Samoa,Tonga,Fiji,Vanuatu,Salomonseilanden"],
+    ["Caribisch Rijk", "keizerrijk", "Cuba,Jamaica,Haïti,Dominicaanse Republiek,Puerto Rico,Trinidad en Tobago"],
+    ["Andes-unie", "unie", "Colombia,Ecuador,Peru,Bolivië,Chili,Venezuela"],
+    ["Koninkrijk Araucanië", "koninkrijk", "Chili,Argentinië"],
+    ["Guyana-federatie", "federatie", "Guyana,Suriname,Venezuela"]
   ].map(([naam, rank, req]) => ({ naam, rank, req: req.split(",") }));
   const FORM_NEED = 0.7, FORM_EACH = 0.3;
   // welke vormbare rijken passen op deze kaart: minstens 2 van de landen moeten bestaan
@@ -694,7 +793,7 @@ const WZ = (() => {
       const p = cand[(Math.random() * cand.length) | 0];
       if (s.owner[p]) continue;
       if (s.nations.some(n => n && pdist(w, n.capital, p) < minD) && tries < 3000) continue;
-      const base = w.names[w.pCtry[p]] || "Land"; if (used.has(base) && tries < 3800) continue; const c = (used.get(base) || 0) + 1; used.set(base, c);
+      const base = w.names[w.pCtry[p]] || "Land"; if (used.has(base)) continue; /* nooit twee keer hetzelfde land */ const c = (used.get(base) || 0) + 1; used.set(base, c);
       const id = s.nations.length;
       s.nations.push(newNation(s, id, c > 1 ? base + " " + ["", "", "II", "III", "IV", "V", "VI"][Math.min(c, 6)] : base, id, p));
       spawnAt(w, s, id, p); k++;
@@ -824,7 +923,7 @@ const WZ = (() => {
   // ---------- relaties ----------
   const facOf = (s, fid) => s.factions.find(f => f.id === fid);
   const members = (s, fid) => s.nations.filter(n => n && n.alive && n.fac && n.fac === fid);
-  const allied = (s, a, b) => { if (!a || !b) return false; if (a === b) return true; const A = s.nations[a], B = s.nations[b]; return A.allies.includes(b) || (!!A.fac && A.fac === B.fac); };
+  const allied = (s, a, b) => { if (!a || !b) return false; if (a === b) return true; const A = s.nations[a], B = s.nations[b]; return A.allies.includes(b) || (!!A.fac && A.fac === B.fac) || A.overlord === b || B.overlord === a || (!!A.overlord && A.overlord === B.overlord); };
   const napKey = (a, b) => a < b ? a + "-" + b : b + "-" + a;
   const nap = (s, a, b) => !!(s.naps && s.naps[napKey(a, b)] > s.t);
   const hostile = (s, a, b) => !!a && !!b && !allied(s, a, b) && !nap(s, a, b);
@@ -960,7 +1059,9 @@ const WZ = (() => {
     for (const n of s.nations) {
       if (!n || !n.alive) continue;
       const f = FX(n), cap = poolCap(w, s, n.id), rate = (20 + pval(n) * TUNE.rate) * (n.bot ? D.prod : D.meProd * stabMul(n)) * f.rate;
-      n.pool = Math.min(cap, n.pool + rate * dt);
+      { let gain = rate * dt; const ov = n.overlord && s.nations[n.overlord];
+        if (ov && ov.alive) { const tr = gain * 0.3; gain -= tr; ov.pool = Math.min(poolCap(w, s, ov.id) * 1.2, ov.pool + tr); } else if (n.overlord) n.overlord = 0;
+        n.pool = Math.min(cap, n.pool + gain); }
       if (n.focus && n.focus.cur) { n.focus.left -= dt; if (n.focus.left <= 0) finishFocus(w, s, n, n.focus.cur); }
     }
     if (Math.floor(s.t / 5) !== Math.floor((s.t - dt) / 5) || !s._nb) {
@@ -1058,8 +1159,8 @@ const WZ = (() => {
     const me = s.nations[s.me];
     if (me && !me.alive) { s.over = "lost"; }
     else if (me) {
-      if (me.tiles / w.landN >= me.goal) { s.over = "won"; s.winner = s.me; }
-      else for (const n of s.nations) if (n && n.alive && n.id !== s.me && n.tiles / w.landN >= n.goal) { s.over = "lost"; s.winner = n.id; break; }
+      if (realTiles(s, s.me) / w.landN >= me.goal) { s.over = "won"; s.winner = s.me; }
+      else for (const n of s.nations) if (n && n.alive && n.id !== s.me && !n.overlord && realTiles(s, n.id) / w.landN >= n.goal) { s.over = "lost"; s.winner = n.id; break; }
       if (!s.over && s.nations.every(n => !n || !n.alive || n.id === s.me || allied(s, s.me, n.id))) { s.over = "won"; s.winner = s.me; }
     }
     return s.ev;
@@ -1272,6 +1373,36 @@ const WZ = (() => {
     if (Math.random() > c) { B.refuse["u" + id] = s.t + 90; return { err: B.name + " weigert de unificatie" }; }
     mergeInto(w, s, id, o); return { ok: true };
   }
+  // ---------- vazalstaten: het land valt onder jou maar regeert zichzelf ----------
+  function vassalChance(w, s, id, o) {
+    const B = s.nations[o]; if (!B || !B.alive || o === id || B.overlord) return 0;
+    if (s.nations.some(v => v && v.alive && v.overlord === o)) return 0;
+    const r = power(s, id) / Math.max(1, power(s, o));
+    if (r < 1.8) return 0;
+    return Math.max(0, Math.min(0.92, (r - 1.8) * 0.35 + (allied(s, id, o) ? 0.15 : 0) + (B.provs <= 3 ? 0.1 : 0)));
+  }
+  function makeVassal(w, s, id, o) {
+    const B = s.nations[o]; B.overlord = id; B.vassalSince = s.t; B.target = 0;
+    if (B.fac) leaveFac(s, o); stopFighting(s, id, o);
+    for (const n of s.nations) if (n && n.allies && n.id !== id) { n.allies = n.allies.filter(x => x !== o); }
+    B.allies = [id];
+    s.ev.push({ type: "vassal", id, t: o });
+  }
+  function demandVassal(w, s, id, o) {
+    const B = s.nations[o]; if (!B || !B.alive || o === id) return { err: "kan niet" };
+    if (B.overlord) return { err: B.name + " is al een vazal van " + s.nations[B.overlord].name };
+    if (s.nations.some(v => v && v.alive && v.overlord === o)) return { err: B.name + " heeft zelf vazallen" };
+    B.refuse = B.refuse || {}; if ((B.refuse["v" + id] || 0) > s.t) return { err: B.name + " wil er nu niet over praten (nog " + Math.ceil(B.refuse["v" + id] - s.t) + "s)" };
+    const c = vassalChance(w, s, id, o);
+    if (Math.random() >= c) { B.refuse["v" + id] = s.t + 90; if (!c || Math.random() < 0.5) { B.target = id; B.nextT = s.t + 45; return { err: B.name + " weigert en verklaart je de oorlog!" }; } return { err: B.name + " weigert" }; }
+    makeVassal(w, s, id, o); return { ok: true };
+  }
+  function annexVassal(w, s, id, o) {
+    const B = s.nations[o]; if (!B || B.overlord !== id) return { err: "geen vazal van jou" };
+    const wait = 60 - (s.t - (B.vassalSince || 0)); if (wait > 0) return { err: "pas over " + Math.ceil(wait) + "s mogelijk" };
+    mergeInto(w, s, id, o); return { ok: true };
+  }
+  function releaseVassal(w, s, id, o) { const B = s.nations[o]; if (!B || B.overlord !== id) return { err: "geen vazal" }; B.overlord = 0; B.allies = B.allies.filter(x => x !== id); s.naps = s.naps || {}; s.naps[napKey(id, o)] = s.t + 300; return { ok: true }; }
   function answerReq(w, s, choice) {
     const r = s.pendReq; s.pendReq = null; if (!r) return { err: "geen verzoek" };
     const B = s.nations[r.id]; if (!B || !B.alive) return { err: "dat land bestaat niet meer" };
@@ -1349,6 +1480,8 @@ const WZ = (() => {
     // doel kiezen
     if (!peace && (s.t > n.nextT || !n.target || !s.nations[n.target] || !s.nations[n.target].alive || allied(s, id, n.target) || nap(s, id, n.target))) {
       n.nextT = s.t + 25 + Math.random() * 25;
+      if (n.overlord) { const ov = s.nations[n.overlord]; if (ov && ov.alive && ov.target && !allied(s, id, ov.target)) { n.target = ov.target; return; } }
+      if (!n.overlord && Math.random() < 0.06) { for (const q of (n.nbTags || [])) { const t = s.nations.find(x => x && x.alive && x.bot && tagOf(x) === q && x.id !== id && !x.overlord && x.provs <= 3); if (t && t.id !== s.me && power(s, id) > 4 * power(s, t.id) && !s.nations.some(v => v && v.overlord === t.id)) { makeVassal(w, s, id, t.id); break; } } }
       if (n.target && Math.random() < 0.35 * (1.2 - D.aggr)) { n.target = 0; n.nextT = s.t + 35 + Math.random() * 30; return; }
       const nbs = neighbours(w, s, id); let best = 0, bs = 0; const myP = power(s, id);
       for (const [o, cnt] of nbs) {
@@ -1401,9 +1534,10 @@ const WZ = (() => {
   // ---------- opslaan ----------
   function serialize(s) { return JSON.stringify(Object.assign({}, s, { owner: Array.from(s.owner), mil: Array.from(s.mil, x => Math.round(x)), ev: [], nations: s.nations.map(n => n && Object.assign({}, n, { fx: undefined })) })); }
   function deserialize(w, str) { ensureClaims(w); const o = JSON.parse(str); if (o.v !== 2) return null; if (o.splits) for (const sp of o.splits) splitWorld(w, sp.p, sp.t); o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
-  const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
+  const realTiles = (s, id) => { const n = s.nations[id]; if (!n) return 0; let t = n.tiles; for (const v of s.nations) if (v && v.alive && v.overlord === id) t += v.tiles; return t; };
+  const share = (w, s, id) => s.nations[id] ? realTiles(s, id) / w.landN : 0;
 
-  return { unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -1498,6 +1632,7 @@ Object.assign(FL, {
   "Ethiopisch Keizerrijk": ["hd", ["#078930", "#FCDD09", "#DA121A"], "#0F47AF", 1], "Ghana-rijk": ["hd", ["#CE1126", "#FCD116", "#006B3F"], "#000", 1], "Centraal-Afrikaanse Federatie": ["hd", ["#003082", "#fff", "#289728", "#FFCE00"], "#D21034", 1],
   "Khmer-rijk": ["hd", ["#032EA1", "#E00025", "#032EA1"], "#fff"], "Majapahit": ["h", ["#C8102E", "#fff", "#C8102E", "#fff", "#C8102E"]], "Groot-India": ["hd", ["#FF9933", "#fff", "#138808"], "#000080"], "Wereldregering": ["ring", "#4B92DB", "#fff"]
 });
+Object.assign(FL, {"Akkadisch Rijk": ["star", "#8B6914", "#FFD700"], "Assyrisch Rijk": ["hd", ["#1E3A8A", "#D4AF37", "#1E3A8A"], "#fff", 1], "Babylonisch Rijk": ["hd", ["#1D4ED8"], "#FBBF24", 1], "Achaemenidisch Rijk": ["hd", ["#7C2D12", "#FBBF24", "#7C2D12"], "#FBBF24"], "Rijk van Alexander de Grote": ["rays", "#C8102E", "#FFD700"], "Parthische Rijk": ["star", "#5B21B6", "#FBBF24"], "Sassanidische Rijk": ["hd", ["#991B1B", "#FBBF24", "#5B21B6"], "#fff", 1], "Kalifaat der Omajjaden": ["h", ["#fff"]], "Abbasidisch Kalifaat": ["h", ["#000"]], "Fatimidisch Kalifaat": ["h", ["#15803D"]], "Seltsjoekenrijk": ["tr", "#1E3A8A"], "Timuridisch Rijk": ["hd", ["#0E7490"], "#FBBF24"], "Safavidisch Rijk": ["hd", ["#15803D"], "#FBBF24"], "Gouden Horde": ["hd", ["#B8860B"], "#7F1D1D"], "Durrani-rijk": ["v", ["#000", "#B91C1C", "#15803D"]], "Maurya-rijk": ["dot", "#EA580C", "#FDE047"], "Gupta-rijk": ["dot", "#B91C1C", "#FDE047"], "Chola-rijk": ["star", "#B91C1C", "#FBBF24"], "Han-dynastie": ["dot", "#000", "#B91C1C"], "Tang-dynastie": ["dot", "#FBBF24", "#B91C1C"], "Ming-dynastie": ["dot", "#B91C1C", "#FBBF24"], "Yuan-dynastie": ["dot", "#1E3A8A", "#fff"], "Goguryeo": ["dot", "#15803D", "#FBBF24"], "Songhai-rijk": ["v", ["#B45309", "#FBBF24", "#15803D"]], "Kanem-Bornu": ["h", ["#15803D", "#fff", "#15803D"]], "Aksum-rijk": ["hd", ["#B91C1C"], "#FBBF24", 1], "Zoeloe-rijk": ["h", ["#000", "#B91C1C", "#000"]], "Rijk van Monomotapa": ["hd", ["#15803D", "#FBBF24", "#B91C1C"], "#000", 1], "Kongo-rijk": ["star", "#B91C1C", "#fff"], "Rijk der Farao's": ["dot", "#1E3A8A", "#FBBF24"], "Carthaags Rijk": ["tr", "#6B21A8"], "Koninkrijk Kush": ["hd", ["#000", "#FBBF24", "#000"], "#B91C1C"], "Ashanti-rijk": ["hd", ["#FBBF24", "#15803D", "#000"], "#FBBF24"], "Benin-rijk": ["h", ["#B91C1C"]], "Sultanaat Oman-Zanzibar": ["h", ["#B91C1C"]], "Almohaden-rijk": ["star", "#fff", "#B91C1C"], "Maya-rijk": ["hd", ["#15803D", "#FBBF24", "#15803D"], "#B91C1C"], "Keizerrijk Brazilië": ["br"], "Keizerrijk Mexico": ["v", ["#006847", "#fff", "#CE1126"]], "Haïtiaans Keizerrijk": ["v", ["#000", "#B91C1C"]], "Duitse Keizerrijk": ["h", ["#000", "#fff", "#DD0000"]], "Habsburgse Rijk": ["h", ["#000", "#FFD700"]], "Napoleontisch Keizerrijk": ["hd", ["#0055A4", "#fff", "#EF4135"], "#FFD700", 1], "Angevijnse Rijk": ["hd", ["#B91C1C"], "#FBBF24"], "Noordzeerijk": ["n", "#B91C1C", "#FBBF24"], "Vikingrijk": ["n", "#1E3A8A", "#fff", "#B91C1C"], "Bulgaars Keizerrijk": ["h", ["#fff", "#00966E", "#D62612"]], "Servisch Keizerrijk": ["h", ["#B91C1C", "#FBBF24"]], "Groot-Moravië": ["dot", "#fff", "#B91C1C"], "Koninkrijk Bohemen": ["h", ["#fff", "#B91C1C"]], "Koninkrijk Jeruzalem": ["ge"], "Groot-Armenië": ["h", ["#D90012", "#0033A0", "#F2A800"]], "Kroon van Aragon": ["h", ["#FBBF24", "#B91C1C", "#FBBF24", "#B91C1C", "#FBBF24"]], "Groot-Siam": ["h", ["#A51931", "#F4F5F8", "#2D2A4A", "#F4F5F8", "#A51931"], [1, 1, 2, 1, 1]], "Birmees Rijk": ["star", "#FECB00", "#EA2839"], "Dai Viet": ["star", "#FBBF24", "#B91C1C"], "Srivijaya-rijk": ["h", ["#B91C1C", "#FBBF24"]], "Sultanaat Brunei": ["h", ["#F7E017", "#fff", "#000", "#F7E017"]], "Gorkha-rijk": ["dot", "#DC143C", "#fff"], "Tibetaans Rijk": ["rays", "#1E3A8A", "#B91C1C"], "Tonga-rijk": ["ge"], "Brits-Amerika": ["uk"], "Peru-Boliviaanse Confederatie": ["v", ["#D91023", "#fff", "#007934"]], "Hunnenrijk": ["h", ["#000", "#B91C1C"]], "Dacisch Rijk": ["star", "#1E3A8A", "#FBBF24"], "Pontisch Rijk": ["rays", "#7C3AED", "#FBBF24"], "Ptolemeïsch Rijk": ["star", "#1E3A8A", "#FBBF24"], "Golfunie": ["ring", "#7F1D1D", "#fff"], "Koninkrijk Hejaz": ["cz2", ["#000", "#15803D", "#fff"], "#B91C1C"], "Sokoto-kalifaat": ["h", ["#fff", "#15803D", "#fff"]], "Oyo-rijk": ["v", ["#15803D", "#FBBF24", "#15803D"]], "Merina-koninkrijk": ["v", ["#fff", "#B91C1C"]], "Koninkrijk Buganda": ["v", ["#1E3A8A", "#fff", "#1E3A8A"]], "Lunda-rijk": ["dot", "#15803D", "#FBBF24"], "Australaziatisch Keizerrijk": ["au"], "Groot-Japans Keizerrijk": ["rays", "#fff", "#BC002D"], "Centraal-Afrikaans Keizerrijk": ["hd", ["#003082", "#fff", "#289728", "#FFCE00"], "#FBBF24", 1], "Senoessi-koninkrijk": ["star", "#000", "#fff"], "Koninkrijk Egypte en Soedan": ["tr", "#15803D"], "Ajjoebidisch Rijk": ["h", ["#FBBF24"]], "Mamelukken-sultanaat": ["tr", "#FBBF24"], "Koninkrijk der Beide Siciliën": ["dot", "#fff", "#FBBF24"], "Venetiaanse Republiek": ["hd", ["#B91C1C"], "#FBBF24"], "Hanzebond": ["h", ["#fff", "#B91C1C"]], "Bourgondische Nederlanden": ["ge"], "Zweeds Rijk": ["n", "#006AA7", "#FECC00"], "Deens-Noors Rijk": ["n", "#C8102E", "#fff"], "Groothertogdom Litouwen": ["hd", ["#B91C1C"], "#fff"], "Keizerrijk India": ["hd", ["#C8102E"], "#012169", 1], "Trans-Atlantische Unie": ["ring", "#1E3A8A", "#fff"], "Euraziatische Unie": ["ring", "#0E7490", "#FBBF24"], "Sahel-federatie": ["h", ["#15803D", "#FBBF24", "#B45309"]], "Keizerrijk Ethiopië-Somalië": ["hd", ["#078930", "#FCDD09", "#DA121A"], "#4189DD", 1], "Koninkrijk Afghanistan": ["v", ["#000", "#BE0000", "#007A36"]], "Koninkrijk Hawaï-Polynesië": ["h", ["#fff", "#B91C1C", "#1E3A8A", "#fff", "#B91C1C", "#1E3A8A"]], "Caribisch Rijk": ["dot", "#0E7490", "#FBBF24"], "Andes-unie": ["ring", "#FBBF24", "#1E3A8A"], "Koninkrijk Araucanië": ["h", ["#1E3A8A", "#fff", "#15803D"]], "Guyana-federatie": ["v", ["#15803D", "#FBBF24", "#B91C1C"]]});
 try { Object.assign(FL, JSON.parse(localStorage.getItem("wwz2flags") || "{}")); } catch (e) { }
 const FKEYS = Object.keys(FL);
 function flagDef(name) {
@@ -1964,18 +2099,23 @@ function provCard(p) {
       ${trpRow("pool")}
       <div class="btns"><button type="button" class="atk" data-a="atk">⚔️ Uitbreiden · <span data-amt></span></button>${nearest0 ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest0.n)}</button>` : `<button type="button" data-a="x">✖️ Sluiten</button>`}
       ${nearest0 ? `<button type="button" class="wide" data-a="x">✖️ Sluiten</button>` : ""}</div>`, { p });
+  } else if (n && n.overlord === s.me) {
+    const wait = Math.max(0, Math.ceil(60 - (s.t - (n.vassalSince || 0))));
+    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n.name)}</div><div class="rel">👑 Jouw vazal</div></div>
+      <div class="info">${E(n.name)} regeert zichzelf, maar valt onder jou. Het land telt mee voor jouw deel van de kaart (${(WZ.share(w, s, s.me) * 100).toFixed(1)}%), betaalt je 30% van zijn troepengroei en vecht mee tegen jouw vijanden.</div>
+      <div class="btns"><button type="button" class="go" data-a="vannex" ${wait ? "disabled" : ""}>🫱🏻‍🫲🏽 Inlijven${wait ? " · over " + wait + "s" : ""}</button><button type="button" data-a="vfree">🕊️ Vrijlaten</button><button type="button" class="wide" data-a="x">✖️ Sluiten</button></div>`, { p });
   } else {
     const al = WZ.allied(s, s.me, o), f = n && n.fac ? WZ.facOf(s, n.fac) : null;
     const atkMe = s.armies.some(a => a.o === o && a.fight === s.me);
     const nearest = nearestArmy(p);
-    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${al ? "🤝 Bondgenoot" : WZ.nap(s, s.me, o) ? "🕊️ Verdrag" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
+    showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(n ? n.name : "?")}</div><div class="rel">${n && n.overlord ? "👑 Vazal van " + E(nm(n.overlord)) : al ? "🤝 Bondgenoot" : WZ.nap(s, s.me, o) ? "🕊️ Verdrag" : atkMe ? "⚔️ Valt jou aan" : f ? E(f.naam) : "Neutraal"}</div></div>
       <div class="info">🛡️ Verdediging ${fmt(s.mil[p])}${defs() ? ` + 🪖 ${fmt(defs())} soldaten` : ""} · ${n ? (WZ.share(w, s, o) * 100).toFixed(1) + "% van de kaart" : ""}${al ? "" : ` · <span id="trpW"></span>`}</div>
       ${al ? "" : trpRow("pool")}
       <div class="btns">${al ? `<button type="button" disabled>🤝 Bondgenoot</button><button type="button" data-a="betray">🗡️ Verraad</button>` :
         `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · <span data-amt></span></button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
         ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
         <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>
-      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button><button type="button" data-a="unie" style="grid-column:1/-1">🫱🏻‍🫲🏽 Unificatie vragen<small>${(() => { const c = WZ.unionChance(w, s, s.me, o); return n.provs > me.provs * 0.6 ? "kan alleen met een land dat duidelijk kleiner is" : c ? "heel " + E(n.name) + " sluit zich bij je aan · kans ~" + Math.round(c * 100) + "%" : "niet tijdens een oorlog"; })()}</small></button></div>` : ""}`, { p });
+      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button><button type="button" data-a="vazal" style="grid-column:1/-1">👑 Eis vazalschap<small>${(() => { if (n.overlord) return "is al vazal van " + E(nm(n.overlord)); const c = WZ.vassalChance(w, s, s.me, o); return c ? E(n.name) + " valt onder jou, maar bestaat door · kans ~" + Math.round(c * 100) + "%" : "je moet minstens 1,8× zo sterk zijn · anders oorlog"; })()}</small></button><button type="button" data-a="unie" style="grid-column:1/-1">🫱🏻‍🫲🏽 Unificatie vragen<small>${(() => { const c = WZ.unionChance(w, s, s.me, o); return n.provs > me.provs * 0.6 ? "kan alleen met een land dat duidelijk kleiner is" : c ? "heel " + E(n.name) + " sluit zich bij je aan · kans ~" + Math.round(c * 100) + "%" : "niet tijdens een oorlog"; })()}</small></button></div>` : ""}`, { p });
   }
   card.upd = () => {
     const n2 = amt(), pool = s.nations[s.me].pool, need = s.mil[p] + (o && o !== s.me ? defs() : 0);
@@ -2044,6 +2184,9 @@ $("card").addEventListener("click", e => {
   if (act === "buy") { const r = WZ.buyProv(w, s, s.me, p); toast(r.ok ? `💰 Gekocht voor ${fmt(r.price)} troepen!` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "sell") { const r = WZ.sellProv(w, s, s.me, p); toast(r.ok ? `💰 Verkocht aan ${nm(r.to)} voor ${fmt(r.price)} troepen` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "nap") { const r = WZ.offerNap(w, s, s.me, o); toast(r.ok ? `🕊️ Niet-aanvalsverdrag met ${nm(o)} (4 minuten)` : "❌ " + r.err); if (r.ok) provCard(p); return; }
+  if (act === "vazal") { const r = WZ.demandVassal(w, s, s.me, o); if (r.ok) { onEvents(s.ev.splice(0)); provCard(p); } else toast("❌ " + r.err); return; }
+  if (act === "vannex") { const r = WZ.annexVassal(w, s, s.me, o); if (r.ok) { onEvents(s.ev.splice(0)); hideCard(); } else toast("❌ " + r.err); return; }
+  if (act === "vfree") { const r = WZ.releaseVassal(w, s, s.me, o); toast(r.ok ? `🕊️ ${nm(o)} is weer vrij (met 5 minuten verdrag)` : "❌ " + r.err); hideCard(); return; }
   if (act === "unie") { const r = WZ.askUnion(w, s, s.me, o); if (r.ok) { onEvents(s.ev.splice(0)); hideCard(); } else toast("❌ " + r.err); return; }
   if (act === "ult") { const r = WZ.ultimatum(w, s, s.me, p); toast(r.ok ? `📜 ${nm(o)} geeft toe! De provincie is van jou` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "send") { const a = nearestArmy(p); if (a) orderTo(a, p); }
@@ -2094,6 +2237,7 @@ function onEvents(evs) {
     else if (e.type === "leave" && e.id !== s.me && e.fac === s.nations[s.me].fac) toast(`🚪 ${nm(e.id)} verlaat je alliantie`);
     else if (e.type === "traitor" && e.vs === s.me) toast(`🗡️ ${nm(e.id)} verraadt jou!`);
     else if (e.type === "revolt") { dirty.add(e.q); labelT = -9; if (e.id === s.me) toast("🔥 Opstand! Een provincie scheurt zich af. Verhoog je stabiliteit via 🏛️"); }
+    else if (e.type === "vassal") { labelT = -9; toast(e.id === s.me ? `👑 ${nm(e.t)} is nu jouw vazal!` : `📢 ${nm(e.t)} wordt vazal van ${nm(e.id)}`); }
     else if (e.type === "split") {
       for (const k of [e.p, e.q]) { pBox.delete(k); sOrd.delete(k); dirty.add(k); for (const r of w.adj[k]) dirty.add(r); } labelT = -9;
       if (e.a === s.me || e.b === s.me) toast(`✂️ Jij en ${nm(e.a === s.me ? e.b : e.a)} vielen tegelijk aan: de provincie is gedeeld`);
@@ -2158,6 +2302,7 @@ function menu(resumeData) {
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
   <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>👑</i><div><b>Vazallen:</b> eis van een zwakker land dat het jouw vazal wordt. Het bestaat door, maar telt mee voor jouw deel van de kaart, betaalt je troepen en vecht met je mee. Later kun je het inlijven.</div></div>
   <div class="st"><i>✂️</i><div><b>Delen:</b> val je een provincie aan terwijl een ander land dat ook doet, dan wordt hij verdeeld. Ieder krijgt het stuk aan zijn eigen kant.</div></div>
   <div class="st"><i>📜</i><div><b>Ultimatums:</b> een veel sterker buurland kan een provincie van je eisen. Geef toe, of weiger en vecht.</div></div>
   <div class="st"><i>🫱🏻‍🫲🏽</i><div><b>Unificatie:</b> tik op een kleiner land en vraag of het zich bij jou aansluit. Bondgenoten en landen met dezelfde ideologie zeggen sneller ja. Kleine bondgenoten vragen het soms zelf.</div></div>
