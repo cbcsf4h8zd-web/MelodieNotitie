@@ -1524,6 +1524,11 @@ function toast(msg) { const d = document.createElement("div"); d.textContent = m
 // ---------- canvas ----------
 function resize() { DPR = Math.min(2, devicePixelRatio || 1); VW = innerWidth; VH = innerHeight; cv.width = VW * DPR; cv.height = VH * DPR; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); clampView(); }
 addEventListener("resize", resize);
+// iPad/iPhone: na draaien klopt de schermmaat vaak pas later; daarom een paar keer opnieuw meten
+const resizeSoon = () => { for (const t of [60, 250, 600, 1200]) setTimeout(() => { if (innerWidth !== VW || innerHeight !== VH) resize(); }, t); };
+addEventListener("orientationchange", resizeSoon);
+if (window.visualViewport) visualViewport.addEventListener("resize", resizeSoon);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) resizeSoon(); });
 
 // ---------- terrein (geografische pixels onder de landkleuren) ----------
 const MAPDEF = { wereld: [-180, 180, 83, -58], europa: [-25, 50, 72, 33], afrika: [-20, 55, 38, -36], noordamerika: [-170, -50, 75, 7], zuidamerika: [-85, -33, 13, -56], azie: [25, 150, 60, -11], oceanie: [110, 180, 2, -48] };
