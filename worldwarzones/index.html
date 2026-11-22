@@ -578,7 +578,20 @@ const WZ = (() => {
     ["Caribisch Rijk", "keizerrijk", "Cuba,Jamaica,Haïti,Dominicaanse Republiek,Puerto Rico,Trinidad en Tobago"],
     ["Andes-unie", "unie", "Colombia,Ecuador,Peru,Bolivië,Chili,Venezuela"],
     ["Koninkrijk Araucanië", "koninkrijk", "Chili,Argentinië"],
-    ["Guyana-federatie", "federatie", "Guyana,Suriname,Venezuela"]
+    ["Guyana-federatie", "federatie", "Guyana,Suriname,Venezuela"],
+    ["Delhi-sultanaat", "keizerrijk", "India,Pakistan,Bangladesh"],
+    ["Maratha-rijk", "keizerrijk", "India,Pakistan,Nepal"],
+    ["Sikh-rijk", "koninkrijk", "Pakistan,India,Afghanistan"],
+    ["Vijayanagara-rijk", "keizerrijk", "India,Sri Lanka"],
+    ["Kushan-rijk", "keizerrijk", "Afghanistan,Pakistan,Oezbekistan,Tadzjikistan,India"],
+    ["Ilkhanaat", "keizerrijk", "Iran,Irak,Turkije,Azerbeidzjan,Armenië,Georgië,Turkmenistan"],
+    ["Chagatai-kanaat", "keizerrijk", "Kazachstan,Oezbekistan,Kirgizië,Tadzjikistan,Afghanistan"],
+    ["Göktürk-kaganaat", "keizerrijk", "Mongolië,Kazachstan,China,Kirgizië,Oezbekistan"],
+    ["Xiongnu-rijk", "keizerrijk", "Mongolië,China,Kazachstan"],
+    ["Hettitisch Rijk", "koninkrijk", "Turkije,Syrië,Libanon"],
+    ["Frankische Rijk", "koninkrijk", "Frankrijk,België,Nederland,Duitsland,Zwitserland,Luxemburg"],
+    ["West-Romeinse Rijk", "keizerrijk", "Italië,Frankrijk,Spanje,Portugal,Verenigd Koninkrijk,Tunesië,Algerije,Marokko"],
+    ["Russische Federatie", "federatie", "Rusland,Wit-Rusland,Oekraïne,Kazachstan"]
   ].map(([naam, rank, req]) => ({ naam, rank, req: req.split(",") }));
   const FORM_NEED = 0.7, FORM_EACH = 0.3;
   // welke vormbare rijken passen op deze kaart: minstens 2 van de landen moeten bestaan
@@ -598,7 +611,7 @@ const WZ = (() => {
   function formNation(w, s, id, naam) {
     const n = s.nations[id], f = formsFor(w).find(x => x.naam === naam); if (!n || !f) return { err: "onbekend" };
     if ((n.formed || []).includes(naam)) return { err: "al gevormd" };
-    if (s.formedBy && s.formedBy[naam]) return { err: s.formedBy[naam] < 0 ? "bestond al bij de start" : "al gevormd door " + (s.nations[s.formedBy[naam]] || {}).name };
+    if (s.formedBy && s.formedBy[naam] && (s.formedBy[naam] > 0 || n.bot)) return { err: s.formedBy[naam] < 0 ? "bestond al bij de start" : "al gevormd door " + (s.nations[s.formedBy[naam]] || {}).name };
     if (!formProgress(w, s, id, f).ok) return { err: "nog niet genoeg veroverd" };
     n.formed = (n.formed || []).concat(naam); s.formedBy = s.formedBy || {}; s.formedBy[naam] = id; n.lastForm = s.t;
     const old = n.name; n.name = naam; n.flag = naam; n.rank = f.rank;
@@ -830,6 +843,28 @@ const WZ = (() => {
   }
   // ---------- startjaren: historische grenzen door moderne landen samen te voegen ----------
   const ERAS = {
+    "117": { naam: "117 · Romeinse Rijk op zijn grootst", focus: [], u: [
+      ["Romeinse Rijk", "Italië,Frankrijk,Spanje,Portugal,Verenigd Koninkrijk,België,Luxemburg,Zwitserland,Oostenrijk,Slovenië,Kroatië,Bosnië-Herzegovina,Servië,Montenegro,Albanië,Noord-Macedonië,Kosovo,Bulgarije,Roemenië,Griekenland,Turkije,Cyprus,N. Cyprus,Syrië,Libanon,Israël,Palestina,Jordanië,Egypte,Libië,Tunesië,Algerije,Marokko,Malta,Hongarije,Armenië,Irak,San Marino,Vaticaanstad,Andorra,Monaco,Man Eiland,Jersey,Guernsey"],
+      ["Parthische Rijk", "Iran,Turkmenistan,Azerbeidzjan"], ["Han-dynastie", "China,Noord-Korea,Vietnam,Hong Kong,Taiwan"], ["Kushan-rijk", "Afghanistan,Pakistan,Oezbekistan,Tadzjikistan,Kirgizië"],
+      ["Aksum-rijk", "Ethiopië,Eritrea,Djibouti,Somaliland"], ["Germaanse stammen", "Duitsland,Nederland,Denemarken,Polen,Tsjechië,Slowakije"], ["Xiongnu-rijk", "Mongolië,Kazachstan"],
+      ["Sarmaten", "Oekraïne,Moldavië,Wit-Rusland"], ["Maya-rijk", "Mexico,Guatemala,Belize,Honduras,El Salvador"], ["Kush-rijk", "Soedan,Zuid-Soedan"], ["Caledonië", "Ierland"], ["Satavahana-rijk", "India,Sri Lanka,Bangladesh,Nepal"], ["Gojoseon", "Zuid-Korea"], ["Yamato", "Japan"], ["Funan", "Cambodja,Thailand,Laos,Myanmar"],
+      ["Slavische stammen", "Rusland"], ["Noordse stammen", "Zweden,Noorwegen,Finland"], ["Arabische stammen", "Saudi-Arabië,Jemen,Oman,Verenigde Arabische Emiraten,Qatar,Koeweit,Bahrein"],
+      ["Indiaanse volken", "Verenigde Staten"], ["Inuit", "Canada,Groenland"], ["Tupi-volken", "Brazilië,Paraguay,Uruguay"], ["Andesvolken", "Peru,Bolivië,Ecuador,Chili,Colombia"], ["Aboriginals", "Australië"], ["Bantoevolken", "Congo-Kinshasa,Angola,Zambia,Tanzania,Kenia"]] },
+    "1279": { naam: "1279 · Mongoolse Rijk", focus: [], u: [
+      ["Mongoolse Rijk", "Mongolië,China,Rusland,Kazachstan,Oekraïne,Wit-Rusland,Iran,Irak,Afghanistan,Turkmenistan,Oezbekistan,Kirgizië,Tadzjikistan,Noord-Korea,Zuid-Korea,Georgië,Armenië,Azerbeidzjan,Moldavië,Taiwan,Hong Kong"],
+      ["Heilig Roomse Rijk", "Duitsland,Oostenrijk,Tsjechië,Nederland,België,Luxemburg,Zwitserland,Slovenië,Liechtenstein"], ["Byzantijnse Rijk", "Griekenland,Cyprus,N. Cyprus"], ["Sultanaat Rum", "Turkije"],
+      ["Mamelukken-sultanaat", "Egypte,Syrië,Libanon,Israël,Palestina,Jordanië,Libië"], ["Delhi-sultanaat", "India,Pakistan,Bangladesh"], ["Mali-rijk", "Mali,Senegal,Guinea,Mauritanië,Gambia,Guinee-Bissau"],
+      ["Koninkrijk Frankrijk", "Frankrijk"], ["Koninkrijk Engeland", "Verenigd Koninkrijk"], ["Kroon van Castilië", "Spanje"], ["Koninkrijk Hongarije", "Hongarije,Slowakije,Kroatië,Roemenië,Bosnië-Herzegovina,Servië"],
+      ["Khmer-rijk", "Cambodja,Thailand,Laos"], ["Dai Viet", "Vietnam"], ["Azteken-rijk", "Mexico"], ["Almohaden-rijk", "Marokko,Algerije,Tunesië,Westelijke Sahara"], ["Kievan Roes", "Polen"], ["Ethiopisch Keizerrijk", "Ethiopië,Eritrea"],
+      ["Indiaanse volken", "Verenigde Staten"], ["Inuit", "Canada,Groenland"], ["Tupi-volken", "Brazilië,Paraguay,Uruguay"], ["Koninkrijk Cusco", "Peru,Bolivië,Ecuador"], ["Aboriginals", "Australië"], ["Noordse koninkrijken", "Zweden,Noorwegen,Denemarken,Finland,IJsland"]] },
+    "1683": { naam: "1683 · Ottomaanse Rijk op zijn grootst", focus: ["industrie"], u: [
+      ["Ottomaanse Rijk", "Turkije,Griekenland,Bulgarije,Roemenië,Servië,Bosnië-Herzegovina,Albanië,Noord-Macedonië,Kosovo,Montenegro,Hongarije,Moldavië,Syrië,Irak,Libanon,Israël,Palestina,Jordanië,Egypte,Libië,Tunesië,Algerije,Saudi-Arabië,Jemen,Cyprus,N. Cyprus,Koeweit"],
+      ["Habsburgse Rijk", "Oostenrijk,Tsjechië,Slowakije,Slovenië,Kroatië,Liechtenstein"], ["Spaans Wereldrijk", "Spanje,Mexico,Peru,Colombia,Venezuela,Argentinië,Chili,Bolivië,Ecuador,Filipijnen,Guatemala,Honduras,Nicaragua,El Salvador,Costa Rica,Panama,Cuba,Dominicaanse Republiek,Puerto Rico,Paraguay,Uruguay,België"],
+      ["Portugees Wereldrijk", "Portugal,Brazilië,Angola,Mozambique"], ["Mughalrijk", "India,Pakistan,Bangladesh,Afghanistan"], ["Qing-keizerrijk", "China,Mongolië,Taiwan,Hong Kong"],
+      ["Safavidisch Rijk", "Iran,Azerbeidzjan,Armenië,Georgië"], ["Tsaardom Rusland", "Rusland,Kazachstan"], ["Pools-Litouwse Gemenebest", "Polen,Litouwen,Wit-Rusland,Oekraïne"],
+      ["Zweeds Rijk", "Zweden,Finland,Estland,Letland"], ["Deens-Noors Rijk", "Denemarken,Noorwegen,IJsland,Groenland,Faeröer"], ["Republiek der Nederlanden", "Nederland"],
+      ["Koninkrijk Frankrijk", "Frankrijk"], ["Koninkrijk Engeland", "Verenigd Koninkrijk,Ierland"], ["Heilig Roomse Rijk", "Duitsland,Luxemburg,Zwitserland"], ["Tokugawa-shogunaat", "Japan"], ["Marokkaans Sultanaat", "Marokko,Westelijke Sahara"],
+      ["Brits-Amerika", "Verenigde Staten"], ["Nieuw-Frankrijk", "Canada"], ["Aboriginals", "Australië"]] },
     "1836": { naam: "1836 · Tijd van keizers", focus: [], u: [
       ["Russisch Keizerrijk", "Rusland,Oekraïne,Wit-Rusland,Finland,Estland,Letland,Litouwen,Polen,Georgië,Armenië,Azerbeidzjan,Moldavië"],
       ["Oostenrijks Keizerrijk", "Oostenrijk,Hongarije,Tsjechië,Slowakije,Slovenië,Kroatië,Liechtenstein"],
@@ -1121,7 +1156,7 @@ const WZ = (() => {
     if (Math.floor(s.t / 5) !== Math.floor((s.t - dt) / 5)) {
       const fs = formsFor(w);
       for (const n of s.nations) if (n && n.alive) for (const f of fs) {
-        if ((n.formed || []).includes(f.naam) || (s.formedBy && s.formedBy[f.naam])) continue;
+        if ((n.formed || []).includes(f.naam) || (s.formedBy && s.formedBy[f.naam] && (s.formedBy[f.naam] > 0 || n.bot))) continue;
         if (!f.ids.includes(w.pCtry[n.capital]) && n.id !== s.me) continue;
         if (n.bot && n.lastForm !== undefined && s.t - n.lastForm < 150) continue;
         const pr = formProgress(w, s, n.id, f);
@@ -1633,6 +1668,23 @@ Object.assign(FL, {
   "Khmer-rijk": ["hd", ["#032EA1", "#E00025", "#032EA1"], "#fff"], "Majapahit": ["h", ["#C8102E", "#fff", "#C8102E", "#fff", "#C8102E"]], "Groot-India": ["hd", ["#FF9933", "#fff", "#138808"], "#000080"], "Wereldregering": ["ring", "#4B92DB", "#fff"]
 });
 Object.assign(FL, {"Akkadisch Rijk": ["star", "#8B6914", "#FFD700"], "Assyrisch Rijk": ["hd", ["#1E3A8A", "#D4AF37", "#1E3A8A"], "#fff", 1], "Babylonisch Rijk": ["hd", ["#1D4ED8"], "#FBBF24", 1], "Achaemenidisch Rijk": ["hd", ["#7C2D12", "#FBBF24", "#7C2D12"], "#FBBF24"], "Rijk van Alexander de Grote": ["rays", "#C8102E", "#FFD700"], "Parthische Rijk": ["star", "#5B21B6", "#FBBF24"], "Sassanidische Rijk": ["hd", ["#991B1B", "#FBBF24", "#5B21B6"], "#fff", 1], "Kalifaat der Omajjaden": ["h", ["#fff"]], "Abbasidisch Kalifaat": ["h", ["#000"]], "Fatimidisch Kalifaat": ["h", ["#15803D"]], "Seltsjoekenrijk": ["tr", "#1E3A8A"], "Timuridisch Rijk": ["hd", ["#0E7490"], "#FBBF24"], "Safavidisch Rijk": ["hd", ["#15803D"], "#FBBF24"], "Gouden Horde": ["hd", ["#B8860B"], "#7F1D1D"], "Durrani-rijk": ["v", ["#000", "#B91C1C", "#15803D"]], "Maurya-rijk": ["dot", "#EA580C", "#FDE047"], "Gupta-rijk": ["dot", "#B91C1C", "#FDE047"], "Chola-rijk": ["star", "#B91C1C", "#FBBF24"], "Han-dynastie": ["dot", "#000", "#B91C1C"], "Tang-dynastie": ["dot", "#FBBF24", "#B91C1C"], "Ming-dynastie": ["dot", "#B91C1C", "#FBBF24"], "Yuan-dynastie": ["dot", "#1E3A8A", "#fff"], "Goguryeo": ["dot", "#15803D", "#FBBF24"], "Songhai-rijk": ["v", ["#B45309", "#FBBF24", "#15803D"]], "Kanem-Bornu": ["h", ["#15803D", "#fff", "#15803D"]], "Aksum-rijk": ["hd", ["#B91C1C"], "#FBBF24", 1], "Zoeloe-rijk": ["h", ["#000", "#B91C1C", "#000"]], "Rijk van Monomotapa": ["hd", ["#15803D", "#FBBF24", "#B91C1C"], "#000", 1], "Kongo-rijk": ["star", "#B91C1C", "#fff"], "Rijk der Farao's": ["dot", "#1E3A8A", "#FBBF24"], "Carthaags Rijk": ["tr", "#6B21A8"], "Koninkrijk Kush": ["hd", ["#000", "#FBBF24", "#000"], "#B91C1C"], "Ashanti-rijk": ["hd", ["#FBBF24", "#15803D", "#000"], "#FBBF24"], "Benin-rijk": ["h", ["#B91C1C"]], "Sultanaat Oman-Zanzibar": ["h", ["#B91C1C"]], "Almohaden-rijk": ["star", "#fff", "#B91C1C"], "Maya-rijk": ["hd", ["#15803D", "#FBBF24", "#15803D"], "#B91C1C"], "Keizerrijk Brazilië": ["br"], "Keizerrijk Mexico": ["v", ["#006847", "#fff", "#CE1126"]], "Haïtiaans Keizerrijk": ["v", ["#000", "#B91C1C"]], "Duitse Keizerrijk": ["h", ["#000", "#fff", "#DD0000"]], "Habsburgse Rijk": ["h", ["#000", "#FFD700"]], "Napoleontisch Keizerrijk": ["hd", ["#0055A4", "#fff", "#EF4135"], "#FFD700", 1], "Angevijnse Rijk": ["hd", ["#B91C1C"], "#FBBF24"], "Noordzeerijk": ["n", "#B91C1C", "#FBBF24"], "Vikingrijk": ["n", "#1E3A8A", "#fff", "#B91C1C"], "Bulgaars Keizerrijk": ["h", ["#fff", "#00966E", "#D62612"]], "Servisch Keizerrijk": ["h", ["#B91C1C", "#FBBF24"]], "Groot-Moravië": ["dot", "#fff", "#B91C1C"], "Koninkrijk Bohemen": ["h", ["#fff", "#B91C1C"]], "Koninkrijk Jeruzalem": ["ge"], "Groot-Armenië": ["h", ["#D90012", "#0033A0", "#F2A800"]], "Kroon van Aragon": ["h", ["#FBBF24", "#B91C1C", "#FBBF24", "#B91C1C", "#FBBF24"]], "Groot-Siam": ["h", ["#A51931", "#F4F5F8", "#2D2A4A", "#F4F5F8", "#A51931"], [1, 1, 2, 1, 1]], "Birmees Rijk": ["star", "#FECB00", "#EA2839"], "Dai Viet": ["star", "#FBBF24", "#B91C1C"], "Srivijaya-rijk": ["h", ["#B91C1C", "#FBBF24"]], "Sultanaat Brunei": ["h", ["#F7E017", "#fff", "#000", "#F7E017"]], "Gorkha-rijk": ["dot", "#DC143C", "#fff"], "Tibetaans Rijk": ["rays", "#1E3A8A", "#B91C1C"], "Tonga-rijk": ["ge"], "Brits-Amerika": ["uk"], "Peru-Boliviaanse Confederatie": ["v", ["#D91023", "#fff", "#007934"]], "Hunnenrijk": ["h", ["#000", "#B91C1C"]], "Dacisch Rijk": ["star", "#1E3A8A", "#FBBF24"], "Pontisch Rijk": ["rays", "#7C3AED", "#FBBF24"], "Ptolemeïsch Rijk": ["star", "#1E3A8A", "#FBBF24"], "Golfunie": ["ring", "#7F1D1D", "#fff"], "Koninkrijk Hejaz": ["cz2", ["#000", "#15803D", "#fff"], "#B91C1C"], "Sokoto-kalifaat": ["h", ["#fff", "#15803D", "#fff"]], "Oyo-rijk": ["v", ["#15803D", "#FBBF24", "#15803D"]], "Merina-koninkrijk": ["v", ["#fff", "#B91C1C"]], "Koninkrijk Buganda": ["v", ["#1E3A8A", "#fff", "#1E3A8A"]], "Lunda-rijk": ["dot", "#15803D", "#FBBF24"], "Australaziatisch Keizerrijk": ["au"], "Groot-Japans Keizerrijk": ["rays", "#fff", "#BC002D"], "Centraal-Afrikaans Keizerrijk": ["hd", ["#003082", "#fff", "#289728", "#FFCE00"], "#FBBF24", 1], "Senoessi-koninkrijk": ["star", "#000", "#fff"], "Koninkrijk Egypte en Soedan": ["tr", "#15803D"], "Ajjoebidisch Rijk": ["h", ["#FBBF24"]], "Mamelukken-sultanaat": ["tr", "#FBBF24"], "Koninkrijk der Beide Siciliën": ["dot", "#fff", "#FBBF24"], "Venetiaanse Republiek": ["hd", ["#B91C1C"], "#FBBF24"], "Hanzebond": ["h", ["#fff", "#B91C1C"]], "Bourgondische Nederlanden": ["ge"], "Zweeds Rijk": ["n", "#006AA7", "#FECC00"], "Deens-Noors Rijk": ["n", "#C8102E", "#fff"], "Groothertogdom Litouwen": ["hd", ["#B91C1C"], "#fff"], "Keizerrijk India": ["hd", ["#C8102E"], "#012169", 1], "Trans-Atlantische Unie": ["ring", "#1E3A8A", "#fff"], "Euraziatische Unie": ["ring", "#0E7490", "#FBBF24"], "Sahel-federatie": ["h", ["#15803D", "#FBBF24", "#B45309"]], "Keizerrijk Ethiopië-Somalië": ["hd", ["#078930", "#FCDD09", "#DA121A"], "#4189DD", 1], "Koninkrijk Afghanistan": ["v", ["#000", "#BE0000", "#007A36"]], "Koninkrijk Hawaï-Polynesië": ["h", ["#fff", "#B91C1C", "#1E3A8A", "#fff", "#B91C1C", "#1E3A8A"]], "Caribisch Rijk": ["dot", "#0E7490", "#FBBF24"], "Andes-unie": ["ring", "#FBBF24", "#1E3A8A"], "Koninkrijk Araucanië": ["h", ["#1E3A8A", "#fff", "#15803D"]], "Guyana-federatie": ["v", ["#15803D", "#FBBF24", "#B91C1C"]]});
+Object.assign(FL, {
+  "Romeinse Rijk": ["spqr"], "West-Romeinse Rijk": ["spqr"], "Byzantijnse Rijk": ["eagle", "#8B0000", "#D4AF37", 1], "Heilig Roomse Rijk": ["eagle", "#F5C518", "#111", 1],
+  "Russisch Keizerrijk": ["h", ["#000", "#FFD700", "#fff"]], "Tsaardom Rusland": ["eagle", "#F5C518", "#111", 1], "Duitse Keizerrijk": ["h", ["#000", "#fff", "#DD0000"]],
+  "Groot-Duitsland": ["eagle", ["#000", "#fff", "#DD0000"], "#111", 0], "Habsburgse Rijk": ["eagle", "#F5C518", "#111", 1], "Oostenrijks Keizerrijk": ["eagle", "#F5C518", "#111", 1],
+  "Oostenrijk-Hongarije": ["ah"], "Spaans Wereldrijk": ["burg"], "Sovjet-Unie": ["soviet"], "Qing-keizerrijk": ["qing"], "Napoleontisch Keizerrijk": ["eagle", ["#0055A4", "#fff", "#EF4135"], "#D4AF37", 0, "v"],
+  "Achaemenidisch Rijk": ["eagle", "#7C2D12", "#FBBF24", 0], "Rijk van Alexander de Grote": ["rays", "#1E3A8A", "#FBBF24"], "Servisch Keizerrijk": ["eagle", "#B91C1C", "#fff", 1],
+  "Kalmar Unie": ["n", "#FECC00", "#C8102E"], "Koninkrijk Frankrijk": ["lys", "#1E3A8A", "#FBBF24", 1], "Nieuw-Frankrijk": ["lys", "#fff", "#D4AF37", 1], "Frankische Rijk": ["lys", "#1E3A8A", "#FBBF24"],
+  "Rijk van Karel de Grote": ["eagle", "#F5C518", "#111", 0], "Koninkrijk Engeland": ["ge"], "Kroon van Castilië": ["hd", ["#B91C1C"], "#FBBF24"], "Koninkrijk Hongarije": ["h", ["#B91C1C", "#fff", "#B91C1C", "#fff", "#B91C1C", "#fff", "#B91C1C", "#fff"]],
+  "Sultanaat Rum": ["tr", "#1E3A8A"], "Republiek der Nederlanden": ["h", ["#FF7F00", "#fff", "#21468B"]], "Tokugawa-shogunaat": ["dot", "#fff", "#111"], "Marokkaans Sultanaat": ["h", ["#C1272D"]],
+  "Brits-Amerika": ["uk"], "Mongoolse Rijk": ["hd", ["#1E90FF"], "#F5C518"], "Gouden Horde": ["eagle", "#B8860B", "#7F1D1D", 0], "Pools-Litouwse Gemenebest": ["eagle", ["#fff", "#DC143C"], "#D4AF37", 0],
+  "Germaanse stammen": ["h", ["#3F2A14", "#7A5230"]], "Sarmaten": ["dot", "#7F1D1D", "#F5C518"], "Slavische stammen": ["h", ["#fff", "#B91C1C"]], "Noordse stammen": ["n", "#1E3A8A", "#F5C518"], "Noordse koninkrijken": ["n", "#C8102E", "#fff"],
+  "Arabische stammen": ["h", ["#15803D"]], "Indiaanse volken": ["dot", "#8B4513", "#F5C518"], "Inuit": ["dot", "#fff", "#1E90FF"], "Tupi-volken": ["h", ["#15803D", "#F5C518"]], "Andesvolken": ["h", ["#E4002B", "#F68D2E", "#FFD100", "#3CB54A", "#00A6E0", "#2E3192", "#7F3F98"]],
+  "Koninkrijk Cusco": ["h", ["#E4002B", "#F68D2E", "#FFD100", "#3CB54A", "#00A6E0", "#2E3192", "#7F3F98"]], "Aboriginals": ["dot", "#000", "#F5C518"], "Bantoevolken": ["h", ["#7A5230", "#F5C518", "#15803D"]],
+  "Caledonië": ["h", ["#1E3A8A"]], "Satavahana-rijk": ["dot", "#EA580C", "#fff"], "Gojoseon": ["dot", "#fff", "#1E3A8A"], "Yamato": ["dot", "#fff", "#BC002D"], "Funan": ["dot", "#B91C1C", "#F5C518"], "Kush-rijk": ["hd", ["#000", "#FBBF24", "#000"], "#B91C1C"],
+  "Delhi-sultanaat": ["tr", "#15803D"], "Maratha-rijk": ["h", ["#FF7F00"]], "Sikh-rijk": ["hd", ["#FF9933"], "#1E3A8A"], "Vijayanagara-rijk": ["dot", "#B91C1C", "#F5C518"], "Kushan-rijk": ["dot", "#7C2D12", "#F5C518"],
+  "Ilkhanaat": ["hd", ["#F5C518"], "#B91C1C"], "Chagatai-kanaat": ["tr", "#4B5563"], "Göktürk-kaganaat": ["eagle", "#0E7490", "#F5C518", 0], "Xiongnu-rijk": ["dot", "#4B5563", "#F5C518"], "Hettitisch Rijk": ["eagle", "#B45309", "#111", 1], "Russische Federatie": ["h", ["#fff", "#0039A6", "#D52B1E"]],
+});
 try { Object.assign(FL, JSON.parse(localStorage.getItem("wwz2flags") || "{}")); } catch (e) { }
 const FKEYS = Object.keys(FL);
 function flagDef(name) {
@@ -1645,6 +1697,28 @@ function flagDef(name) {
   return [(x >> 12) & 1 ? "h" : "v", [a, b, c === b ? a : c]];
 }
 function fStar(g, x, y, r, c) { g.fillStyle = c; g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.4 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); g.fill(); }
+// adelaar (enkel of dubbelkoppig), voor keizerlijke vlaggen
+function fEagle(g, cx, cy, sz, col, dbl) {
+  g.save(); g.fillStyle = col; g.translate(cx, cy); g.scale(sz, sz);
+  for (const sgn of [-1, 1]) { // vleugels met veren
+    g.beginPath(); g.moveTo(0, -0.05); g.lineTo(sgn * 0.18, -0.32); g.lineTo(sgn * 0.42, -0.42); g.lineTo(sgn * 0.5, -0.3);
+    for (let k = 0; k < 5; k++) { const y = -0.22 + k * 0.1; g.lineTo(sgn * (0.5 - k * 0.06), y); g.lineTo(sgn * (0.4 - k * 0.06), y + 0.04); }
+    g.lineTo(sgn * 0.12, 0.12); g.closePath(); g.fill();
+  }
+  g.beginPath(); g.ellipse(0, 0.05, 0.13, 0.22, 0, 0, 7); g.fill(); // lichaam
+  g.beginPath(); g.moveTo(-0.14, 0.22); g.lineTo(0, 0.48); g.lineTo(0.14, 0.22); g.fill(); // staart
+  for (const sgn of [-1, 1]) { g.beginPath(); g.moveTo(sgn * 0.06, 0.2); g.lineTo(sgn * 0.2, 0.34); g.lineTo(sgn * 0.12, 0.36); g.fill(); } // poten
+  const heads = dbl ? [[-0.13, -0.3, -1], [0.13, -0.3, 1]] : [[0, -0.32, 1]];
+  for (const [hx, hy, d] of heads) { g.beginPath(); g.moveTo(hx * 0.4, -0.08); g.lineTo(hx, hy + 0.06); g.arc(hx, hy, 0.07, 0, 7); g.fill(); g.beginPath(); g.moveTo(hx + d * 0.05, hy - 0.02); g.lineTo(hx + d * 0.15, hy + 0.02); g.lineTo(hx + d * 0.05, hy + 0.04); g.fill(); }
+  g.restore();
+}
+function fLys(g, cx, cy, sz, col) { // lelie (fleur-de-lis)
+  g.save(); g.fillStyle = col; g.translate(cx, cy); g.scale(sz, sz);
+  g.beginPath(); g.moveTo(0, -0.5); g.quadraticCurveTo(0.16, -0.2, 0, 0.1); g.quadraticCurveTo(-0.16, -0.2, 0, -0.5); g.fill();
+  for (const sgn of [-1, 1]) { g.beginPath(); g.moveTo(sgn * 0.04, 0.05); g.quadraticCurveTo(sgn * 0.45, -0.1, sgn * 0.3, -0.35); g.quadraticCurveTo(sgn * 0.5, -0.05, sgn * 0.12, 0.15); g.fill(); }
+  g.fillRect(-0.25, 0.08, 0.5, 0.08); g.beginPath(); g.moveTo(-0.06, 0.16); g.lineTo(0, 0.45); g.lineTo(0.06, 0.16); g.fill();
+  g.restore();
+}
 function drawFlag(g, name, W, H) {
   const d = flagDef(name), t = d[0];
   g.save();
@@ -1675,6 +1749,42 @@ function drawFlag(g, name, W, H) {
     else if (em === "sterren") for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * Math.PI * 2 / 5; fStar(g, ex + Math.cos(a) * m * 0.22, ey + Math.sin(a) * m * 0.22, m * 0.08, ec); }
     else if (em === "kroon") { g.fillStyle = ec; const s2 = m * 0.22; g.beginPath(); g.moveTo(ex - s2, ey + s2 * 0.6); g.lineTo(ex - s2, ey - s2 * 0.5); g.lineTo(ex - s2 * 0.5, ey); g.lineTo(ex, ey - s2 * 0.8); g.lineTo(ex + s2 * 0.5, ey); g.lineTo(ex + s2, ey - s2 * 0.5); g.lineTo(ex + s2, ey + s2 * 0.6); g.fill(); }
   }
+  else if (t === "eagle") { // [bg of strepen, kleur adelaar, dubbelkoppig]
+    if (Array.isArray(d[1])) stripes(d[1], null, d[4] === "v"); else { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); }
+    fEagle(g, W / 2, H * 0.5, Math.min(W, H) * 0.85, d[2], d[3]);
+  }
+  else if (t === "spqr") { // Romeins vaandel
+    g.fillStyle = "#8B0000"; g.fillRect(0, 0, W, H); const m = Math.min(W, H);
+    g.strokeStyle = "#D4AF37"; g.lineWidth = m * 0.05; g.strokeRect(m * 0.05, m * 0.05, W - m * 0.1, H - m * 0.1);
+    fEagle(g, W / 2, H * 0.36, m * 0.5, "#D4AF37", 0);
+    g.fillStyle = "#D4AF37"; g.font = `900 ${m * 0.24}px Georgia,serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("SPQR", W / 2, H * 0.76);
+  }
+  else if (t === "burg") { // kruis van Bourgondië (Spaanse Rijk)
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.strokeStyle = "#C8102E"; g.lineCap = "round"; const m = Math.min(W, H);
+    g.lineWidth = m * 0.13; g.beginPath(); g.moveTo(W * 0.12, H * 0.1); g.lineTo(W * 0.88, H * 0.9); g.moveTo(W * 0.88, H * 0.1); g.lineTo(W * 0.12, H * 0.9); g.stroke();
+    g.fillStyle = "#fff"; for (let k = 1; k < 6; k++) for (const [x0, y0, x1, y1] of [[0.12, 0.1, 0.88, 0.9], [0.88, 0.1, 0.12, 0.9]]) { const f = k / 6, x = W * (x0 + (x1 - x0) * f), y = H * (y0 + (y1 - y0) * f); g.beginPath(); g.arc(x + m * 0.07, y, m * 0.035, 0, 7); g.fill(); }
+  }
+  else if (t === "ah") { // Oostenrijk-Hongarije
+    const h3 = (x, cols) => cols.forEach((c, i) => { g.fillStyle = c; g.fillRect(x, i * H / 3, W / 2 + 1, H / 3 + 1); });
+    h3(0, ["#ED2939", "#fff", "#ED2939"]); h3(W / 2, ["#CD2A3E", "#fff", "#436F4D"]);
+  }
+  else if (t === "soviet") {
+    g.fillStyle = "#CC0000"; g.fillRect(0, 0, W, H); const m = Math.min(W, H), c = "#FFD700";
+    fStar(g, W * 0.2, H * 0.14, m * 0.06, c);
+    g.strokeStyle = c; g.lineWidth = m * 0.05; g.beginPath(); g.arc(W * 0.2, H * 0.36, m * 0.12, Math.PI * 0.75, Math.PI * 2.1); g.stroke(); // sikkel
+    g.save(); g.translate(W * 0.2, H * 0.38); g.rotate(-Math.PI / 4); g.fillStyle = c; g.fillRect(-m * 0.02, -m * 0.16, m * 0.04, m * 0.3); g.fillRect(-m * 0.08, -m * 0.18, m * 0.16, m * 0.06); g.restore(); // hamer
+  }
+  else if (t === "qing") { // gele drakenvlag
+    g.fillStyle = "#F5C518"; g.fillRect(0, 0, W, H); const m = Math.min(W, H);
+    g.fillStyle = "#C8102E"; g.beginPath(); g.arc(W * 0.16, H * 0.2, m * 0.09, 0, 7); g.fill();
+    g.strokeStyle = "#1E4FA0"; g.lineWidth = m * 0.11; g.lineCap = "round"; g.beginPath(); g.moveTo(W * 0.32, H * 0.3);
+    g.bezierCurveTo(W * 0.55, H * 0.05, W * 0.6, H * 0.75, W * 0.78, H * 0.45); g.bezierCurveTo(W * 0.9, H * 0.25, W * 0.7, H * 0.85, W * 0.9, H * 0.8); g.stroke();
+    g.fillStyle = "#1E4FA0"; g.beginPath(); g.arc(W * 0.3, H * 0.31, m * 0.1, 0, 7); g.fill();
+  }
+  else if (t === "lys") { // lelies (Franse koningen)
+    g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H);
+    if (d[3]) for (const [x, y] of [[0.28, 0.3], [0.72, 0.3], [0.5, 0.72]]) fLys(g, W * x, H * y, m * 0.4, d[2]); else fLys(g, W / 2, H / 2, m * 0.75, d[2]);
+  }
   else if (t === "ring") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const m = Math.min(W, H); for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; fStar(g, W / 2 + Math.cos(a) * m * 0.33, H / 2 + Math.sin(a) * m * 0.33, m * 0.06, d[2]); } }
   else if (t === "txt") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); g.fillStyle = d[2]; g.font = `900 ${Math.min(H * 0.42, W / d[3].length * 1.25)}px Georgia,serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(d[3], W / 2, H / 2); }
   else if (t === "rays") { g.fillStyle = d[1]; g.fillRect(0, 0, W, H); const cx = W * 0.42, cy = H / 2, R = Math.hypot(W, H); g.fillStyle = d[2]; for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a - 0.09) * R, cy + Math.sin(a - 0.09) * R); g.lineTo(cx + Math.cos(a + 0.09) * R, cy + Math.sin(a + 0.09) * R); g.fill(); } g.beginPath(); g.arc(cx, cy, Math.min(W, H) * 0.26, 0, 7); g.fill(); }
@@ -1692,6 +1802,7 @@ function drawFlag(g, name, W, H) {
   else if (t === "cl") { stripes(["#fff", "#D52B1E"]); g.fillStyle = "#0039A6"; g.fillRect(0, 0, W / 3, H / 2); fStar(g, W / 6, H / 4, Math.min(W / 3, H / 2) * 0.3, "#fff"); }
   g.restore();
 }
+window.drawFlag = drawFlag;
 const flagURLs = {};
 function flagURL(name) { if (flagURLs[name]) return flagURLs[name]; const c = document.createElement("canvas"); c.width = 60; c.height = 40; drawFlag(c.getContext("2d"), name, 60, 40); return flagURLs[name] = c.toDataURL(); }
 const flagOf = n => n ? (n.flag || n.name) : "";
@@ -2246,7 +2357,7 @@ function onEvents(evs) {
     else if (e.type === "annex") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🤝 Je lijft ${s.nations[e.t].name} in!` : `📢 ${nm(e.id)} lijft ${s.nations[e.t].name} in`); }
     else if (e.type === "annexFail" && e.id === s.me) toast(`❌ ${s.nations[e.t].name} is te groot om in te lijven`);
     else if (e.type === "pact" && (e.id === s.me || e.with === s.me)) toast(`🤝 Bondgenootschap met ${nm(e.id === s.me ? e.with : e.id)}`);
-    else if (e.type === "formReady") toast(`👑 Je kunt nu ${e.naam} vormen! Tik op 👑 Rijken`);
+    else if (e.type === "formReady") { const n = evs.filter(x => x.type === "formReady").length; if (n === 1) toast(`👑 Je kunt nu ${e.naam} vormen! Tik op 👑 Rijken`); else if (e === evs.find(x => x.type === "formReady")) toast(`👑 Je kunt nu ${n} rijken vormen! Tik op 👑 Rijken`); }
     else if (e.type === "formed") { labelT = -9; if (e.id === s.me) { setMyName(e.naam); setHudFlag(); } else toast(`📢 ${e.old} heeft ${e.naam} gevormd!`); }
     else if (e.type === "focus" && e.id === s.me) { const F = WZ.FOCUS[e.k]; toast(`🎯 Focus klaar: ${F.icon} ${F.naam} (${F.info})`); }
   }
@@ -2409,13 +2520,20 @@ function intPanel() {
   $("ovc").onclick = e => { const b = e.target.closest("[data-dc]"); if (!b) return; const r = WZ.decide(w, s, s.me, b.dataset.dc); toast(r.ok ? `${WZ.DECIS[b.dataset.dc].icon} ${WZ.DECIS[b.dataset.dc].naam}` : "❌ " + r.err); intPanel(); };
   $("iB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
 }
+let formTab = "fam", formQ = "";
 function formPanel() {
   const me = s.nations[s.me]; paused = true; hideCard();
-  const list = WZ.formsFor(w).map(f => ({ f, pr: WZ.formProgress(w, s, s.me, f), by: (s.formedBy || {})[f.naam] }));
-  list.sort((a, b) => (!!a.by - !!b.by) || (b.pr.ok - a.pr.ok) || (b.pr.all - a.pr.all));
+  const FAMOUS = ["Romeinse Rijk", "Mongoolse Rijk", "Brits Wereldrijk", "Ottomaanse Rijk", "Spaans Wereldrijk", "Russisch Keizerrijk", "Heilig Roomse Rijk", "Byzantijnse Rijk", "Rijk van Alexander de Grote", "Achaemenidisch Rijk", "Napoleontisch Keizerrijk", "Duitse Keizerrijk", "Oostenrijk-Hongarije", "Qing-keizerrijk", "Mughalrijk", "Han-dynastie", "Ming-dynastie", "Keizerrijk Japan", "Inca-rijk", "Azteken-rijk", "Maya-rijk", "Mali-rijk", "Rijk der Farao's", "Carthaags Rijk", "Sovjet-Unie", "Portugees Wereldrijk", "Nederlands Wereldrijk", "Frans Koloniaal Rijk", "Zweeds Rijk", "Vikingrijk", "Kalifaat der Omajjaden", "Habsburgse Rijk", "Europese Unie"];
+  const q = (formQ || "").toLowerCase();
+  let list = WZ.formsFor(w).map(f => { const b0 = (s.formedBy || {})[f.naam]; return { f, pr: WZ.formProgress(w, s, s.me, f), by: b0 > 0 ? b0 : undefined, fam: FAMOUS.indexOf(f.naam) }; });
+  if (q) list = list.filter(x => x.f.naam.toLowerCase().includes(q) || x.f.req.some(r => r.toLowerCase().includes(q)));
+  else if (formTab === "fam") list = list.filter(x => x.fam >= 0);
+  list.sort((a, b) => (b.pr.ok - a.pr.ok) || (formTab === "fam" && !q ? a.fam - b.fam : 0) || (!!a.by - !!b.by) || (b.pr.all - a.pr.all));
   ov(`<h2>👑 Rijken vormen</h2><p>Verover genoeg land en vorm een Keizerrijk, Koninkrijk, Federatie of moderne Unie. Je krijgt een nieuwe naam, een nieuwe vlag en een blijvende bonus.</p>
     <p style="font-size:12.5px">Nodig: <b style="color:var(--ink)">70%</b> van alle provincies samen, én van elk land minstens <b style="color:var(--ink)">30%</b>.</p>
-    ${list.length ? "" : "<p>Op deze kaart zijn geen rijken te vormen.</p>"}
+    <div class="ftabs"><button type="button" data-ft="fam" class="${formTab === "fam" ? "on" : ""}">⭐ Beroemde rijken</button><button type="button" data-ft="all" class="${formTab === "all" ? "on" : ""}">📜 Alle ${WZ.formsFor(w).length}</button></div>
+    <input type="text" id="fSearch" placeholder="🔍 Zoek een rijk of land (bv. Romeinse, Italië)" value="${E(formQ)}" style="width:100%;min-height:42px;border-radius:10px;border:1px solid var(--line);background:#0b1422;color:var(--ink);padding:0 12px;font-size:15px;margin-top:8px">
+    ${list.length ? "" : `<p>${q ? "Niets gevonden voor “" + E(formQ) + "”." : "Op deze kaart zijn geen rijken te vormen."}</p>`}
     ${list.map(({ f, pr, by }) => { const R = WZ.RANK[f.rank], mine = by === s.me; return `<div class="fm ${pr.ok && !by ? "ok" : by && !mine ? "gone" : ""}">
       <div class="t"><img alt="" src="${flagURL(f.naam)}"><div><b>${R.icon} ${E(f.naam)}</b><small>${R.naam} · ${R.info}</small></div></div>
       ${mine ? `<div class="pb"><i style="width:100%"></i></div><small style="color:#bbf7d0;font-weight:800">✅ Jij hebt dit rijk gevormd</small>` : by ? `<small style="color:var(--muted);font-weight:700;display:block;margin-top:6px">❌ ${by < 0 ? "Bestond al bij de start" : "Al gevormd door " + E(nm(by))}</small>` :
@@ -2424,7 +2542,8 @@ function formPanel() {
       <small style="color:var(--muted);font-weight:700;display:block;margin-top:5px">Totaal ${Math.round(pr.all * 100)}% van 70%</small>
       ${pr.ok ? `<button type="button" data-form="${E(f.naam)}">👑 Vorm ${E(f.naam)}</button>` : ""}`}</div>`; }).join("")}
     <button class="big" id="frB" type="button" style="margin-top:12px">Verder spelen</button>`);
-  $("ovc").onclick = e => { const b = e.target.closest("[data-form]"); if (!b) return; const r = WZ.formNation(w, s, s.me, b.dataset.form); if (r.ok) { onEvents(s.ev.splice(0)); toast(`👑 Je bent nu ${b.dataset.form}!`); save(); formPanel(); } else toast("❌ " + r.err); };
+  $("fSearch").oninput = e => { formQ = e.target.value; clearTimeout(formPanel._t); formPanel._t = setTimeout(() => { formPanel(); const el = $("fSearch"); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 350); };
+  $("ovc").onclick = e => { const ft = e.target.closest("[data-ft]"); if (ft) { formTab = ft.dataset.ft; formQ = ""; formPanel(); return; } const b = e.target.closest("[data-form]"); if (!b) return; const r = WZ.formNation(w, s, s.me, b.dataset.form); if (r.ok) { onEvents(s.ev.splice(0)); toast(`👑 Je bent nu ${b.dataset.form}!`); save(); formPanel(); } else toast("❌ " + r.err); };
   $("frB").onclick = () => { $("ovc").onclick = null; resumePlay(); };
 }
 function flagPanel() {
