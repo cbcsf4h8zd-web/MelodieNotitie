@@ -200,9 +200,9 @@ const WZ = (() => {
   "use strict";
   const WIN = 0.5;
   const DIFF = {
-    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, prod: 0.75, aggr: 0.42, think: 1.9, meBonus: 1.3, focusMe: 0.45, meProd: 1.5, coalMe: 0.15 },
-    standaard: { naam: "Standaard", capMe: 2.2, protect: 150, ftime: 1.4, fxs: 0.7, prod: 0.85, aggr: 0.62, think: 1.4, meBonus: 1.1, focusMe: 0.6, meProd: 1.35, coalMe: 0.45 },
-    brutaal: { naam: "Brutaal", capMe: 1.4, protect: 75, ftime: 1, fxs: 1, prod: 1.35, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
+    relaxed: { naam: "Relaxed", capMe: 3, protect: 180, ftime: 2.2, fxs: 0.4, meAtk: 2.2, prod: 0.75, aggr: 0.42, think: 1.9, meBonus: 1.3, focusMe: 0.45, meProd: 1.5, coalMe: 0.15 },
+    standaard: { naam: "Standaard", capMe: 2.2, protect: 150, ftime: 1.4, fxs: 0.7, meAtk: 1.8, prod: 0.85, aggr: 0.62, think: 1.4, meBonus: 1.1, focusMe: 0.6, meProd: 1.35, coalMe: 0.45 },
+    brutaal: { naam: "Brutaal", capMe: 1.4, protect: 75, ftime: 1, fxs: 1, meAtk: 1.25, prod: 1.35, aggr: 1.2, think: 0.8, meBonus: 1.0, focusMe: 1.4, meProd: 1.0, coalMe: 1 }
   };
   const K = 0.07;               // gevechtskracht per seconde
   const PEACE = 25;             // seconden voorbereiding
@@ -973,6 +973,20 @@ const WZ = (() => {
         if (best < 0) { a.n = 0; continue; }
         if (o && nap(s, a.o, o)) { a.p = best; a.prog = 0; } else order(w, s, a, best); }
     }
+    // vriendschapsverzoeken van computerlanden aan de speler
+    if (s.nations[s.me] && s.nations[s.me].alive && !s.pendReq && s.t > (s.nextReq ?? PEACE + 20) && Math.floor(s.t / 3) !== Math.floor((s.t - dt) / 3)) {
+      const me = s.nations[s.me], myP = power(s, s.me); let best = null, bs = 0;
+      for (const n of s.nations) {
+        if (!n || !n.alive || n.id === s.me || allied(s, s.me, n.id)) continue;
+        if (s.armies.some(a => (a.o === n.id && a.fight === s.me) || (a.o === s.me && a.fight === n.id))) continue;
+        if (n.refuse && (n.refuse["r" + s.me] || 0) > s.t) continue;
+        const nb = (me.nbTags || []).includes(tagOf(n)), ratio = myP / Math.max(1, power(s, n.id));
+        let sc = (nb ? 1 : 0.35) * (0.5 + Math.min(2, ratio)) * (n.ideo && n.ideo === me.ideo ? 1.8 : 1) * (n.target === s.me ? 0.2 : 1) * (0.5 + Math.random());
+        if (sc > bs) { bs = sc; best = n; }
+      }
+      if (best && bs > 0.9) { const kind = bs > 1.8 && !nap(s, s.me, best.id) ? "ally" : nap(s, s.me, best.id) ? "ally" : "nap"; s.pendReq = { id: best.id, kind }; s.ev.push({ type: "friendReq", id: best.id, kind }); }
+      s.nextReq = s.t + 75 + Math.random() * 60;
+    }
     // stabiliteit van de speler
     const ME = s.nations[s.me];
     if (ME && ME.alive && s.mode) {
@@ -1036,13 +1050,14 @@ const WZ = (() => {
     const defs = s.armies.filter(a => a.p === q && a.prog < 0.5 && (a.o === o || allied(s, a.o, o)) && a.n > 0);
     const A = attackers.reduce((x, a) => x + a.n, 0); if (A <= 0) return;
     const fa = FX(s.nations[attackers[0].o]), fd = FX(s.nations[o]);
-    const seaPen = (attackers.every(a => a.path[0] && a.path[0].sea) ? 0.7 * Math.min(1.3, fa.sea) : 1) * fa.atk;
+    const meA = attackers[0].o === s.me ? (DIFF[s.diff].meAtk || 1) : 1;
+    const seaPen = (attackers.every(a => a.path[0] && a.path[0].sea) ? 0.7 * Math.min(1.3, fa.sea) : 1) * fa.atk * meA;
     const capBonus = s.nations[o] && s.nations[o].capital === q ? 1.25 : 1;
     if (defs.length) {
       const Dn = defs.reduce((x, a) => x + a.n, 0);
       const toDef = A * K * seaPen * dt * (0.85 + Math.random() * 0.3), toAtt = Dn * K * 1.2 * capBonus * fd.def * dt * (0.85 + Math.random() * 0.3);
       for (const d of defs) d.n -= toDef * d.n / Dn;
-      for (const a of attackers) a.n -= toAtt * a.n / A;
+      for (const a of attackers) a.n -= toAtt / meA * a.n / A;
       if (!s.battles) s.battles = {};
       s.battles[q] = s.t;
       if (o === s.me || attackers.some(a => a.o === s.me)) s.ev.push({ type: "battle", q, by: attackers[0].o, o });
@@ -1052,7 +1067,7 @@ const WZ = (() => {
       s.mil[q] = m - A * K * 1.6 * seaPen * dt;
       // reserve schiet automatisch te hulp bij een aanval op eigen land
       const Od = s.nations[o]; if (Od && Od.pool > 0) { const give = Math.min(Od.pool, poolCap(w, s, o) * (o === s.me ? 0.05 : 0.01) * dt, Math.max(0, milMax(w, s, q) - s.mil[q])); Od.pool -= give; s.mil[q] += give; }
-      for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt * a.n / A;
+      for (const a of attackers) a.n -= m * K * TUNE.milHit * capBonus * (o ? fd.def : 1) * dt / meA * a.n / A;
       if (s.mil[q] <= 0) capture(w, s, q, attackers);
     }
   }
@@ -1138,6 +1153,14 @@ const WZ = (() => {
     const price = provPrice(w, s, p), B = s.nations[best];
     if (B.pool < price) return { err: B.name + " heeft te weinig troepen" };
     B.pool -= price; me.pool += price; transfer(w, s, id, best, p); return { ok: true, price, to: best };
+  }
+  function answerReq(w, s, choice) {
+    const r = s.pendReq; s.pendReq = null; if (!r) return { err: "geen verzoek" };
+    const B = s.nations[r.id]; if (!B || !B.alive) return { err: "dat land bestaat niet meer" };
+    if (choice === "ally") { if (!B.allies.includes(s.me)) B.allies.push(s.me); const me = s.nations[s.me]; if (!me.allies.includes(B.id)) me.allies.push(B.id); stopFighting(s, s.me, B.id); if (B.target === s.me) B.target = 0; return { ok: true, kind: "ally" }; }
+    if (choice === "nap") { s.naps = s.naps || {}; s.naps[napKey(s.me, B.id)] = s.t + 300; stopFighting(s, s.me, B.id); if (B.target === s.me) B.target = 0; return { ok: true, kind: "nap" }; }
+    B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 240; if (Math.random() < 0.25) { B.target = s.me; B.nextT = s.t + 60; return { ok: true, kind: "angry" }; }
+    return { ok: true, kind: "no" };
   }
   function offerNap(w, s, id, o) {
     const B = s.nations[o]; if (!B || allied(s, id, o)) return { err: "al bondgenoot" };
@@ -1250,7 +1273,7 @@ const WZ = (() => {
   function deserialize(w, str) { ensureClaims(w); const o = JSON.parse(str); if (o.v !== 2) return null; o.owner = Int16Array.from(o.owner); o.mil = Float32Array.from(o.mil); o.ev = []; if (o.owner.length !== w.P) return null; for (const n of o.nations) if (n) { n.focus = n.focus || { done: [], cur: null, left: 0 }; n.tag = n.tag || tagOf(n); n.fxs = n.bot ? DIFF[o.diff].fxs : 1; calcFx(n); } recount(w, o); return o; }
   const share = (w, s, id) => s.nations[id] ? s.nations[id].tiles / w.landN : 0;
 
-  return { canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -1950,7 +1973,7 @@ function loop(ts) {
   }
   if (dirty.size) { paintProvs(dirty); dirty.clear(); }
   if (s && ts - siegeT > 120) { siegeT = ts; paintSieges(); }
-  if (s && !picking && ts - lastHud > 250) { maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
+  if (s && !picking && ts - lastHud > 250) { maybeReq(); maybeEvent(); lastHud = ts; hud(); if (card && card.upd) card.upd(); }
   render();
   requestAnimationFrame(loop);
 }
@@ -1985,6 +2008,7 @@ function menu(resumeData) {
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
   <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>✉️</i><div><b>Vriendschapsverzoeken:</b> andere landen vragen je soms om bondgenoot te worden of een verdrag te sluiten. Weiger je, dan kan een land beledigd raken.</div></div>
   <div class="st"><i>💰</i><div><b>Politiek:</b> tik op een ander land om een provincie te kopen voor troepen, een verdrag te sluiten of een ultimatum te sturen. Je kunt ook eigen land verkopen.</div></div>
   <div class="st"><i>🏛️</i><div><b>Binnenland:</b> houd je stabiliteit hoog met besluiten en reageer op gebeurtenissen, anders komen er opstanden.</div></div>
   <div class="st"><i>🏁</i><div><b>Doel:</b> verover genoeg van de kaart. Je doel staat bovenin.</div></div>
@@ -2023,6 +2047,21 @@ const EVENTS = [
 ];
 const REVOLT_EV = ["🔥 Onrust in de provincies", "Opstandelingen grijpen naar de wapens. Je stabiliteit is laag!", ["Stuur troepen", { pool: -0.2, stab: 6 }, "−20% reserve, +6 stabiliteit"], ["Laat ze gaan", { lose: 1, stab: 5 }, "je verliest een provincie, +5 stabiliteit"]];
 let nextEv = 70 + Math.random() * 40;
+function maybeReq() {
+  if (!s || s.over || picking || !s.pendReq || !$("ov").classList.contains("hidden")) return;
+  const r = s.pendReq, B = s.nations[r.id]; if (!B || !B.alive) { s.pendReq = null; return; }
+  paused = true; hideCard();
+  const f = B.fac ? WZ.facOf(s, B.fac) : null, ratio = WZ.power(s, B.id) / Math.max(1, WZ.power(s, s.me));
+  ov(`<h2>✉️ Vriendschapsverzoek</h2>
+    <div class="fm" style="margin-top:8px"><div class="t"><img alt="" src="${flagURL(flagOf(B))}"><div><b>${E(B.name)}</b><small>${B.ideo ? WZ.IDEO[B.ideo].icon + " " + WZ.IDEO[B.ideo].naam + " · " : ""}${f ? E(f.naam) + " · " : ""}${ratio > 1.2 ? "sterker dan jij" : ratio < 0.8 ? "zwakker dan jij" : "even sterk"}</small></div></div></div>
+    <p>${r.kind === "ally" ? `${E(B.name)} wil je <b style="color:var(--ink)">bondgenoot</b> worden. Bondgenoten vallen elkaar niet aan en helpen elkaar tegen vijanden.` : `${E(B.name)} stelt een <b style="color:var(--ink)">niet-aanvalsverdrag</b> voor: 5 minuten geen oorlog tussen jullie.`}</p>
+    <button class="big red" data-rq="ally" type="button">🤝 Bondgenoot worden</button>
+    <button class="big" data-rq="nap" type="button" style="min-height:48px">🕊️ Alleen een verdrag (5 min)</button>
+    <button class="big" data-rq="no" type="button" style="min-height:44px;font-size:14px">❌ Weigeren</button>`);
+  $("ovc").onclick = e => { const b = e.target.closest("[data-rq]"); if (!b) return; const res = WZ.answerReq(w, s, b.dataset.rq);
+    toast(res.kind === "ally" ? `🤝 ${B.name} is nu je bondgenoot!` : res.kind === "nap" ? `🕊️ Verdrag met ${B.name} (5 minuten)` : res.kind === "angry" ? `😠 ${B.name} is beledigd en wordt je vijand!` : `❌ Je weigert ${B.name}`);
+    $("ovc").onclick = null; resumePlay(); };
+}
 function maybeEvent() {
   if (!s || s.over || picking || paused || !$("ov").classList.contains("hidden") || s.t < nextEv || s.mode === undefined) return;
   const me = s.nations[s.me]; if (!me || !me.alive) return;
