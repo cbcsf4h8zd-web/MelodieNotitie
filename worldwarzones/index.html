@@ -714,7 +714,6 @@ const WZ = (() => {
     if (!(p >= 0 && p < w.P)) return { err: "geen geldige plek" };
     if (s.owner[p]) return { err: "daar zit al iemand" };
     if (!w.adj[p].length && !w.seaAdj[p].length) return { err: "te klein eiland" };
-    for (const n of s.nations) if (n && pdist(w, n.capital, p) < Math.sqrt(w.PS) * 1.6) return { err: "te dicht bij " + n.name };
     const id = s.nations.length;
     s.nations.push(newNation(s, id, name || (w.names[w.pCtry[p]] || "Jouw rijk"), id, p, { col: ME_COL.slice() }));
     // computerlanden die op jouw kleur lijken krijgen een andere kleur
@@ -1910,7 +1909,7 @@ function spawnCard(p) {
   if (o) { showCard(`<div class="hd">${fIcon(o)}<div class="ttl">${E(s.nations[o].name)}</div><div class="rel">Bezet</div></div><div class="info">Hier begint al een tegenstander. Kies een plek in het niemandsland (de gekleurde aarde zonder vlag).</div>`, { p }); return; }
   let near = Infinity, who = ""; for (const n of s.nations) if (n) { const d = WZ.pdist(w, n.capital, p); if (d < near) { near = d; who = n.name; } }
   const free = w.adj[p].filter(q => !s.owner[q]).length, prov = Math.sqrt(w.PS);
-  const tip = near < prov * 1.6 ? "❌ Te dicht bij " + E(who) : near < prov * 3.5 ? "⚠️ " + E(who) + " is vlakbij" : "✅ Rustige plek";
+  const tip = near < prov * 3.5 ? "⚠️ " + E(who) + " is vlakbij" : "✅ Rustige plek";
   showCard(`<div class="hd"><img class="fimg" alt="" src="${flagURL(reg)}"><div class="ttl">🌱 ${E(reg)}</div><div class="rel">Niemandsland</div></div>
     <div class="info">${tip} · ${free} vrije buurprovincie${free === 1 ? "" : "s"} om in uit te breiden</div>
     <div class="btns"><button type="button" class="go wide" data-a="spawn">▶ Begin hier</button></div>`, { spawn: p, p });
