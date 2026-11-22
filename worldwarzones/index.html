@@ -1463,11 +1463,16 @@ const flagOf = n => n ? (n.flag || n.name) : "";
 // ---- vlaggen over het gebied van elk land ----
 const flagOn = id => id > 0 && (settings.flag === "alle" || (settings.flag === "ik" && s && id === s.me));
 let FC = new Map(), flagT = 0, flagMode = "";
+// iPhone/Safari geeft canvas-geheugen pas vrij als het formaat 0 wordt: oude vlaggen dus altijd opruimen
+const dropCanvas = c => { if (c) { c.width = 0; c.height = 0; } };
+const dropFlag = e => { if (e) for (const f of e.parts) dropCanvas(f.comp); };
+let maskC = null;
 function buildFlag(id, tilesOf) {
   const n = s.nations[id], rx = w.cx[n.capital]; let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const tiles = [];
   for (const p of tilesOf) for (let k = w.start[p]; k < w.start[p + 1]; k++) { const i = w.list[k]; let x = i % W; const y = (i / W) | 0; if (w.wrap) { if (x - rx > W / 2) x -= W; else if (rx - x > W / 2) x += W; } tiles.push(x, y, i); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
   const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-  const m = document.createElement("canvas"); m.width = bw; m.height = bh; const mg = m.getContext("2d"), md = mg.createImageData(bw, bh), tmp = new Int32Array(4);
+  if (!maskC) maskC = document.createElement("canvas");
+  const m = maskC; m.width = bw; m.height = bh; const mg = m.getContext("2d"), md = mg.createImageData(bw, bh), tmp = new Int32Array(4);
   for (let t = 0; t < tiles.length; t += 3) {
     const i = tiles[t + 2]; let a = 255;
     if (w.pEdge[i]) { a = 170; const c = w.nb(i, tmp); for (let k = 0; k < c; k++) { const j = tmp[k]; if (w.land[j] && s.owner[w.prov[j]] !== id) { a = 0; break; } } }
@@ -1475,17 +1480,17 @@ function buildFlag(id, tilesOf) {
     md.data[((tiles[t + 1] - y0) * bw + (tiles[t] - x0)) * 4 + 3] = a;
   }
   mg.putImageData(md, 0, 0);
-  const lim = id === s.me ? 1600 : 640, K = Math.max(1, Math.min(6, Math.floor(lim / Math.max(bw, bh))));
+  const lim = id === s.me ? 900 : 360, K = Math.max(1, Math.min(4, Math.floor(lim / Math.max(bw, bh))));
   const c = document.createElement("canvas"); c.width = bw * K; c.height = bh * K; const g = c.getContext("2d");
   drawFlag(g, flagOf(n), c.width, c.height);
   g.globalCompositeOperation = "destination-in"; g.imageSmoothingEnabled = false; g.drawImage(m, 0, 0, c.width, c.height);
   return { comp: c, x0, y0, bw, bh };
 }
 function updFlags(force) {
-  if (force || flagMode !== settings.flag) { flagMode = settings.flag; FC = new Map(); }
+  if (force || flagMode !== settings.flag) { flagMode = settings.flag; for (const e of FC.values()) dropFlag(e); FC = new Map(); }
   const own = new Map();
   for (let p = 0; p < w.P; p++) { const o = s.owner[p]; if (o && flagOn(o)) { let l = own.get(o); if (!l) own.set(o, l = []); l.push(p); } }
-  for (const id of FC.keys()) if (!own.has(id)) FC.delete(id);
+  for (const id of [...FC.keys()]) if (!own.has(id)) { dropFlag(FC.get(id)); FC.delete(id); }
   let budget = picking || FC.size < 3 ? 999 : 14; const ids = [...own.keys()].sort((a, b) => (b === s.me) - (a === s.me));
   for (const id of ids) {
     const l = own.get(id); let sig = 0; for (const p of l) sig = (sig * 31 + p + 1) >>> 0;
@@ -1495,10 +1500,11 @@ function updFlags(force) {
     // elk los stuk land (bv. overzeese gebieden) krijgt een eigen vlag
     const inL = new Set(l), seen = new Set(), parts = [];
     for (const p0 of l) { if (seen.has(p0)) continue; const comp = [p0]; seen.add(p0); for (let h = 0; h < comp.length; h++) for (const q of w.adj[comp[h]]) if (inL.has(q) && !seen.has(q)) { seen.add(q); comp.push(q); } parts.push(buildFlag(id, comp)); }
-    FC.set(id, { key, parts });
+    dropFlag(cur); FC.set(id, { key, parts });
   }
 }
 const updMyFlag = () => updFlags(true);
+window.__flagPx = () => { let t = 0, n = 0; for (const e of FC.values()) for (const f of e.parts) { t += f.comp.width * f.comp.height; n++; } return { canvassen: n, megapixels: Math.round(t / 1e5) / 10, kaart: Math.round(W * H / 1e5) / 10 }; };
 function drawFlags() {
   if (!s || settings.flag === "uit") return;
   const nowT = performance.now(); if (nowT - flagT > 400) { flagT = nowT; updFlags(); }
