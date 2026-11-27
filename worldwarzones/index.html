@@ -284,6 +284,131 @@ const WZ = (() => {
     "*": [["xx1", "Nationale eenheid", "🏳️", [], { rate: 0.12 }, "+12% groei"], ["xx2", "Grenswachten", "🧱", ["xx1"], { def: 0.15 }, "+15% verdediging"], ["xx3", "Volksleger", "👥", ["xx1"], { cap: 0.15 }, "+15% reserve + direct 40% reserve", { pool: 0.4 }], ["xx4", "Regionale macht", "⭐", ["xx2", "xx3"], { atk: 0.12 }, "+12% aanval"], ["xx5", "Gouden tijdperk", "🏆", ["xx4"], { rate: 0.15, cap: 0.1 }, "+15% groei, +10% reserve"]]
   };
   for (const [tag, list] of Object.entries(NAT)) for (const [k, naam, icon, req, fx, info, extra] of list) F("nat", k, naam, icon, 45, req, fx, info, Object.assign({ tag }, extra || {}));
+  // ---------- gespecialiseerde bomen: per regio + per land ----------
+  const FXN = { rate: "groei", cap: "reserve", atk: "aanval", def: "verdediging", speed: "snelheid", sea: "zee" };
+  // "atk10 def5 pool30 a:Uruguay,Paraguay b:Portugal" -> fx/extra/info
+  function parseFx(str) {
+    const fx = {}, ex = {}, info = [];
+    for (const t of String(str || "").split(" ").filter(Boolean)) {
+      if (t.startsWith("a:")) { ex.annex = t.slice(2).split(",").map(x => x.replace(/_/g, " ")); continue; }
+      if (t.startsWith("b:")) { ex.ally = t.slice(2).split(",").map(x => x.replace(/_/g, " ")); continue; }
+      const m = t.match(/^([a-z]+)(\d+)$/); if (!m) continue;
+      if (m[1] === "pool") { ex.pool = +m[2] / 100; continue; }
+      fx[m[1]] = +m[2] / 100; info.push("+" + m[2] + "% " + FXN[m[1]]);
+    }
+    if (ex.pool) info.push("direct " + Math.round(ex.pool * 100) + "% reserve erbij");
+    if (ex.annex) info.push("lijf " + ex.annex.join(", ") + " in");
+    if (ex.ally) info.push("bondgenoot " + ex.ally.join(", "));
+    return { fx, ex, info: info.join(", ") };
+  }
+  // regio's (landen van de kaart); onbekende/historische rijken krijgen de regio van hun hoofdstad
+  const REGLIST = {
+    weur: "Nederland|België|Luxemburg|Frankrijk|Duitsland|Oostenrijk|Zwitserland|Liechtenstein|Verenigd Koninkrijk|Ierland|Spanje|Portugal|Italië|San Marino|Andorra|Malta|Jersey|Man Eiland|Monaco|Vaticaanstad",
+    scan: "Zweden|Noorwegen|Denemarken|Finland|IJsland|Groenland|Faeröer|Åland|Estland|Letland|Litouwen",
+    oeur: "Polen|Tsjechië|Slowakije|Hongarije|Rusland|Oekraïne|Wit-Rusland|Moldavië|Roemenië",
+    balk: "Servië|Kroatië|Slovenië|Bosnië-Herzegovina|Montenegro|Albanië|Noord-Macedonië|Kosovo|Bulgarije|Griekenland|Cyprus|N. Cyprus|Turkije",
+    mena: "Marokko|Westelijke Sahara|Algerije|Tunesië|Libië|Egypte|Soedan|Israël|Palestina|Libanon|Syrië|Jordanië|Irak|Iran|Saudi-Arabië|Jemen|Oman|Verenigde Arabische Emiraten|Qatar|Bahrein|Koeweit|Mauritanië",
+    afr: "Zimbabwe|Zambia|Oeganda|Togo|Tanzania|Eswatini|Zuid-Soedan|Zuid-Afrika|Somalië|Somaliland|Sierra Leone|Seychellen|Senegal|São Tomé en Principe|Rwanda|Nigeria|Niger|Namibië|Mozambique|Mauritius|Mali|Malawi|Madagaskar|Liberia|Lesotho|Kenia|Guinee-Bissau|Guinea|Ghana|Gambia|Gabon|Ethiopië|Eritrea|Equatoriaal-Guinea|Djibouti|Ivoorkust|Congo-Kinshasa|Congo-Brazzaville|Comoren|Tsjaad|Centraal-Afrikaanse Republiek|Kaapverdië|Kameroen|Burundi|Burkina Faso|Botswana|Benin|Angola|Sint-Helena",
+    caz: "Kazachstan|Oezbekistan|Turkmenistan|Tadzjikistan|Kirgizië|Afghanistan|Georgië|Armenië|Azerbeidzjan|Mongolië",
+    sazi: "India|Pakistan|Bangladesh|Nepal|Bhutan|Sri Lanka|Maldiven|Siachen Glacier|Brits Indische oceaan",
+    oaz: "China|Japan|Zuid-Korea|Noord-Korea|Taiwan|Hong Kong",
+    zoaz: "Vietnam|Laos|Cambodja|Thailand|Myanmar|Maleisië|Singapore|Indonesië|Filipijnen|Brunei|Timor Leste|Papoea-Nieuw-Guinea",
+    nam: "Verenigde Staten|Canada|Australië|Nieuw-Zeeland|Saint-Pierre en Miquelon",
+    lat: "Mexico|Guatemala|Belize|Honduras|El Salvador|Nicaragua|Costa Rica|Panama|Cuba|Dominicaanse Republiek|Haïti|Puerto Rico|Colombia|Venezuela|Ecuador|Peru|Bolivië|Chili|Argentinië|Uruguay|Paraguay|Brazilië|Guyana|Suriname|Falklandeilanden",
+  };
+  const REGOF = {}; for (const [r, l] of Object.entries(REGLIST)) for (const c of l.split("|")) REGOF[c] = r;
+  const REGNAAM = { weur: "West-Europa", scan: "Noord-Europa", oeur: "Oost-Europa", balk: "Balkan en Anatolië", mena: "Midden-Oosten en Noord-Afrika", afr: "Afrika", caz: "Centraal-Azië en Kaukasus", sazi: "Zuid-Azië", oaz: "Oost-Azië", zoaz: "Zuidoost-Azië", nam: "Nieuwe Wereld", lat: "Latijns-Amerika", eil: "Eilandrijken" };
+  // regionale boom: 12 stappen, vaste vorm (1 → 2,3 → 4,5,6 → 7,8,9 → 10,11 → 12)
+  const RSHAPE = [[], [0], [0], [1], [2], [1, 2], [3], [4], [5], ["any", 6, 7], [8], [9, 10]];
+  const RTREE = {
+    weur: ["Handelsnetwerken|🧭|rate8", "Parlementaire traditie|🏛️|def6", "Beroepsleger|🎖️|atk6", "Banken en beurzen|💶|rate6 pool20", "Vestingbouw|🏰|def8", "Europees concert|🎻|cap6 def4", "Overzeese rijken|⛵|sea20 rate4", "Moderne doctrine|📘|atk6 speed5", "Spoorwegnet|🚂|speed10", "Industriële voorsprong|🏭|rate8 cap5", "Continentale macht|⚔️|atk8 def4", "Hart van Europa|🇪🇺|rate8 atk6 def6"],
+    scan: ["Vikingerfgoed|🛶|atk6 sea10", "Fjordverdediging|🏔️|def8", "IJzererts en hout|🌲|rate8", "Noordse vloot|⚓|sea25", "Winteroorlog|❄️|def10", "Hanzehandel|🪙|rate6 pool20", "Skitroepen|⛷️|speed10 def4", "Langschepen|⛵|sea15 atk4", "Noordse samenwerking|🤝|cap8", "Noorderlicht-leger|🌌|atk8", "Welvaartsmodel|🏠|rate8 def4", "Kalmarunie|👑|atk6 def6 cap8"],
+    oeur: ["Slavische eenheid|🌾|cap8", "Steppe-cavalerie|🐎|speed8 atk4", "Zwarte aarde|🌻|rate8", "Diepe verdediging|❄️|def10", "Kozakkenleger|⚔️|atk8", "Massamobilisatie|👥|cap10 pool30", "Verschroeide aarde|🔥|def8", "Artilleriegordel|💥|atk8", "Oeral-industrie|🏭|rate8 cap4", "Oostfront|🪖|atk6 def6", "Pantsergolf|🛡️|speed8 atk4", "Heerser van de vlakte|🦅|atk8 cap8 def4"],
+    balk: ["Bergvolken|⛰️|def8", "Haiduk-strijders|🗡️|atk6", "Byzantijns erfgoed|☦️|rate6", "Partizanenoorlog|🌲|def8", "Zeestraten|🌉|sea15 def4", "Balkanbond|🤝|cap8", "Bergforten|🏰|def8", "Adriatische havens|⚓|sea15 rate4", "Spoor door de bergen|🚂|speed10", "Kruitvat van Europa|💣|atk8", "Handel van de Levant|🧿|rate8 pool20", "Groot-Balkanrijk|👑|atk8 def6 rate4"],
+    mena: ["Zijderoute-karavanen|🐫|rate8", "Woestijnkrijgers|🏜️|speed8 atk4", "Olievelden|🛢️|rate8 cap4", "Oasesteden|🌴|def8", "Bedoeïenenruiters|🐎|speed10", "Kalifaatserfenis|🕌|cap8 atk4", "Zandforten|🏰|def8", "Petrodollars|💰|rate6 pool30", "Kamelkorps|🐪|atk6 speed4", "Suez en Hormuz|🚢|sea20", "Pan-Arabisch leger|⚔️|atk8 cap6", "Halve Maan-rijk|🌙|atk8 def6 rate6"],
+    afr: ["Stamverbonden|🛡️|cap8", "Jungle-oorlog|🌳|def8", "Goud en diamanten|💎|rate8", "Savanne-krijgers|🐘|atk6 speed4", "Koperen gordel|⛏️|rate6 cap4", "Onafhankelijkheid|✊|atk6 def4", "Rivierroutes|🛶|speed10", "Mijnbouwsteden|🏙️|rate6 pool20", "Guerrillaleger|🌿|def8 atk4", "Grote meren|🌊|sea15 rate4", "Pan-Afrikaanse eenheid|🌍|cap10", "Leeuw van Afrika|🦁|atk8 def6 rate6"],
+    caz: ["Nomadenhorde|🐎|speed10", "Zijderoute|🐫|rate8", "Bergpassen|🏔️|def8", "Boogschutters te paard|🏹|atk8", "Kaspische olie|🛢️|rate6 cap4", "Khanaat|⛺|cap8", "Steppe-veldtocht|🌬️|speed8 atk4", "Bergvestingen|🏰|def8", "Katoen en gas|🌾|rate8", "Erfenis van Timoer|⚔️|atk8 cap4", "Grote Spel|♟️|def6 rate4", "Heerser van de steppe|🦅|atk8 speed6 cap6"],
+    sazi: ["Rijstvelden|🌾|rate8", "Maharadja-legers|🐘|atk6 cap4", "Specerijenhandel|🌶️|rate6 sea10", "Moessonverdediging|🌧️|def8", "Gurkha's|🗡️|atk8", "Textielindustrie|🧵|rate8", "Bergbewakers|🏔️|def8", "Indische Oceaan|🌊|sea20", "Miljoenenvolk|👥|cap10 pool30", "Rajput-traditie|⚔️|atk8 def4", "Softwaresteden|💻|rate8", "Juweel van Azië|💎|atk6 def6 rate8"],
+    oaz: ["Confucianistische orde|📜|def6 rate4", "Rijstdelta's|🌾|rate8", "Samoerai- en krijgersgeest|🗡️|atk8", "Keizerlijke examens|🎓|rate6 cap4", "Kustvloot|⚓|sea20", "Grote muren|🧱|def10", "Zijde en porselein|🏺|rate6 pool20", "Zeemacht van het oosten|🛳️|sea15 atk4", "Massaproductie|🏭|rate8 cap4", "Hemels mandaat|☯️|cap8 def4", "Elektronica-industrie|📱|rate8", "Draak van het oosten|🐉|atk8 def6 rate6"],
+    zoaz: ["Specerijeneilanden|🌶️|rate8", "Junglepaden|🌴|def8", "Rijstterrassen|🌾|rate6 cap4", "Prauwen en jonken|⛵|sea20", "Olifantenleger|🐘|atk8", "Rubber en tin|⛏️|rate8", "Junglegevecht|🌿|def8 atk4", "Straat van Malakka|🚢|sea15 rate4", "Tijgerseconomie|🐯|rate8 pool20", "Mekong-legers|🌊|atk6 speed4", "Archipelverdediging|🏝️|def8 sea10", "Rijk der eilanden|👑|atk6 def6 rate8"],
+    nam: ["Pioniersgeest|🤠|rate8", "Grensforten|🏰|def8", "Spoorlijnen van kust tot kust|🚂|speed10", "Graanschuur van de wereld|🌾|rate8", "Mariniers|🎯|sea20 atk4", "Goudkoorts|🪙|rate6 pool30", "Lopende band|🏭|cap8 rate4", "Twee oceanen|🌊|sea20", "Vrijwilligersleger|🎖️|cap8 atk4", "Arsenaal|💣|atk8 cap4", "Supermacht-economie|💵|rate10", "Nieuwe wereldmacht|🦅|atk8 def6 rate6"],
+    lat: ["Caudillo-gezag|🎖️|cap8", "Haciënda's|🌾|rate8", "Andes-vestingen|🏔️|def8", "Bevrijdingsleger|⚔️|atk8", "Zilvermijnen|⛏️|rate6 pool20", "Gaucho- en llanerorijders|🐎|speed10", "Amazone-verdediging|🌳|def8", "Koffie en suiker|☕|rate8", "Kanaal en havens|🚢|sea20", "Bolivariaans ideaal|🗡️|atk6 cap6", "Mijnbouwboom|💎|rate8 cap4", "Gran Colombia-droom|🌎|atk8 def6 rate6"],
+    eil: ["Eilandtrots|🏝️|def8", "Vissersvloot|🎣|sea20", "Handelshaven|⚓|rate8", "Kustbatterijen|💥|def8", "Kapers|🏴‍☠️|atk6 sea10", "Toerisme en handel|🌴|rate8 pool20", "Riffen en lagunes|🪸|def10", "Snelle sloepen|⛵|sea15 speed5", "Eilandmilitie|🛡️|cap8", "Zeeheerschappij|🔱|sea20 atk4", "Belastingparadijs|💰|rate8", "Koning van de zee|👑|atk6 def6 sea15"],
+  };
+  for (const [r, list] of Object.entries(RTREE)) list.forEach((spec, i) => {
+    const [naam, icon, fxs] = spec.split("|"), p = parseFx(fxs), sh = RSHAPE[i], any = sh[0] === "any";
+    const ids = (any ? sh.slice(1) : sh).map(j => "r_" + r + j);
+    F("reg", "r_" + r + i, naam, icon, 40 + i * 4, any ? [] : ids, p.fx, p.info, Object.assign({ reg: r }, p.ex, any ? { any: ids } : {}));
+  });
+  // eigen tak voor nog veel meer landen: 4 stappen (1 → 2,3 → 4)
+  const SIG = {
+    "Zwitserland": ["Alpenreduit|🏔️|def15", "Zwitserse banken|🏦|rate10 pool30", "Neutraliteit|🕊️|def8 cap6", "Militieleger|🎯|cap12 atk6"],
+    "Oostenrijk": ["Habsburgse erfenis|🦅|cap10", "Weense diplomatie|🎻|rate8", "Alpenjagers|⛷️|def10", "Donaumonarchie|👑|atk8 a:Slovenië,Liechtenstein"],
+    "Hongarije": ["Huzaren|🐎|atk10", "Poesta-graan|🌾|rate10", "Kroon van Sint-Stefan|👑|cap10", "Groot-Hongarije|🗺️|atk8 a:Slowakije"],
+    "Tsjechië": ["Škoda-fabrieken|🏭|rate12", "Grensgebergte|🏔️|def12", "Bohemen|🍺|cap8", "Kleine Entente|🤝|def6 b:Roemenië,Servië"],
+    "Roemenië": ["Ploiești-olie|🛢️|rate12", "Karpatenwacht|🏔️|def12", "Dacische trots|🐺|atk8", "Groot-Roemenië|🗺️|cap8 a:Moldavië"],
+    "Servië": ["Servische volharding|🦅|def12", "Tsjetniks|🗡️|atk10", "Belgrado-vesting|🏰|def8", "Joegoslavië|⭐|cap10 a:Montenegro,Noord-Macedonië"],
+    "Griekenland": ["Spartaanse discipline|🛡️|def12", "Griekse vloot|⚓|sea25", "Olympische geest|🏛️|atk8", "Megali Idea|🗺️|atk8 a:Cyprus"],
+    "Bulgarije": ["Balkanleeuw|🦁|atk10", "Rozenvallei|🌹|rate10", "Rodopen|⛰️|def10", "Tsaar van de Balkan|👑|cap10 a:Noord-Macedonië"],
+    "Finland": ["Sisu|💪|def15", "Mannerheimlinie|🧱|def10", "Skipatrouilles|⛷️|speed12", "Groot-Finland|🗺️|atk8 a:Åland,Estland"],
+    "Noorwegen": ["Noordzee-olie|🛢️|rate12", "Fjordvesting|🏔️|def12", "Walvisvloot|🐋|sea25", "Noorse kroon|👑|cap8 a:Faeröer"],
+    "Denemarken": ["Sonttol|🪙|rate10 pool20", "Deense vloot|⚓|sea25", "Grote Belt|🌉|def10", "Deens rijk|👑|cap8 a:Groenland,Faeröer,IJsland"],
+    "IJsland": ["Kabeljauwoorlogen|🐟|sea25", "Vulkaanenergie|🌋|rate12", "Saga-helden|📜|atk8", "Noordatlantische bastion|🧊|def12"],
+    "Ierland": ["Keltische tijger|🐯|rate12", "Paasopstand|✊|atk10", "Groene eiland|🍀|def10", "Verenigd Ierland|☘️|cap10"],
+    "Saudi-Arabië": ["Ghawar-olie|🛢️|rate15", "Heilige steden|🕋|cap10", "Woestijnleger|🏜️|def10", "Arabisch schiereiland|🐪|atk8 a:Qatar,Bahrein,Koeweit"],
+    "Irak": ["Tweestromenland|🌊|rate10", "Babylonische glorie|🏺|atk8", "Basra-olie|🛢️|rate8 cap6", "Mesopotamië|🗺️|atk8 a:Koeweit"],
+    "Syrië": ["Damascus-staal|⚔️|atk12", "Golanhoogten|⛰️|def12", "Levant-handel|🧿|rate10", "Groot-Syrië|🗺️|cap8 a:Libanon"],
+    "Israël": ["Kibboetsen|🚜|rate10", "IJzeren koepel|🛡️|def15", "Mossad|🕵️|atk10", "Zesdaagse oorlog|⚡|speed10 atk6"],
+    "Marokko": ["Atlasgebergte|🏔️|def12", "Fosfaatmijnen|⛏️|rate12", "Zeerovers van Salé|🏴‍☠️|sea20", "Groot-Marokko|🗺️|atk8 a:Westelijke_Sahara"],
+    "Algerije": ["Sahara-gas|🔥|rate12", "Bevrijdingsfront|✊|atk10", "Kasbah|🏰|def10", "Maghreb-unie|🤝|cap8 a:Tunesië"],
+    "Libië": ["Libische olie|🛢️|rate12", "Woestijnratten|🦂|speed12", "Cyrenaica|🏜️|def10", "Groot-Libië|🗺️|atk8"],
+    "Nigeria": ["Nigerdelta-olie|🛢️|rate15", "Reus van Afrika|👥|cap12 pool30", "Hausa-ruiters|🐎|speed10", "West-Afrikaanse macht|🌍|atk8 a:Benin"],
+    "Ethiopië": ["Adwa-overwinning|⚔️|atk12", "Abessijnse hooglanden|🏔️|def15", "Koffie van Kaffa|☕|rate10", "Leeuw van Juda|🦁|cap8 a:Eritrea,Djibouti"],
+    "Zuid-Afrika": ["Goud van de Rand|🪙|rate15", "Boerencommando's|🐎|speed10 atk6", "Kaap de Goede Hoop|⚓|sea25", "Zuidelijk Afrika|🗺️|cap8 a:Lesotho,Eswatini"],
+    "Kenia": ["Rift Valley|🏞️|def10", "Mau Mau|🌿|atk10", "Safari-economie|🦒|rate12", "Oost-Afrikaanse federatie|🤝|cap8 b:Oeganda,Tanzania"],
+    "Congo-Kinshasa": ["Kobalt en coltan|⛏️|rate15", "Congorivier|🛶|speed10", "Regenwoud|🌳|def12", "Hart van Afrika|💎|cap10 a:Congo-Brazzaville"],
+    "Angola": ["Angolese olie|🛢️|rate12", "Diamanten van Lunda|💎|rate8", "Hoogvlakte|⛰️|def10", "Zuidwest-Afrika|🗺️|atk8"],
+    "Pakistan": ["Indusvallei|🌊|rate10", "Khyberpas|🏔️|def12", "Punjab-regimenten|🎖️|atk10", "Atoommacht|☢️|atk8 cap6"],
+    "Bangladesh": ["Gangesdelta|🌾|rate12", "Jute-industrie|🧵|rate8", "Bengaalse tijgers|🐯|atk8", "Miljoenenmassa|👥|cap12 pool30"],
+    "Vietnam": ["Ho Chi Minh-pad|🌿|speed12", "Tunnelstelsel|🕳️|def15", "Rijstdelta|🌾|rate10", "Indochinese unie|🗺️|atk8 a:Laos,Cambodja"],
+    "Thailand": ["Nooit gekoloniseerd|🐘|def12", "Muay Thai-geest|🥊|atk10", "Rijstexport|🌾|rate10", "Siamees rijk|👑|cap8 a:Laos"],
+    "Indonesië": ["Specerijen van de Molukken|🌶️|rate12", "Duizend eilanden|🏝️|sea25", "Republieksleger|🎖️|cap10", "Nusantara|🗺️|atk8 a:Timor_Leste,Brunei"],
+    "Filipijnen": ["Archipelvloot|⛵|sea20", "Junglestrijders|🌿|def10", "Manilla-galjoenen|🚢|rate10", "Tagalog-trots|🇵🇭|atk8 cap6"],
+    "Maleisië": ["Tin en rubber|⛏️|rate12", "Straat van Malakka|🚢|sea20", "Junglecommando's|🌿|atk8", "Malaya Raya|🗺️|cap8 a:Singapore,Brunei"],
+    "Zuid-Korea": ["Chaebols|🏭|rate15", "38e breedtegraad|🧱|def12", "Taekwondo-divisies|🥋|atk8", "Hereniging|🇰🇷|cap10 a:Noord-Korea"],
+    "Noord-Korea": ["Juche|⭐|cap12", "Songun|🪖|atk10", "Bergbunkers|🕳️|def12", "Hereniging|🇰🇵|atk8 a:Zuid-Korea"],
+    "Taiwan": ["Chipfabrieken|💾|rate15", "Straat van Taiwan|🌊|def12 sea10", "Republiek China|🌞|cap8", "Terug naar het vasteland|⚔️|atk10"],
+    "Mongolië": ["Horde van Dzjengis|🐎|speed15", "Steppekrijgers|🏹|atk10", "Gobi|🏜️|def10", "Mongools wereldrijk|🦅|atk10 cap8"],
+    "Kazachstan": ["Steppegraan|🌾|rate10", "Kaspische olie|🛢️|rate8", "Baikonoer|🚀|atk6 speed6", "Turkestaanse unie|🗺️|cap8 a:Kirgizië"],
+    "Afghanistan": ["Hindoe Koesj|🏔️|def15", "Moedjahedien|🗡️|atk10", "Kerkhof der rijken|⚰️|def10", "Groot-Afghanistan|🗺️|cap8"],
+    "Georgië": ["Kaukasus-vesting|🏔️|def12", "Georgische wijn|🍷|rate10", "Tamar de Grote|👑|atk8", "Kaukasische unie|🤝|cap8 b:Armenië"],
+    "Colombia": ["Koffie-as|☕|rate12", "Andes-bataljons|🏔️|def10", "Caribische kust|⚓|sea20", "Gran Colombia|🗺️|atk8 a:Ecuador,Panama"],
+    "Venezuela": ["Orinoco-olie|🛢️|rate15", "Llanero-ruiters|🐎|speed10", "Bolívar|🗡️|atk10", "Bolivariaanse unie|🗺️|cap8 a:Guyana"],
+    "Chili": ["Kopermijnen|⛏️|rate12", "Andes-wand|🏔️|def12", "Chileense vloot|⚓|sea25", "Salpeteroorlog|💥|atk8 a:Bolivië"],
+    "Peru": ["Inca-erfenis|🦙|cap10", "Andes-wegen|🛤️|speed10", "Zilver van Potosí|🪙|rate10", "Tahuantinsuyo|☀️|atk8 a:Bolivië,Ecuador"],
+    "Cuba": ["Suikerrijk|🍬|rate10", "Revolutie|✊|atk10", "Sierra Maestra|🌿|def12", "Caribische macht|🌴|sea15 cap6"],
+    "Nieuw-Zeeland": ["Maori-krijgers|🗿|atk10", "Schapenhouderij|🐑|rate10", "Kiwi-vloot|⚓|sea20", "Zuidzee-rijk|🏝️|cap8 a:Fiji,Samoa,Tonga"],
+    "Wit-Rusland": ["Partizanenbossen|🌲|def12", "Tractorfabrieken|🚜|rate10", "Moerassen van Pripjat|💧|def8", "Groothertogdom|👑|atk8 a:Litouwen"],
+    "Litouwen": ["Grootvorstendom|👑|atk10", "Barnsteenkust|🟡|rate10", "Bossen van de Baltische zee|🌲|def10", "Pools-Litouwse unie|🤝|cap8 b:Polen"],
+    "Kroatië": ["Dalmatische kust|⚓|sea20", "Grensmilitie|🛡️|def12", "Toerisme|🏖️|rate10", "Drie-eenig koninkrijk|👑|atk8 a:Bosnië-Herzegovina"],
+  };
+  for (const [tag, list] of Object.entries(SIG)) {
+    if (NAT[tag]) continue; NAT[tag] = [];
+    const pre = "s_" + tag.replace(/[^A-Za-z]/g, "").slice(0, 6).toLowerCase() + "_";
+    list.forEach((spec, i) => { const [naam, icon, fxs] = spec.split("|"), p = parseFx(fxs); F("nat", pre + i, naam, icon, 45 + i * 5, i === 0 ? [] : i === 3 ? [pre + 1, pre + 2] : [pre + 0], p.fx, p.info, Object.assign({ tag }, p.ex)); });
+  }
+  // landen zonder kust kunnen geen vloot bouwen
+  FOCUS.vloot.needCoast = true; FOCUS.vloot.info += " (alleen met kust)";
+  // regio van een land: naam, anders de regio van de hoofdstad
+  function regOf(n) { return n.reg || REGOF[n.tag] || REGOF[n.name] || "eil"; }
+  function assignReg(w, s) {
+    const coast = new Uint8Array(s.nations.length);
+    for (let p = 0; p < w.P; p++) if (w.coastP[p] && s.owner[p]) coast[s.owner[p]] = 1;
+    for (const n of s.nations) if (n) {
+      n.coastal = !!coast[n.id];
+      if (!n.reg) n.reg = REGOF[n.tag] || REGOF[String(n.name).replace(/\s+(II|III|IV|V|VI|\d+)$/, "")] || (n.capital >= 0 && REGOF[w.names[w.pCtry[n.capital]]]) || "eil";
+    }
+  }
   // ---------- uitbreiding: veel grotere boom ----------
   // Industrie (extra)
   F("ind", "elektra", "Elektrificatie", "⚡", 45, ["fabrieken"], { rate: 0.06 }, "+6% groei");
@@ -709,6 +834,8 @@ const WZ = (() => {
   function focusOk(n, k) {
     const F = FOCUS[k], fo = n && n.focus; if (!F || !fo || fo.cur || fo.done.includes(k)) return false;
     if (F.tag && F.tag !== natTag(n)) return false;
+    if (F.reg && F.reg !== regOf(n)) return false;
+    if (F.needCoast && n.coastal === false) return false;
     if (F.claim && !(n.nbTags || []).includes(F.claim)) return false;
     if (!F.req.every(r => fo.done.includes(r))) return false;
     if (F.any && !F.any.some(r => fo.done.includes(r))) return false;
@@ -1326,6 +1453,7 @@ const WZ = (() => {
     }
     scenTick(w, s);
     if (!s._hoi) { s._hoi = 1; hoiInit(w, s); countBld(w, s); }
+    if (!(s._regT > s.t)) { s._regT = s.t + 2; assignReg(w, s); }
     // stabiliteit van de speler
     const ME = s.nations[s.me];
     if (ME && ME.alive && s.mode) {
@@ -1673,7 +1801,7 @@ const WZ = (() => {
       if (opts.length) {
         if (!n.pref) n.pref = ["demo", "fasc", "comm", "mon"][(Math.random() * 4) | 0];
         const opts2 = opts.filter(k => !FOCUS[k].claim || Math.random() < 0.08); opts.length = 0; opts.push(...opts2);
-        const nat = opts.filter(k => FOCUS[k].tag || FOCUS[k].br === "nat"), ide = opts.filter(k => FOCUS[k].ideo === n.pref || (FOCUS[k].br === "pol" && k.startsWith(n.pref))), gen = opts.filter(k => !FOCUS[k].ideo && !FOCUS[k].tag && FOCUS[k].br !== "pol");
+        const nat = opts.filter(k => FOCUS[k].tag || FOCUS[k].reg || FOCUS[k].br === "nat"), ide = opts.filter(k => FOCUS[k].ideo === n.pref || (FOCUS[k].br === "pol" && k.startsWith(n.pref))), gen = opts.filter(k => !FOCUS[k].ideo && !FOCUS[k].tag && FOCUS[k].br !== "pol");
         const pick = l => l[(Math.random() * l.length) | 0], r = Math.random();
         startFocus(s, id, (r < 0.4 && nat.length ? pick(nat) : r < 0.65 && ide.length ? pick(ide) : gen.length ? pick(gen) : null) || pick(nat.length ? nat : ide.length ? ide : opts.filter(k => !FOCUS[k].ideo || FOCUS[k].ideo === n.pref).length ? opts.filter(k => !FOCUS[k].ideo || FOCUS[k].ideo === n.pref) : opts));
       }
@@ -1758,7 +1886,7 @@ const WZ = (() => {
   const realTiles = (s, id) => { const n = s.nations[id]; if (!n) return 0; let t = n.tiles; for (const v of s.nations) if (v && v.alive && v.overlord === id) t += v.tiles; return t; };
   const share = (w, s, id) => s.nations[id] ? realTiles(s, id) / w.landN : 0;
 
-  return { LEADERS, ADVISORS, GTRAITS, BLD, GEN_COST, leaderOptions, setLeader, hireAdvisor, fireAdvisor, hireGeneral, assignGeneral, genOf, build, countBld, hoiInit, SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { regOf, REGNAAM, assignReg, LEADERS, ADVISORS, GTRAITS, BLD, GEN_COST, leaderOptions, setLeader, hireAdvisor, fireAdvisor, hireGeneral, assignGeneral, genOf, build, countBld, hoiInit, SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -2905,11 +3033,11 @@ function end() {
 $("bPause").onclick = () => { if (!s || s.over) return; paused = !paused; $("bPause").textContent = paused ? "▶" : "⏸"; toast(paused ? "⏸ Gepauzeerd" : "▶ Verder"); };
 $("bMenu").onclick = pauseMenu; $("bRank").onclick = ranking; $("bFac").onclick = facPanel; $("bFocus").onclick = focusPanel; $("bForm").onclick = formPanel; $("bInt").onclick = intPanel;
 let focusTab = "nat", focusSnooze = -1;
-const FTABS = [["nat", "🏳️ Nationaal"], ["pol", "🏛️ Politiek"], ["ind", "🏭 Industrie"], ["eco", "💰 Economie"], ["tech", "🔬 Onderzoek"], ["leger", "🪖 Leger"], ["lucht", "✈️ Lucht"], ["vloot", "⚓ Vloot"], ["log", "🚂 Logistiek"], ["dipl", "🌐 Diplomatie"]];
+const FTABS = [["nat", "🏳️ Nationaal"], ["reg", "🗺️ Regio"], ["pol", "🏛️ Politiek"], ["ind", "🏭 Industrie"], ["eco", "💰 Economie"], ["tech", "🔬 Onderzoek"], ["leger", "🪖 Leger"], ["lucht", "✈️ Lucht"], ["vloot", "⚓ Vloot"], ["log", "🚂 Logistiek"], ["dipl", "🌐 Diplomatie"]];
 function focusPanel() {
   if (!s || s.over || picking) return; paused = true; $("bPause").textContent = "▶"; hideCard();
   const me = s.nations[s.me], fo = me.focus, tag = WZ.natTag(me);
-  const keys = br => WZ.BRANCH[br].filter(k => { const F = WZ.FOCUS[k]; return (!F.tag || F.tag === tag) && (!F.claim || (me.nbTags || []).includes(F.claim) || fo.done.includes(k)); });
+  const keys = br => WZ.BRANCH[br].filter(k => { const F = WZ.FOCUS[k]; return (!F.tag || F.tag === tag) && (!F.reg || F.reg === WZ.regOf(me)) && (!F.claim || (me.nbTags || []).includes(F.claim) || fo.done.includes(k)); });
   const depth = {}; const dep = k => { if (depth[k] !== undefined) return depth[k]; const F = WZ.FOCUS[k]; const rs = [...F.req, ...(F.any || [])].filter(r => WZ.FOCUS[r].br === F.br); return depth[k] = rs.length ? 1 + Math.max(...rs.map(dep)) : 0; };
   const qu = fo.queue || [];
   const st = k => { const F = WZ.FOCUS[k]; return fo.done.includes(k) ? "done" : fo.cur === k ? "cur" : qu.includes(k) ? "q" : WZ.focusOk(me, k) ? "ok" : (F.excl && F.excl.some(x => fo.done.includes(x) || fo.cur === x || qu.includes(x))) ? "x" : WZ.canQueue(me, k) ? "qa" : "lock"; };
@@ -2921,7 +3049,7 @@ function focusPanel() {
   ov(`<h2>🎯 Focusboom</h2><p>${done} van ${tot} focussen klaar${fo.cur ? ` · nu: ${WZ.FOCUS[fo.cur].icon} ${E(WZ.FOCUS[fo.cur].naam)} (nog ${Math.ceil(fo.left)}s)` : ""}. Eén tegelijk; elke focus geeft een blijvende bonus.</p>
     <div class="ftabs">${FTABS.map(([b, l]) => `<button type="button" data-tab="${b}" class="${b === focusTab ? "on" : ""}">${l}${cnt(b) ? `<b>${cnt(b)}</b>` : ""}</button>`).join("")}</div>
     <p style="font-size:12.5px">💡 Tik meerdere focussen aan: ze komen in de <b style="color:var(--ink)">wachtrij</b> (${qu.length}) en starten vanzelf na elkaar. Paars gestippeld = kan in de wachtrij.</p>
-    ${focusTab === "nat" ? `<p style="font-size:12.5px">${tag === "*" ? "Algemene nationale tak (" + E(me.name) + " heeft nog geen eigen tak)." : "Eigen tak van " + E(tag) + ": speciale bonussen, bondgenoten en landen inlijven."} Inlijven lukt alleen als dat land kleiner is dan jij.</p>` : focusTab === "dipl" ? `<p style="font-size:12.5px">Na Ambassades kun je een claim leggen op elk buurland. Is dat land kleiner dan jij, dan lijf je het in. Anders krijg je +4% aanval.</p>` : focusTab === "pol" ? `<p style="font-size:12.5px">Kies één ideologie, definitief. Die bepaalt je alliantie: 🔵 Geallieerden, ⚫ Asmogendheden, 🔴 Komintern of 👑 Heilige Alliantie.</p>` : ""}
+    ${focusTab === "nat" ? `<p style="font-size:12.5px">${tag === "*" ? "Algemene nationale tak (" + E(me.name) + " heeft nog geen eigen tak; kijk ook bij 🗺️ Regio)." : "Eigen tak van " + E(tag) + ": speciale bonussen, bondgenoten en landen inlijven."} Inlijven lukt alleen als dat land kleiner is dan jij.</p>` : focusTab === "reg" ? `<p style="font-size:12.5px">Regionale tak <b style="color:var(--ink)">${E(WZ.REGNAAM[WZ.regOf(me)])}</b>: 12 focussen die passen bij waar ${E(me.name)} ligt.</p>` : focusTab === "vloot" && me.coastal === false ? `<p style="font-size:12.5px;color:#f59e0b">⚠️ ${E(me.name)} heeft geen kust: verover eerst een kustprovincie om een vloot te bouwen.</p>` : focusTab === "dipl" ? `<p style="font-size:12.5px">Na Ambassades kun je een claim leggen op elk buurland. Is dat land kleiner dan jij, dan lijf je het in. Anders krijg je +4% aanval.</p>` : focusTab === "pol" ? `<p style="font-size:12.5px">Kies één ideologie, definitief. Die bepaalt je alliantie: 🔵 Geallieerden, ⚫ Asmogendheden, 🔴 Komintern of 👑 Heilige Alliantie.</p>` : ""}
     <div class="ftree">${Object.keys(rows).sort((a, b) => a - b).map(d => `<div class="frow">${+d === 0 ? "START" : "NIVEAU " + (+d + 1)}</div>` + rows[d].map(node).join("")).join("")}</div>
     <button class="big red" id="fB" type="button">Verder spelen</button>`);
   $("ovc").onclick = e => {
