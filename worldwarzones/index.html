@@ -1429,7 +1429,7 @@ const WZ = (() => {
         let bully = null, br = 0;
         for (const n of s.nations) { if (!n || !n.alive || n.id === s.me || allied(s, s.me, n.id) || nap(s, s.me, n.id)) continue; if (!(me.nbTags || []).includes(tagOf(n))) continue; if (n.refuse && (n.refuse["r" + s.me] || 0) > s.t) continue; const r = power(s, n.id) / Math.max(1, myP); if (r > 2.2 && r > br) { br = r; bully = n; } }
         if (bully) { let q = -1, qv = Infinity; for (let p = 0; p < w.P; p++) if (s.owner[p] === s.me && p !== me.capital && w.adj[p].some(r => s.owner[r] === bully.id) && w.val[p] < qv) { qv = w.val[p]; q = p; }
-          if (q >= 0) { s.pendReq = { id: bully.id, kind: "ultb", q }; s.ev.push({ type: "friendReq", id: bully.id, kind: "ultb", q }); s.nextReq = s.t + 90 + Math.random() * 60; bully = "done"; } }
+          if (q >= 0) { s.pendReq = { id: bully.id, kind: "ultb", q, half: w.size[q] >= 8 && Math.random() < 0.45 }; s.ev.push({ type: "friendReq", id: bully.id, kind: "ultb", q }); s.nextReq = s.t + 90 + Math.random() * 60; bully = "done"; } }
         if (bully === "done") { /* verzoek staat klaar */ }
       }
       // handelsbod: een buurland wil een provincie van je kopen, of er een aan je verkopen
@@ -1760,7 +1760,7 @@ const WZ = (() => {
     }
     if (r.kind === "ultb") {
       const me = s.nations[s.me];
-      if (choice === "give") { if (s.owner[r.q] === s.me && r.q !== me.capital && me.provs > 1) transfer(w, s, s.me, B.id, r.q); B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 300; return { ok: true, kind: "gave" }; }
+      if (choice === "give") { if (r.half && s.owner[r.q] === s.me) { const nq = shareProvince(w, s, r.q, s.me, B.id); if (nq >= 0) s.ev.push({ type: "split", p: r.q, q: nq, a: s.me, b: B.id, o: s.me, quiet: true }); else if (r.q !== me.capital && me.provs > 1) transfer(w, s, s.me, B.id, r.q); } else if (s.owner[r.q] === s.me && r.q !== me.capital && me.provs > 1) transfer(w, s, s.me, B.id, r.q); B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 300; return { ok: true, kind: "gave" }; }
       B.target = s.me; B.nextT = s.t + 45; me.stab = Math.min(100, (me.stab ?? 60) + 4); B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 200; return { ok: true, kind: "war" };
     }
     if (r.kind === "unie") { if (choice === "unie") { mergeInto(w, s, s.me, B.id); return { ok: true, kind: "unie" }; } B.refuse = B.refuse || {}; B.refuse["r" + s.me] = s.t + 240; return { ok: true, kind: "no" }; }
@@ -1778,6 +1778,115 @@ const WZ = (() => {
     s.naps = s.naps || {}; s.naps[napKey(id, o)] = s.t + 240; stopFighting(s, id, o); if (B.target === id) B.target = 0;
     for (const a of s.armies) if ((a.o === id && s.owner[a.p] === o) || (a.o === o && s.owner[a.p] === id) || ((a.o === id || a.o === o) && a.path.some(st => s.owner[st.q] === (a.o === id ? o : id)))) { a.path = []; a.prog = 0; }
     return { ok: true };
+  }
+  // ---------- handelsdeal met zelf gekozen provincies ----------
+  function touchesSet(w, s, list, ownerOk) { // elke provincie moet grenzen aan ownerOk-land of aan een andere uit de lijst
+    const set = new Set(list), ok = new Set(); let ch = true;
+    while (ch) { ch = false; for (const p of set) if (!ok.has(p) && w.adj[p].some(q => ok.has(q) || (!set.has(q) && ownerOk(s.owner[q])))) { ok.add(p); ch = true; } }
+    return ok.size === set.size;
+  }
+  function dealCheck(w, s, id, o, get, give) {
+    const A = s.nations[id], B = s.nations[o]; if (!B || !B.alive || o === id) return { err: "kies een ander land" };
+    if (!get.length && !give.length) return { err: "kies eerst provincies" };
+    for (const p of get) { if (s.owner[p] !== o) return { err: "een gekozen provincie is niet meer van " + B.name }; if (p === B.capital) return { err: "hun hoofdstad is niet te koop" }; }
+    for (const p of give) { if (s.owner[p] !== id) return { err: "een gekozen provincie is niet meer van jou" }; if (p === A.capital) return { err: "je hoofdstad geef je niet weg" }; }
+    if (get.length >= B.provs) return { err: B.name + " moet minstens 1 provincie overhouden" };
+    if (give.length >= A.provs) return { err: "je moet minstens 1 provincie overhouden" };
+    if (get.length && !touchesSet(w, s, get, x => x === id)) return { err: "wat je krijgt moet aan jouw land grenzen" };
+    if (give.length && !touchesSet(w, s, give, x => x === o)) return { err: "wat je geeft moet aan " + B.name + " grenzen" };
+    if (s.armies.some(a => (a.o === o && a.fight === id) || (a.o === id && a.fight === o))) return { err: "jullie zijn in oorlog" };
+    const vGet = get.reduce((a, p) => a + provPrice(w, s, p), 0), vGive = give.reduce((a, p) => a + provPrice(w, s, p), 0);
+    return { ok: true, vGet, vGive };
+  }
+  // pay > 0: jij betaalt troepen, pay < 0: zij betalen jou
+  function dealChance(w, s, id, o, get, give, pay) {
+    const c = dealCheck(w, s, id, o, get, give); if (!c.ok) return 0;
+    const B = s.nations[o], gain = c.vGive + Math.max(0, pay), loss = c.vGet + Math.max(0, -pay);
+    if (pay < 0 && B.pool < -pay) return 0;
+    const q = gain / Math.max(1, loss);
+    let ch = 0.12 + (q - 0.85) * 0.9 + (allied(s, id, o) ? 0.15 : 0) + (nap(s, id, o) ? 0.08 : 0) - (B.target === id ? 0.3 : 0) + ((s.nations[id].adv || []).includes("diplomaat") ? 0.1 : 0);
+    if (get.length > B.provs * 0.4) ch *= 0.4;
+    return Math.max(0.02, Math.min(0.95, ch));
+  }
+  function tradeDeal(w, s, id, o, get, give, pay) {
+    const c = dealCheck(w, s, id, o, get, give); if (!c.ok) return c;
+    const A = s.nations[id], B = s.nations[o]; pay = Math.round(pay || 0);
+    if (pay > 0 && A.pool < pay) return { err: "je hebt maar " + Math.floor(A.pool) + " troepen in reserve" };
+    if (pay < 0 && B.pool < -pay) return { err: B.name + " heeft zoveel troepen niet" };
+    B.refuse = B.refuse || {}; if ((B.refuse["d" + id] || 0) > s.t) return { err: B.name + " wil nog even niet onderhandelen (" + Math.ceil(B.refuse["d" + id] - s.t) + "s)" };
+    if (Math.random() > dealChance(w, s, id, o, get, give, pay)) { B.refuse["d" + id] = s.t + 30; return { err: B.name + " wijst je voorstel af" }; }
+    A.pool -= pay; B.pool += pay;
+    for (const p of get) transfer(w, s, o, id, p);
+    for (const p of give) transfer(w, s, id, o, p);
+    return { ok: true };
+  }
+  // ---------- delen van provincies afsplitsen ----------
+  function splitOffTiles(w, s, q, tiles, to) {
+    const from = s.owner[q];
+    const nq = splitWorld(w, q, tiles);
+    s.owner = growA(s.owner, w.P); s.mil = growA(s.mil, w.P); if (s.core) s.core = growA(s.core, w.P);
+    (s.splits = s.splits || []).push({ p: q, t: Array.from(tiles) });
+    s.owner[nq] = to; s.mil[nq] = milMax(w, s, nq) * 0.5; if (s.core) s.core[nq] = to;
+    for (const a of s.armies) if (a.p === q && a.o === to) a.p = nq;
+    s.ev.push({ type: "split", p: q, q: nq, a: from, b: to, o: from, quiet: true });
+    return nq;
+  }
+  // halve provincie eisen: het deel dat het dichtst bij jouw grens ligt
+  function halfChance(w, s, id, p) { const o = s.owner[p]; if (!o || o === id) return 0; const r = power(s, id) / Math.max(1, power(s, o)); return r >= 1.6 ? 0.85 : r >= 1.2 ? 0.4 : 0.06; }
+  function ultimatumHalf(w, s, id, p) {
+    const o = s.owner[p], B = s.nations[o]; if (!o || o === id) return { err: "kan niet" };
+    if (!w.adj[p].some(q => s.owner[q] === id)) return { err: "je moet ernaast liggen" };
+    if (w.size[p] < 8) return { err: "deze provincie is te klein om te delen" };
+    B.refuse = B.refuse || {}; if ((B.refuse["h" + id] || 0) > s.t) return { err: B.name + " luistert nog even niet naar je" };
+    if (Math.random() > halfChance(w, s, id, p)) { B.refuse["h" + id] = s.t + 40; B.target = id; B.nextT = s.t + 60; return { err: B.name + " weigert en wordt boos op je!" }; }
+    const nq = shareProvince(w, s, p, o, id); if (nq < 0) return { err: "delen lukt hier niet" };
+    for (const a of s.armies) if (a.p === nq && a.o === o) a.p = p;
+    s.ev.push({ type: "split", p, q: nq, a: o, b: id, o, quiet: true }); return { ok: true, q: nq };
+  }
+  // ultimatum met een getrokken lijn: alles van hen aan jouw kant van de lijn
+  function lineClaim(w, s, id, o, pts) {
+    const B = s.nations[o]; if (!B || !B.alive || o === id || !pts || pts.length < 2) return { err: "trek een lijn" };
+    const W = w.W, H = w.H, cut = new Uint8Array(w.N);
+    const mark = (x, y) => { x = Math.floor(x); y = Math.floor(y); if (w.wrap) x = ((x % W) + W) % W; if (x < 0 || y < 0 || x >= W || y >= H) return; for (const [dx, dy] of [[0, 0], [1, 0], [0, 1]]) { const xx = w.wrap ? (x + dx) % W : x + dx, yy = y + dy; if (xx < W && yy < H) cut[yy * W + xx] = 1; } };
+    for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2) + 1; for (let k = 0; k <= n; k++) mark(x0 + (x1 - x0) * k / n, y0 + (y1 - y0) * k / n); }
+    // tegels van hen
+    const theirs = [], tmp = new Int32Array(4); for (let p = 0; p < w.P; p++) if (s.owner[p] === o) for (let k = w.start[p]; k < w.start[p + 1]; k++) theirs.push(w.list[k]);
+    const isO = t => w.land[t] && s.owner[w.prov[t]] === o;
+    const seen = new Uint8Array(w.N);
+    // wat ze houden: vanaf hun hoofdstad, niet over de lijn
+    let seed = w.ctile[B.capital]; if (cut[seed]) { for (let k = w.start[B.capital]; k < w.start[B.capital + 1]; k++) if (!cut[w.list[k]]) { seed = w.list[k]; break; } }
+    const qu = [seed]; seen[seed] = 1;
+    for (let h = 0; h < qu.length; h++) { const m = w.nb(qu[h], tmp); for (let j = 0; j < m; j++) { const u = tmp[j]; if (!seen[u] && !cut[u] && isO(u)) { seen[u] = 1; qu.push(u); } } }
+    // de rest in stukken; alleen stukken die aan jouw land grenzen
+    const claim = [];
+    for (const t0 of theirs) {
+      if (seen[t0] || cut[t0]) continue;
+      const comp = [t0]; seen[t0] = 2; let touch = false;
+      for (let h = 0; h < comp.length; h++) { const m = w.nb(comp[h], tmp); for (let j = 0; j < m; j++) { const u = tmp[j]; if (!w.land[u]) continue; if (s.owner[w.prov[u]] === id) touch = true; if (!seen[u] && !cut[u] && isO(u)) { seen[u] = 2; comp.push(u); } } }
+      if (touch) for (const t of comp) claim.push(t);
+    }
+    if (claim.length < 3) return { err: "trek de lijn helemaal door hun land, van grens tot grens, zodat er een stuk aan jouw kant ligt" };
+    const byProv = new Map(); for (const t of claim) { const p = w.prov[t]; byProv.set(p, (byProv.get(p) || 0) + 1); }
+    let tot = 0; for (let p = 0; p < w.P; p++) if (s.owner[p] === o) tot += w.size[p];
+    const frac = claim.length / Math.max(1, tot), need = 1.3 + frac * 5, ratio = power(s, id) / Math.max(1, power(s, o));
+    const chance = ratio >= need ? 0.85 : ratio >= need * 0.75 ? 0.35 : 0.05;
+    let whole = 0, part = 0; for (const [p, c] of byProv) { if (c >= w.size[p] - 2 || (c > w.size[p] / 2 && (c < 3 || w.size[p] - c < 3))) whole++; else if (c >= 3 && w.size[p] - c >= 3) part++; }
+    return { ok: true, claim, byProv, frac, need, ratio, chance, whole, part };
+  }
+  function ultimatumLine(w, s, id, o, pts) {
+    const c = lineClaim(w, s, id, o, pts); if (!c.ok) return c;
+    const B = s.nations[o]; B.refuse = B.refuse || {};
+    if ((B.refuse["l" + id] || 0) > s.t) return { err: B.name + " luistert nog even niet naar je" };
+    if (Math.random() > c.chance) { B.refuse["l" + id] = s.t + 45; B.target = id; B.nextT = s.t + 45; return { err: B.name + " weigert en verklaart je de oorlog!" }; }
+    const tilesOf = new Map(); for (const t of c.claim) { const p = w.prov[t]; if (!tilesOf.has(p)) tilesOf.set(p, []); tilesOf.get(p).push(t); }
+    let n = 0;
+    for (const [p, ts] of tilesOf) {
+      if (s.owner[p] !== o || p === B.capital) continue;
+      if (ts.length >= w.size[p] - 2 || (ts.length > w.size[p] / 2 && (ts.length < 3 || w.size[p] - ts.length < 3))) { if (B.provs > 1) { transfer(w, s, o, id, p); n++; } }
+      else if (ts.length >= 3 && w.size[p] - ts.length >= 3) { splitOffTiles(w, s, p, ts, id); n++; }
+    }
+    recount(w, s);
+    return n ? { ok: true, n } : { err: "er viel niets te verdelen" };
   }
   function ultimatum(w, s, id, p) {
     const o = s.owner[p], B = s.nations[o]; if (!o || o === id) return { err: "kan niet" };
@@ -1886,7 +1995,7 @@ const WZ = (() => {
   const realTiles = (s, id) => { const n = s.nations[id]; if (!n) return 0; let t = n.tiles; for (const v of s.nations) if (v && v.alive && v.overlord === id) t += v.tiles; return t; };
   const share = (w, s, id) => s.nations[id] ? realTiles(s, id) / w.landN : 0;
 
-  return { regOf, REGNAAM, assignReg, LEADERS, ADVISORS, GTRAITS, BLD, GEN_COST, leaderOptions, setLeader, hireAdvisor, fireAdvisor, hireGeneral, assignGeneral, genOf, build, countBld, hoiInit, SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
+  return { dealCheck, dealChance, tradeDeal, halfChance, ultimatumHalf, lineClaim, ultimatumLine, regOf, REGNAAM, assignReg, LEADERS, ADVISORS, GTRAITS, BLD, GEN_COST, leaderOptions, setLeader, hireAdvisor, fireAdvisor, hireGeneral, assignGeneral, genOf, build, countBld, hoiInit, SCEN, answerHist, vassalChance, demandVassal, annexVassal, releaseVassal, realTiles, unionChance, askUnion, answerReq, canQueue, queueFocus, unqueueFocus, DECIS, decide, applyChoice, revolt, provPrice, buyProv, sellProv, offerNap, ultimatum, nap, ERAS, BRANCH, NAT_TAGS, natTag, tagOf, RANK, FORMS, formsFor, formProgress, formNation, FOCUS, IDEO, FX, focusOk, startFocus, spawnPlayer, TUNE, WIN, DIFF, PEACE, MIN_ARMY, makeWorld, newGame, choose, tick, createArmy, order, attackWithPool, front, split, splitOff, askAlliance, leaveFac, betray, allied, hostile, facOf, members, power, poolCap, share, serialize, deserialize, pdist, armiesIn, recount };
 })();
 if (typeof module !== "undefined") module.exports = WZ;
 
@@ -2409,6 +2518,11 @@ function render() {
   }
   // sleep-pijl en front
   if (drag && drag.to >= 0) { const [x, y] = armyPos(drag.a); arrowLine([[scrX(x), scrY(y)], [scrX(w.cx[drag.to]), scrY(w.cy[drag.to])]], "#f5b531", 4); }
+  if (lineM && lineM.ov) { const L = lineM.ov; ctx.save(); ctx.imageSmoothingEnabled = false; ctx.globalAlpha = 0.55 + pulse * 0.25; ctx.drawImage(L.c, scrX(L.x0), scrY(L.y0), L.c.width * scale, L.c.height * scale); ctx.restore(); }
+  if (lineM && lineM.pts) { ctx.save(); ctx.strokeStyle = "#ef4444"; ctx.lineWidth = 4; ctx.setLineDash([9, 6]); ctx.beginPath(); lineM.pts.forEach((q, i) => i ? ctx.lineTo(scrX(q[0]), scrY(q[1])) : ctx.moveTo(scrX(q[0]), scrY(q[1]))); ctx.stroke(); ctx.restore(); }
+  if (deal) { ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = "800 15px sans-serif";
+    for (const [list, col, sym] of [[deal.get, "#22c55e", "+"], [deal.give, "#ef4444", "−"]]) for (const q of list) { const x = scrX(w.cx[q]), y = scrY(w.cy[q]); ctx.fillStyle = col; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, 12 + pulse * 2, 0, 7); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#fff"; ctx.fillText(sym, x, y + 1); }
+    ctx.restore(); }
   if (frontPts && frontPts.length > 1) { ctx.save(); ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); frontPts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke(); ctx.strokeStyle = "#f5b531"; ctx.lineWidth = 5; ctx.setLineDash([10, 7]); ctx.stroke(); ctx.restore(); }
   // geselecteerde provincie
   if (s.bld && scale > 2.2) { ctx.font = "12px sans-serif"; ctx.textAlign = "center"; for (const p in s.bld) { const b = s.bld[p], t = (b.fab ? "🏭" : "") + (b.bunker ? "🧱" : "") + (b.haven ? "⚓" : ""); if (!t || p >= w.P) continue; const x = scrX(w.cx[p]), y = scrY(w.cy[p]) + 16; if (x < -20 || x > VW + 20 || y < -20 || y > VH + 20) continue; ctx.fillText(t, x, y); } }
@@ -2433,6 +2547,7 @@ cv.addEventListener("pointerdown", e => {
   if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; g = { pinch: true, d: Math.hypot(a[0] - b[0], a[1] - b[1]), sc: scale, mx: (a[0] + b[0]) / 2, my: (a[1] + b[1]) / 2, ox, oy }; drag = null; frontPts = null; return; }
   g = { x: e.clientX, y: e.clientY, ox, oy, moved: false };
   if (!s || s.over || picking) return;
+  if (lineM) { frontPts = [[e.clientX, e.clientY]]; g.front = true; g.ult = true; return; }
   if (mode === "front") { frontPts = [[e.clientX, e.clientY]]; g.front = true; return; }
   const a = hitArmy(e.clientX, e.clientY, true); if (a) { g.army = a; }
 });
@@ -2448,6 +2563,7 @@ function endPtr(e) {
   const had = ptrs.has(e.pointerId); ptrs.delete(e.pointerId); if (!had || !g) return;
   if (g.pinch) { if (ptrs.size === 0) g = null; return; }
   const up = e.type === "pointerup";
+  if (g.front && g.ult) { const pts = frontPts; frontPts = null; g = null; if (up && pts && pts.length > 1) lineDrawn(pts); return; }
   if (g.front) { const pts = frontPts; frontPts = null; g = null; if (up && pts && pts.length > 2) doFront(pts); else if (up) toast("✏️ Trek met je vinger een lijn over de kaart"); return; }
   if (g.army && drag) { const d = drag; drag = null; g = null; if (up && d.to >= 0) orderTo(d.a, d.to, sel === d.a); return; }
   if (up && !g.moved) tap(e.clientX, e.clientY);
@@ -2459,6 +2575,8 @@ cv.addEventListener("wheel", e => { e.preventDefault(); const f = Math.exp(-e.de
 function tap(cx, cy) {
   if (picking) { const p = provAt(cx, cy); if (p >= 0) { if (s.mode === "spawn") spawnCard(p); else pickCard(s.owner[p], p); } return; }
   if (!s || s.over) return;
+  if (deal) { const p = provAt(cx, cy); if (p >= 0) dealTap(p); return; }
+  if (lineM) return;
   const a = hitArmy(cx, cy, false);
   if (a && a.o === s.me) { if (sel === a) { sel = null; hideCard(); } else { sel = a; armyCard(a); } return; }
   const p = a ? a.p : provAt(cx, cy);
@@ -2494,6 +2612,62 @@ function doFront(pts) {
 
 // ---------- kaartjes ----------
 function hideCard() { card = null; $("card").classList.add("hidden"); $("toasts").classList.remove("up"); }
+// ---------- handel met zelf gekozen provincies ----------
+let deal = null, lineM = null;
+function startDeal(o) { if (!s.nations[o]) return; lineM = null; deal = { o, get: [], give: [], pay: 0 }; sel = null; paused = true; $("bPause").textContent = "▶"; dealCard(); toast(`🤝 Tik op provincies van ${nm(o)} (krijgen) of van jou (geven)`); }
+function dealTap(p) {
+  const o = s.owner[p], B = s.nations[deal.o];
+  const tog = (list, q) => { const i = list.indexOf(q); i >= 0 ? list.splice(i, 1) : list.push(q); };
+  if (o === deal.o) { if (p === B.capital) { toast("❌ Hun hoofdstad is niet te koop"); return; } tog(deal.get, p); }
+  else if (o === s.me) { if (p === s.nations[s.me].capital) { toast("❌ Je hoofdstad geef je niet weg"); return; } tog(deal.give, p); }
+  else { toast(`Tik op provincies van ${nm(deal.o)} of van jezelf`); return; }
+  dealCard();
+}
+function dealCard() {
+  const B = s.nations[deal.o], me = s.nations[s.me], ck = WZ.dealCheck(w, s, s.me, deal.o, deal.get, deal.give);
+  const vGet = deal.get.reduce((a, q) => a + WZ.provPrice(w, s, q), 0), vGive = deal.give.reduce((a, q) => a + WZ.provPrice(w, s, q), 0);
+  const lo = -Math.floor(Math.min(B.pool, Math.max(0, vGive - vGet) * 1.2 + 1)), hi = Math.floor(me.pool);
+  deal.pay = Math.max(lo, Math.min(hi, deal.pay || Math.max(0, Math.min(hi, vGet - vGive))));
+  showCard(`<div class="hd">${fIcon(deal.o)}<div class="ttl">🤝 Handel met ${E(B.name)}</div></div>
+    <div class="info">🟢 Jij krijgt: <b>${deal.get.length}</b> provincie${deal.get.length === 1 ? "" : "s"} (waarde ${fmt(vGet)}) · 🔴 jij geeft: <b>${deal.give.length}</b> (waarde ${fmt(vGive)})</div>
+    <div class="trp"><div class="tl"><b id="dPayT"></b><span id="dCh"></span></div><input type="range" id="dPay" min="${lo}" max="${Math.max(hi, lo + 1)}" step="${Math.max(1, Math.round((hi - lo) / 200))}" value="${deal.pay}"></div>
+    <div class="hint">${ck.ok ? "👉 Tik op meer provincies om het voorstel aan te passen." : "👉 " + E(ck.err)}</div>
+    <div class="btns"><button type="button" class="go" data-a="dsend" ${ck.ok ? "" : "disabled"}>📨 Voorstel doen</button><button type="button" data-a="dstop">✖️ Stoppen</button></div>`, { deal: true });
+  const upd = () => { deal.pay = +$("dPay").value; $("dPayT").textContent = deal.pay > 0 ? `🪖 Jij betaalt ${fmt(deal.pay)} troepen` : deal.pay < 0 ? `🪖 ${B.name} betaalt jou ${fmt(-deal.pay)} troepen` : "🪖 Geen troepen erbij";
+    const c = WZ.dealChance(w, s, s.me, deal.o, deal.get, deal.give, deal.pay); $("dCh").textContent = ck.ok ? `kans ~${Math.round(c * 100)}%` : ""; $("dCh").style.color = c > 0.6 ? "#22c55e" : c > 0.3 ? "#f59e0b" : "#ef4444"; };
+  $("dPay").oninput = upd; upd();
+}
+function dealAct(act) {
+  if (act === "dstop") { deal = null; hideCard(); resumePlay(); return; }
+  if (act === "dsend") { const B = s.nations[deal.o], r = WZ.tradeDeal(w, s, s.me, deal.o, deal.get, deal.give, deal.pay);
+    if (r.ok) { toast(`🤝 ${B.name} gaat akkoord! De provincies zijn geruild`); onEvents(s.ev.splice(0)); deal = null; hideCard(); resumePlay(); } else { toast("❌ " + r.err); dealCard(); } }
+}
+// ---------- ultimatum met een lijn ----------
+function startLine(o) { if (!s.nations[o]) return; deal = null; lineM = { o }; sel = null; paused = true; $("bPause").textContent = "▶"; lineCard(); }
+function lineDrawn(pts) {
+  lineM.pts = pts.map(([x, y]) => toWorld(x, y));
+  const c = WZ.lineClaim(w, s, s.me, lineM.o, lineM.pts); lineM.c = c.ok ? c : null; lineM.ov = null;
+  if (!c.ok) { toast("❌ " + c.err); lineCard(); return; }
+  let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1; for (const t of c.claim) { const x = t % W, y = (t / W) | 0; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  const cv2 = document.createElement("canvas"); cv2.width = x1 - x0 + 1; cv2.height = y1 - y0 + 1; const cx = cv2.getContext("2d"), id = cx.createImageData(cv2.width, cv2.height);
+  for (const t of c.claim) { const i = (((t / W) | 0) - y0) * cv2.width + (t % W - x0); id.data[i * 4] = 239; id.data[i * 4 + 1] = 68; id.data[i * 4 + 2] = 68; id.data[i * 4 + 3] = 200; }
+  cx.putImageData(id, 0, 0); lineM.ov = { c: cv2, x0, y0 }; lineCard();
+}
+function lineCard() {
+  const B = s.nations[lineM.o], c = lineM.c;
+  showCard(`<div class="hd">${fIcon(lineM.o)}<div class="ttl">✏️ Lijn-ultimatum aan ${E(B.name)}</div></div>
+    ${c ? `<div class="info">🔴 Je eist <b>${Math.round(c.frac * 100)}%</b> van hun land: ${c.whole} hele provincie${c.whole === 1 ? "" : "s"} en ${c.part} stuk${c.part === 1 ? "" : "ken"} van provincies.<br>Jij bent ${c.ratio.toFixed(1).replace(".", ",")}× zo sterk · nodig ±${c.need.toFixed(1).replace(".", ",")}× · kans <b style="color:${c.chance > 0.6 ? "#22c55e" : c.chance > 0.3 ? "#f59e0b" : "#ef4444"}">~${Math.round(c.chance * 100)}%</b></div>
+      <div class="hint">⚠️ Weigeren ze, dan is het oorlog.</div>
+      <div class="btns"><button type="button" class="go wide" data-a="lsend">📜 Eis het op</button><button type="button" data-a="lredo">✏️ Opnieuw</button><button type="button" data-a="lstop">✖️ Stoppen</button></div>`
+    : `<div class="info">Trek met je vinger een lijn dwars door het land van ${E(B.name)}, van grens tot grens. Alles aan jouw kant van de lijn eis je op, ook halve provincies.</div>
+      <div class="btns"><button type="button" class="wide" data-a="lstop">✖️ Stoppen</button></div>`}`, { line: true });
+}
+function lineAct(act) {
+  if (act === "lstop") { lineM = null; hideCard(); resumePlay(); return; }
+  if (act === "lredo") { lineM = { o: lineM.o }; lineCard(); return; }
+  if (act === "lsend" && lineM.pts) { const B = s.nations[lineM.o], r = WZ.ultimatumLine(w, s, s.me, lineM.o, lineM.pts);
+    toast(r.ok ? `📜 ${B.name} geeft toe! De nieuwe grens geldt` : "❌ " + r.err); onEvents(s.ev.splice(0)); lineM = null; hideCard(); resumePlay(); }
+}
 function showCard(html, data) { card = data; $("card").innerHTML = html; $("card").classList.remove("hidden"); $("toasts").classList.add("up"); }
 function regionName(p) { return w.names[w.pCtry[p]] || ""; }
 // schuifbalk voor aantal troepen (reserve of leger)
@@ -2545,7 +2719,7 @@ function provCard(p) {
         `<button type="button" class="atk" data-a="atk">⚔️ Aanvallen · <span data-amt></span></button>${nearest ? `<button type="button" data-a="send">🪖 Stuur leger · ${fmt(nearest.n)}</button>` : `<button type="button" data-a="ally" class="ally">🤝 Alliantie vragen</button>`}`}
         ${!al && nearest ? `<button type="button" class="ally" data-a="ally">🤝 Alliantie vragen</button>` : ""}
         <button type="button" data-a="x">✖️ ${al ? "Sluiten" : "Niet aanvallen"}</button></div>
-      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button><button type="button" data-a="vazal" style="grid-column:1/-1">👑 Eis vazalschap<small>${(() => { if (n.overlord) return "is al vazal van " + E(nm(n.overlord)); const c = WZ.vassalChance(w, s, s.me, o); return c ? E(n.name) + " valt onder jou, maar bestaat door · kans ~" + Math.round(c * 100) + "%" : "je moet minstens 1,8× zo sterk zijn · anders oorlog"; })()}</small></button><button type="button" data-a="unie" style="grid-column:1/-1">🫱🏻‍🫲🏽 Unificatie vragen<small>${(() => { const c = WZ.unionChance(w, s, s.me, o); return n.provs > me.provs * 0.6 ? "kan alleen met een land dat duidelijk kleiner is" : c ? "heel " + E(n.name) + " sluit zich bij je aan · kans ~" + Math.round(c * 100) + "%" : "niet tijdens een oorlog"; })()}</small></button></div>` : ""}`, { p });
+      ${n ? `<div class="dip"><button type="button" data-a="buy">💰 Koop<small>${fmt(WZ.provPrice(w, s, p))} troepen</small></button><button type="button" data-a="nap" ${al || WZ.nap(s, s.me, o) ? "disabled" : ""}>🕊️ Verdrag<small>${WZ.nap(s, s.me, o) ? "loopt al" : "niet aanvallen"}</small></button><button type="button" data-a="ult">📜 Ultimatum<small>eis deze provincie</small></button><button type="button" data-a="ulthalf">✂️ Halve provincie<small>eis het deel aan jouw kant · kans ~${Math.round(WZ.halfChance(w, s, s.me, p) * 100)}%</small></button><button type="button" data-a="ultline">✏️ Lijn-ultimatum<small>trek een nieuwe grens</small></button><button type="button" data-a="deal">🤝 Handel<small>kies zelf provincies</small></button><button type="button" data-a="vazal" style="grid-column:1/-1">👑 Eis vazalschap<small>${(() => { if (n.overlord) return "is al vazal van " + E(nm(n.overlord)); const c = WZ.vassalChance(w, s, s.me, o); return c ? E(n.name) + " valt onder jou, maar bestaat door · kans ~" + Math.round(c * 100) + "%" : "je moet minstens 1,8× zo sterk zijn · anders oorlog"; })()}</small></button><button type="button" data-a="unie" style="grid-column:1/-1">🫱🏻‍🫲🏽 Unificatie vragen<small>${(() => { const c = WZ.unionChance(w, s, s.me, o); return n.provs > me.provs * 0.6 ? "kan alleen met een land dat duidelijk kleiner is" : c ? "heel " + E(n.name) + " sluit zich bij je aan · kans ~" + Math.round(c * 100) + "%" : "niet tijdens een oorlog"; })()}</small></button></div>` : ""}`, { p });
   }
   card.upd = () => {
     const n2 = amt(), pool = s.nations[s.me].pool, need = s.mil[p] + (o && o !== s.me ? defs() : 0);
@@ -2615,6 +2789,8 @@ $("card").addEventListener("click", e => {
     if (act === "reinf") { const r = WZ.createArmy(w, s, s.me, a.p, me.pool * frac); toast(r.ok ? `➕ Leger versterkt tot ${fmt(a.n)}` : "❌ " + r.err); armyCard(a, true); }
     return;
   }
+  if (c.deal) { dealAct(act); return; }
+  if (c.line) { lineAct(act); return; }
   const p = c.p, o = s.owner[p];
   if (act === "new") { const r = WZ.createArmy(w, s, s.me, p, me.pool * frac); if (r.ok) { toast(`🪖 Nieuw leger van ${fmt(r.a.n)}`); sel = r.a; armyCard(r.a); } else toast("❌ " + r.err); }
   if (act === "atk") { const r = WZ.attackWithPool(w, s, s.me, p, frac); if (r.ok) { toast(o ? `⚔️ ${fmt(r.troops)} troepen vallen ${nm(o)} aan${r.sea ? " over zee ⛵" : ""}` : `🌱 ${fmt(r.troops)} troepen breiden uit${r.sea ? " over zee ⛵" : ""}`); hideCard(); } else toast("❌ " + (r.err === "geen route" ? "daar kun je niet komen" : r.err)); }
@@ -2627,6 +2803,9 @@ $("card").addEventListener("click", e => {
   if (act === "vannex") { const r = WZ.annexVassal(w, s, s.me, o); if (r.ok) { onEvents(s.ev.splice(0)); hideCard(); } else toast("❌ " + r.err); return; }
   if (act === "vfree") { const r = WZ.releaseVassal(w, s, s.me, o); toast(r.ok ? `🕊️ ${nm(o)} is weer vrij (met 5 minuten verdrag)` : "❌ " + r.err); hideCard(); return; }
   if (act === "unie") { const r = WZ.askUnion(w, s, s.me, o); if (r.ok) { onEvents(s.ev.splice(0)); hideCard(); } else toast("❌ " + r.err); return; }
+  if (act === "deal") { startDeal(o); return; }
+  if (act === "ultline") { startLine(o); return; }
+  if (act === "ulthalf") { const r = WZ.ultimatumHalf(w, s, s.me, p); toast(r.ok ? `✂️ ${nm(o)} staat de helft van de provincie af!` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "ult") { const r = WZ.ultimatum(w, s, s.me, p); toast(r.ok ? `📜 ${nm(o)} geeft toe! De provincie is van jou` : "❌ " + r.err); if (r.ok) { hideCard(); onEvents(s.ev.splice(0)); } return; }
   if (act === "send") { const a = nearestArmy(p); if (a) orderTo(a, p); }
   if (act === "ally") { const r = WZ.askAlliance(s, s.me, o); if (r.ok) { toast(r.kind === "join" ? `🤝 Je zit nu in ${r.f.naam}!` : r.kind === "invite" ? `🤝 ${nm(o)} doet mee met ${r.f.naam}!` : `🤝 ${nm(o)} en jij vormen nu ${r.f.naam}!`); provCard(p); } else toast(`❌ ${nm(o)}: ${r.err}`); }
@@ -2681,7 +2860,7 @@ function onEvents(evs) {
     else if (e.type === "vassal") { labelT = -9; toast(e.id === s.me ? `👑 ${nm(e.t)} is nu jouw vazal!` : `📢 ${nm(e.t)} wordt vazal van ${nm(e.id)}`); }
     else if (e.type === "split") {
       for (const k of [e.p, e.q]) { pBox.delete(k); sOrd.delete(k); dirty.add(k); for (const r of w.adj[k]) dirty.add(r); } labelT = -9;
-      if (e.a === s.me || e.b === s.me) toast(`✂️ Jij en ${nm(e.a === s.me ? e.b : e.a)} vielen tegelijk aan: de provincie is gedeeld`);
+      if (!e.quiet && (e.a === s.me || e.b === s.me)) toast(`✂️ Jij en ${nm(e.a === s.me ? e.b : e.a)} vielen tegelijk aan: de provincie is gedeeld`);
     }
     else if (e.type === "union") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🫱🏻‍🫲🏽 ${s.nations[e.t].name} sluit zich bij je aan! +${e.ps.length} provincie${e.ps.length === 1 ? "" : "s"}` : `📢 ${s.nations[e.t].name} gaat op in ${nm(e.id)}`); }
     else if (e.type === "annex") { for (const q of e.ps) dirty.add(q); labelT = -9; toast(e.id === s.me ? `🤝 Je lijft ${s.nations[e.t].name} in!` : `📢 ${nm(e.id)} lijft ${s.nations[e.t].name} in`); }
@@ -2746,6 +2925,7 @@ function menu(resumeData) {
 const HELP = `<div class="help">
   <div class="st"><i>🌱</i><div><b>Startplek (RoFront):</b> de kaart begint leeg. Kies een plek in het niemandsland en breid uit, provincie voor provincie. De eerste minuten heb je startbescherming.</div></div>
   <div class="st"><i>🌱</i><div><b>Uitbreiden:</b> tik op niemandsland en je troepen trekken er meteen heen. Het land kleurt pixel voor pixel. Hoeveel troepen gaan stel je onderin in.</div></div>
+  <div class="st"><i>🤝</i><div><b>Handel en ultimatums:</b> tik op een provincie van een ander land. Bij 🤝 Handel kies je zelf welke provincies je wilt krijgen en geven, plus troepen erbij. Met ✂️ Halve provincie eis je het deel aan jouw kant. Met ✏️ Lijn-ultimatum trek je zelf een nieuwe grens.</div></div>
   <div class="st"><i>⚜️</i><div><b>Regering (🏛️):</b> met politieke macht kies je een leider, huur je adviseurs en generaals. Koppel een generaal aan een leger via het legerkaartje. Op je eigen provincies bouw je fabrieken, bunkers en marinebases.</div></div>
   <div class="st"><i>👑</i><div><b>Vazallen:</b> eis van een zwakker land dat het jouw vazal wordt. Het bestaat door, maar telt mee voor jouw deel van de kaart, betaalt je troepen en vecht met je mee. Later kun je het inlijven.</div></div>
   <div class="st"><i>✂️</i><div><b>Delen:</b> val je een provincie aan terwijl een ander land dat ook doet, dan wordt hij verdeeld. Ieder krijgt het stuk aan zijn eigen kant.</div></div>
@@ -2823,8 +3003,8 @@ function maybeReq() {
     focusProv(q, Math.max(scale, minScale() * 3)); oy = VH * 0.25 - w.cy[q] * scale; clampView(); hlProv = { p: q, until: performance.now() + 20000 };
     ov(`<h2>📜 Ultimatum!</h2>
     <div class="fm" style="margin-top:8px"><div class="t"><img alt="" src="${flagURL(flagOf(B))}"><div><b>${E(B.name)}</b><small>${ratio.toFixed(1).replace(".", ",")}× zo sterk als jij</small></div></div></div>
-    <p>${E(B.name)} eist dat je ${regionName(q) && regionName(q) !== s.nations[s.me].name ? "de provincie <b style=\"color:var(--ink)\">" + E(regionName(q)) + "</b>" : "een grensprovincie"} afstaat (gemarkeerd op de kaart). Geef je niet toe, dan verklaart ${E(B.name)} je de oorlog.</p>
-    <button class="big" data-rq="give" type="button" style="min-height:52px">🏳️ Geef toe · provincie afstaan</button>
+    <p>${E(B.name)} eist dat je ${r.half ? "<b style=\"color:var(--ink)\">de helft van</b> " : ""}${regionName(q) && regionName(q) !== s.nations[s.me].name ? "de provincie <b style=\"color:var(--ink)\">" + E(regionName(q)) + "</b>" : "een grensprovincie"} afstaat (gemarkeerd op de kaart). Geef je niet toe, dan verklaart ${E(B.name)} je de oorlog.</p>
+    <button class="big" data-rq="give" type="button" style="min-height:52px">🏳️ Geef toe · ${r.half ? "halve provincie" : "provincie"} afstaan</button>
     <button class="big red" data-rq="no" type="button">⚔️ Weigeren · oorlog!</button>`);
     $("ovc").onclick = e => { const b = e.target.closest("[data-rq]"); if (!b) return; const res = WZ.answerReq(w, s, b.dataset.rq); onEvents(s.ev.splice(0));
       toast(res.kind === "gave" ? `🏳️ Je staat de provincie af aan ${B.name}` : `⚔️ ${B.name} verklaart je de oorlog! Je volk staat achter je (+4 stabiliteit)`);
